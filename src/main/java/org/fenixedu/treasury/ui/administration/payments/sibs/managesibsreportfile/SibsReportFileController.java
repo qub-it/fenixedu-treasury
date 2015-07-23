@@ -135,6 +135,8 @@ public class SibsReportFileController extends TreasuryBaseController {
 
         setSibsReportFile(sibsReportFile, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             deleteSibsReportFile(sibsReportFile);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -156,6 +158,8 @@ public class SibsReportFileController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         setSibsReportFile(sibsReportFile, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             response.setContentType(sibsReportFile.getContentType());
             String filename = sibsReportFile.getFilename();
             response.setHeader("Content-disposition", "attachment; filename=" + filename);

@@ -150,6 +150,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
 
         setFinantialInstitution(finantialInstitution, model);
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             deleteFinantialInstitution(finantialInstitution);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -187,6 +189,7 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsManager(model);
+
             setFinantialInstitutionBean(bean, model);
             FinantialInstitution finantialInstitution = createFinantialInstitution(bean);
             setFinantialInstitution(finantialInstitution, model);
@@ -235,6 +238,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
         setFinantialInstitution(finantialInstitution, model);
         setFinantialInstitutionBean(bean, model);
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             updateFinantialInstitution(bean, model);
 
@@ -259,6 +264,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public void processReadToExportProductIntegrationFile(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             String output = ERPExporter.exportsProductsToXML(finantialInstitution);
             response.setContentType("text/xml");
@@ -285,6 +292,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public void processReadToExportCustomerIntegrationFile(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             String output = ERPExporter.exportsCustomersToXML(finantialInstitution);
             response.setContentType("text/xml");
@@ -311,6 +320,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public String processReadToExportProductIntegrationOnline(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             ERPExportOperation output = ERPExporter.exportProductsToIntegration(finantialInstitution);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
@@ -328,6 +339,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public String processReadToExportCustomersIntegrationOnline(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             ERPExportOperation output = ERPExporter.exportCustomersToIntegration(finantialInstitution);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
@@ -345,6 +358,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public String processReadToERPConfigurationUpdate(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             if (finantialInstitution.getErpIntegrationConfiguration() == null) {
                 DocumentNumberSeries paymentsIntegrationSeries =
@@ -370,6 +385,8 @@ public class FinantialInstitutionController extends TreasuryBaseController {
     public String processReadToSibsConfigurationUpdate(@PathVariable("oid") FinantialInstitution finantialInstitution,
             Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             assertUserIsBackOfficeMember(finantialInstitution, model);
             if (finantialInstitution.getSibsConfiguration() == null) {
                 SibsConfiguration sibsConfiguration =

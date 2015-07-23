@@ -40,6 +40,8 @@ import org.fenixedu.treasury.services.payments.sibs.incomming.SibsIncommingPayme
 import org.fenixedu.treasury.services.payments.sibs.incomming.SibsIncommingPaymentFileDetailLine;
 import org.fenixedu.treasury.util.Constants;
 
+import pt.ist.fenixframework.Atomic;
+
 public class SIBSPaymentsImporter {
 
     static private final String PAYMENT_FILE_EXTENSION = "INP";
@@ -173,6 +175,7 @@ public class SIBSPaymentsImporter {
         }
     }
 
+    @Atomic
     protected void processCode(SibsIncommingPaymentFileDetailLine detailLine, User person, ProcessResult result,
             FinantialInstitution finantialInstitution, final String sibsImportationFile) throws Exception {
 

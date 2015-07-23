@@ -99,10 +99,6 @@ public class VatTypeController extends TreasuryBaseController {
     }
 
     private Stream<VatType> getSearchUniverseSearchVatTypeDataSet() {
-        //
-        // The initialization of the result list must be done here
-        //
-        //
         return VatType.findAll();
     }
 
@@ -125,88 +121,57 @@ public class VatTypeController extends TreasuryBaseController {
     @RequestMapping(value = "/search/view/{oid}")
     public String processSearchToViewAction(@PathVariable("oid") VatType vatType, Model model,
             RedirectAttributes redirectAttributes) {
-
-        // CHANGE_ME Insert code here for processing viewAction
-        // If you selected multiple exists you must choose which one to use
-        // below
         return redirect("/treasury/administration/base/managevattype/vattype/read" + "/" + vatType.getExternalId(), model,
                 redirectAttributes);
     }
 
-    //
     @RequestMapping(value = READ_URI + "{oid}")
     public String read(@PathVariable("oid") VatType vatType, Model model) {
         setVatType(vatType, model);
         return "treasury/administration/base/managevattype/vattype/read";
     }
 
-    //
     @RequestMapping(value = DELETE_URI + "{oid}", method = RequestMethod.POST)
     public String delete(@PathVariable("oid") VatType vatType, Model model, RedirectAttributes redirectAttributes) {
 
         setVatType(vatType, model);
         try {
-            // call the Atomic delete function
+            assertUserIsFrontOfficeMember(model);
+
             deleteVatType(vatType);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
 
         } catch (DomainException ex) {
-            // Add error messages to the list
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
 
         } catch (Exception ex) {
-            // Add error messages to the list
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
-        // The default mapping is the same Read View                         
         return redirect(READ_URL + getVatType(model).getExternalId(), model, redirectAttributes);
     }
 
-    //
     @RequestMapping(value = CREATE_URI, method = RequestMethod.GET)
     public String create(Model model) {
         return "treasury/administration/base/managevattype/vattype/create";
     }
 
-    //
     @RequestMapping(value = CREATE_URI, method = RequestMethod.POST)
     public String create(@RequestParam(value = "code", required = false) java.lang.String code, @RequestParam(value = "name",
             required = false) org.fenixedu.commons.i18n.LocalizedString name, Model model, RedirectAttributes redirectAttributes) {
-        /*
-         * Creation Logic
-         * 
-         * do something();
-         */
         try {
+            assertUserIsFrontOfficeMember(model);
+
             VatType vatType = createVatType(code, name);
 
-            /*
-             * Success Validation
-             */
-
-            // Add the bean to be used in the View
             model.addAttribute("vatType", vatType);
 
             return redirect("/treasury/administration/base/managevattype/vattype/read/" + getVatType(model).getExternalId(),
                     model, redirectAttributes);
 
         } catch (DomainException de) {
-
-            /*
-             * If there is any error in validation
-             * 
-             * Add a error / warning message
-             * 
-             * addErrorMessage(" Error because ...",model);
-             * addWarningMessage(" Waring becaus ...",model);
-             * 
-             * 
-             * 
-             * return create(model);
-             */
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
             return create(model);
 
@@ -218,22 +183,16 @@ public class VatTypeController extends TreasuryBaseController {
 
     @Atomic
     public VatType createVatType(java.lang.String code, org.fenixedu.commons.i18n.LocalizedString name) {
-        /*
-         * Modify the creation code here if you do not want to create the object
-         * with the default constructor and use the setter for each field
-         */
         VatType vatType = VatType.create(code, name);
         return vatType;
     }
 
-    //
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") VatType vatType, Model model) {
         setVatType(vatType, model);
         return "treasury/administration/base/managevattype/vattype/update";
     }
 
-    //
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
     public String update(@PathVariable("oid") VatType vatType,
             @RequestParam(value = "code", required = false) java.lang.String code,
@@ -242,37 +201,15 @@ public class VatTypeController extends TreasuryBaseController {
 
         setVatType(vatType, model);
 
-        /*
-         * UpdateLogic here
-         * 
-         * do something();
-         */
-
-        /*
-         * Succes Update
-         */
-
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateVatType(code, name, model);
 
             return redirect("/treasury/administration/base/managevattype/vattype/read/" + getVatType(model).getExternalId(),
                     model, redirectAttributes);
 
         } catch (DomainException de) {
-            // @formatter: off
-
-            /*
-             * If there is any error in validation
-             * 
-             * Add a error / warning message
-             * 
-             * addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") +
-             * de.getLocalizedMessage(),model);
-             * addWarningMessage(" Warning updating due to " +
-             * de.getLocalizedMessage(),model);
-             */
-            // @formatter: on
-
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
             return update(vatType, model);
 
@@ -285,10 +222,6 @@ public class VatTypeController extends TreasuryBaseController {
 
     @Atomic
     public void updateVatType(java.lang.String code, org.fenixedu.commons.i18n.LocalizedString name, Model m) {
-        /*
-         * Modify the update code here if you do not want to update the object
-         * with the default setter for each field
-         */
         getVatType(m).setCode(code);
         getVatType(m).setName(name);
     }

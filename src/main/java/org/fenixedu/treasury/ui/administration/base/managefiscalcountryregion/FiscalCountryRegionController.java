@@ -81,13 +81,9 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
 
     @Atomic
     public void deleteFiscalCountryRegion(FiscalCountryRegion fiscalCountryRegion) {
-        // CHANGE_ME: Do the processing for deleting the fiscalCountryRegion
-        // Do not catch any exception here
-
         fiscalCountryRegion.delete();
     }
 
-//				
     @RequestMapping(value = SEARCH_URI)
     public String search(@RequestParam(value = "fiscalCode", required = false) java.lang.String fiscalCode, @RequestParam(
             value = "name", required = false) org.fenixedu.commons.i18n.LocalizedString name, Model model) {
@@ -99,10 +95,6 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
     }
 
     private List<FiscalCountryRegion> getSearchUniverseSearchFiscalCountryRegionDataSet() {
-        //
-        //The initialization of the result list must be done here
-        //
-        //
         return FiscalCountryRegion.findAll().collect(Collectors.toList()); //CHANGE_ME
     }
 
@@ -129,8 +121,6 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
     public String processSearchToViewAction(@PathVariable("oid") FiscalCountryRegion fiscalCountryRegion, Model model,
             RedirectAttributes redirectAttributes) {
 
-        // CHANGE_ME Insert code here for processing viewAction
-        // If you selected multiple exists you must choose which one to use below	 
         return redirect("/treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/read" + "/"
                 + fiscalCountryRegion.getExternalId(), model, redirectAttributes);
     }
@@ -142,14 +132,14 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
         return "treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/read";
     }
 
-//
     @RequestMapping(value = DELETE_URI + "{oid}", method = RequestMethod.POST)
     public String delete(@PathVariable("oid") FiscalCountryRegion fiscalCountryRegion, Model model,
             RedirectAttributes redirectAttributes) {
 
         setFiscalCountryRegion(fiscalCountryRegion, model);
         try {
-            //call the Atomic delete function
+            assertUserIsFrontOfficeMember(model);
+
             deleteFiscalCountryRegion(fiscalCountryRegion);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -181,20 +171,11 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
     public String create(@RequestParam(value = "fiscalCode", required = false) java.lang.String fiscalCode, @RequestParam(
             value = "name", required = false) org.fenixedu.commons.i18n.LocalizedString name, Model model,
             RedirectAttributes redirectAttributes) {
-        /*
-        *  Creation Logic
-        *	
-        	do something();
-        *    		
-        */
         try {
+            assertUserIsFrontOfficeMember(model);
+
             FiscalCountryRegion fiscalCountryRegion = createFiscalCountryRegion(fiscalCode, name);
 
-            /*
-             * Success Validation
-             */
-
-            //Add the bean to be used in the View
             model.addAttribute("fiscalCountryRegion", fiscalCountryRegion);
 
             return redirect("/treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/read/"
@@ -215,23 +196,16 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
     @Atomic
     public FiscalCountryRegion createFiscalCountryRegion(java.lang.String fiscalCode,
             org.fenixedu.commons.i18n.LocalizedString name) {
-        /*
-         * Modify the creation code here if you do not want to create
-         * the object with the default constructor and use the setter
-         * for each field
-         */
         FiscalCountryRegion fiscalCountryRegion = FiscalCountryRegion.create(fiscalCode, name);
         return fiscalCountryRegion;
     }
 
-//				
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") FiscalCountryRegion fiscalCountryRegion, Model model) {
         setFiscalCountryRegion(fiscalCountryRegion, model);
         return "treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/update";
     }
 
-//				
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
     public String update(@PathVariable("oid") FiscalCountryRegion fiscalCountryRegion, @RequestParam(value = "fiscalCode",
             required = false) java.lang.String fiscalCode,
@@ -240,53 +214,26 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
 
         setFiscalCountryRegion(fiscalCountryRegion, model);
 
-        /*
-        *  UpdateLogic here
-        *	
-        	do something();
-        *    		
-        */
-
-        /*
-         * Succes Update
-         */
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateFiscalCountryRegion(fiscalCode, name, model);
 
             return redirect("/treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/read/"
                     + getFiscalCountryRegion(model).getExternalId(), model, redirectAttributes);
 
         } catch (DomainException de) {
-            // @formatter: off
-
-            /*
-             * If there is any error in validation
-             * 
-             * Add a error / warning message
-             * 
-             * addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") +
-             * de.getLocalizedMessage(),model);
-             * addWarningMessage(" Warning updating due to " +
-             * de.getLocalizedMessage(),model);
-             */
-            // @formatter: on
-
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
             return update(fiscalCountryRegion, model);
 
         } catch (Exception de) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
             return update(fiscalCountryRegion, model);
-
         }
     }
 
     @Atomic
     public void updateFiscalCountryRegion(java.lang.String fiscalCode, org.fenixedu.commons.i18n.LocalizedString name, Model m) {
-        /*
-         * Modify the update code here if you do not want to update
-         * the object with the default setter for each field
-         */
         getFiscalCountryRegion(m).setFiscalCode(fiscalCode);
         getFiscalCountryRegion(m).setName(name);
     }

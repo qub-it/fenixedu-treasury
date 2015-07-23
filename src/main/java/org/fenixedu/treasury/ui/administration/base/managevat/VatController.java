@@ -160,7 +160,8 @@ public class VatController extends TreasuryBaseController {
 
         setVat(vat, model);
         try {
-            //call the Atomic delete function
+            assertUserIsFrontOfficeMember(vat.getFinantialInstitution(), model);
+
             deleteVat(vat);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -201,13 +202,10 @@ public class VatController extends TreasuryBaseController {
             Model model, RedirectAttributes redirectAttributes) {
 
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             Vat vat = createVat(vatType, finantialInstitution, vatExemptionReason, taxRate, beginDate, endDate);
 
-            /*
-             * Success Validation
-             */
-
-            //Add the bean to be used in the View
             model.addAttribute("vat", vat);
 
             return redirect("/treasury/administration/base/managevat/vat/read/" + getVat(model).getExternalId(), model,
@@ -228,16 +226,10 @@ public class VatController extends TreasuryBaseController {
     @Atomic
     public Vat createVat(VatType vatType, FinantialInstitution finantialInstitution, VatExemptionReason vatExemptionReason,
             java.math.BigDecimal taxRate, org.joda.time.DateTime beginDate, org.joda.time.DateTime endDate) {
-        /*
-         * Modify the creation code here if you do not want to create
-         * the object with the default constructor and use the setter
-         * for each field
-         */
         Vat vat = Vat.create(vatType, finantialInstitution, vatExemptionReason, taxRate, beginDate, endDate);
         return vat;
     }
 
-//				
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") Vat vat, Model model) {
         setVat(vat, model);
@@ -248,7 +240,6 @@ public class VatController extends TreasuryBaseController {
         return "treasury/administration/base/managevat/vat/update";
     }
 
-//				
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
     public String update(
             @RequestParam(value = "vatExemptionReason", required = false) VatExemptionReason vatExemptionReason,
@@ -260,28 +251,15 @@ public class VatController extends TreasuryBaseController {
 
         setVat(vat, model);
 
-        /*
-        *  UpdateLogic here
-        *	
-        	do something();
-        *    		
-        */
-
-        /*
-         * Succes Update
-         */
-
         try {
+            assertUserIsFrontOfficeMember(vat.getFinantialInstitution(), model);
+
             updateVat(vatExemptionReason, taxRate, beginDate, endDate, model);
 
             return redirect("/treasury/administration/base/managevat/vat/read/" + getVat(model).getExternalId(), model,
                     redirectAttributes);
 
         } catch (DomainException de) {
-            // @formatter: off
-
-            // @formatter: on
-
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
             return update(vat, model);
 

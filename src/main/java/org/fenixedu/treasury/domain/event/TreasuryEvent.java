@@ -31,10 +31,10 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.Product;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -215,14 +215,15 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
     public void annulAllDebitEntries(final String reason) {
 
         if (isAbleToDeleteAllDebitEntries()) {
-            for (final DebitEntry debitEntry : getDebitEntriesSet()) {
+            for (final DebitEntry debitEntry : DebitEntry.findActive(this).collect(Collectors.toSet())) {
                 debitEntry.delete();
             }
         } else {
-            final String reasonDescription = Constants.bundle("label.TreasuryEvent.credit.by.annulAllDebitEntries.reason", reason);
+            final String reasonDescription =
+                    Constants.bundle("label.TreasuryEvent.credit.by.annulAllDebitEntries.reason", reason);
 
             final Set<DebitEntry> unprocessedDebitEntries = Sets.newHashSet();
-            for (final DebitEntry debitEntry : getDebitEntriesSet()) {
+            for (final DebitEntry debitEntry : DebitEntry.findActive(this).collect(Collectors.toSet())) {
                 if (debitEntry.isAnnulled()) {
                     continue;
                 }
@@ -244,10 +245,8 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
                                 (DebitNote) debitEntry.getFinantialDocument(), null);
 
                 final CreditEntry creditEntry =
-                        CreditEntry.create(creditNote,
-                                debitEntry.getDescription(),
-                                debitEntry.getProduct(), debitEntry.getVat(), debitEntry.getAmount(), new DateTime(), debitEntry,
-                                Constants.DEFAULT_QUANTITY);
+                        CreditEntry.create(creditNote, debitEntry.getDescription(), debitEntry.getProduct(), debitEntry.getVat(),
+                                debitEntry.getAmount(), new DateTime(), debitEntry, Constants.DEFAULT_QUANTITY);
 
                 creditNote.closeDocument();
 
@@ -265,10 +264,10 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
                 debitNoteForUnprocessedEntries.closeDocument();
                 debitNoteForUnprocessedEntries.anullDebitNoteWithCreditNote(reasonDescription);
             }
-            
+
             for (final DebitEntry debitEntry : getDebitEntriesSet()) {
                 debitEntry.annulOnEvent();
-            }            
+            }
         }
     }
 

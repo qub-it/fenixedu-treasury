@@ -134,6 +134,7 @@ public class CurrencyController extends TreasuryBaseController {
     public String delete(@PathVariable("oid") Currency currency, Model model, RedirectAttributes redirectAttributes) {
         setCurrency(currency, model);
         try {
+            assertUserIsFrontOfficeMember(model);
             deleteCurrency(currency);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -156,6 +157,8 @@ public class CurrencyController extends TreasuryBaseController {
             required = false) LocalizedString name, @RequestParam(value = "isocode", required = false) String isoCode,
             @RequestParam(value = "symbol", required = false) String symbol, Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(model);
+
             Currency currency = createCurrency(code, name, isoCode, symbol);
             model.addAttribute("currency", currency);
 
@@ -187,6 +190,8 @@ public class CurrencyController extends TreasuryBaseController {
             Model model, RedirectAttributes redirectAttributes) {
         setCurrency(currency, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateCurrency(code, name, isoCode, symbol, model);
             return redirect(READ_URL + getCurrency(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {

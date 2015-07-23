@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.exceptions.DomainException;
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.CreditEntry;
@@ -45,10 +44,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-
 import pt.ist.fenixframework.Atomic;
+
+import com.google.common.base.Strings;
 
 //@Component("org.fenixedu.treasury.ui.viewCustomerTreasuryEvents") <-- Use for duplicate controller name disambiguation
 //@SpringFunctionality(app = TreasuryController.class, title = "label.title.viewCustomerTreasuryEvents",accessGroup = "#managers")// CHANGE_ME accessGroup = "group1 | group2 | groupXPTO"
@@ -76,28 +74,8 @@ public class TreasuryEventController extends TreasuryBaseController {
 
     @RequestMapping
     public String home(Model model) {
-        //this is the default behaviour, for handling in a Spring Functionality
         return "forward:" + SEARCH_URL;
     }
-
-    // @formatter: off
-
-    /*
-    * This should be used when using AngularJS in the JSP
-    */
-
-    //private TreasuryEvent getTreasuryEventBean(Model model)
-    //{
-    //	return (TreasuryEvent)model.asMap().get("treasuryEventBean");
-    //}
-    //				
-    //private void setTreasuryEventBean (TreasuryEventBean bean, Model model)
-    //{
-    //	model.addAttribute("treasuryEventBeanJson", getBeanJson(bean));
-    //	model.addAttribute("treasuryEventBean", bean);
-    //}
-
-    // @formatter: on
 
     private TreasuryEvent getTreasuryEvent(Model model) {
         return (TreasuryEvent) model.asMap().get("treasuryEvent");
@@ -109,31 +87,21 @@ public class TreasuryEventController extends TreasuryBaseController {
 
     @Atomic
     public void deleteTreasuryEvent(TreasuryEvent treasuryEvent) {
-        // CHANGE_ME: Do the processing for deleting the treasuryEvent
-        // Do not catch any exception here
-
         // treasuryEvent.delete();
     }
 
-//				
     @RequestMapping(value = "/")
     public String searchTreasuryEvents(@RequestParam(value = "debtaccount", required = true) DebtAccount debtAccount, Model model) {
         List<? extends TreasuryEvent> searchtreasuryeventsResultsDataSet = filterSearchTreasuryEvents(debtAccount);
 
-        //add the results dataSet to the model
         model.addAttribute("debtAccount", debtAccount);
         model.addAttribute("searchtreasuryeventsResultsDataSet", searchtreasuryeventsResultsDataSet);
         return "treasury/accounting/managecustomer/treasuryevent/search";
     }
 
     private Stream<? extends TreasuryEvent> getSearchUniverseSearchTreasuryEventsDataSet() {
-        //
-        //The initialization of the result list must be done here
-        //
-        //
         return TreasuryEvent.findAll();
 
-//        return new ArrayList<TreasuryEvent>().stream();
     }
 
     private List<? extends TreasuryEvent> filterSearchTreasuryEvents(DebtAccount debtAccount) {
@@ -145,8 +113,6 @@ public class TreasuryEventController extends TreasuryBaseController {
     public String processSearchTreasuryEventsToViewAction(@PathVariable("oid") TreasuryEvent treasuryEvent, Model model,
             RedirectAttributes redirectAttributes) {
 
-        // CHANGE_ME Insert code here for processing viewAction
-        // If you selected multiple exists you must choose which one to use below	 
         return redirect("/treasury/accounting/managecustomer/treasuryevent/read" + "/" + treasuryEvent.getExternalId(), model,
                 redirectAttributes);
     }
@@ -171,6 +137,7 @@ public class TreasuryEventController extends TreasuryBaseController {
             @PathVariable("debitEntryId") final DebitEntry debitEntry, final Model model) {
 
         try {
+            assertUserIsFrontOfficeMember(debitEntry.getDebtAccount().getFinantialInstitution(), model);
 
             if (!debitEntry.isEventAnnuled()) {
                 debitEntry.annulOnEvent();
@@ -188,6 +155,7 @@ public class TreasuryEventController extends TreasuryBaseController {
             @PathVariable("debitEntryId") final DebitEntry debitEntry, final Model model) {
 
         try {
+            assertUserIsFrontOfficeMember(debitEntry.getDebtAccount().getFinantialInstitution(), model);
 
             if (debitEntry.isEventAnnuled()) {
                 debitEntry.revertEventAnnuled();
@@ -204,22 +172,23 @@ public class TreasuryEventController extends TreasuryBaseController {
     public static final String ANNULALLDEBITENTRIES_URL = CONTROLLER_URL + ANNULALLDEBITENTRIES_URI;
 
     @RequestMapping(value = ANNULALLDEBITENTRIES_URI + "{treasuryEventId}")
-    public String annulAllDebitEntries(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, @RequestParam(value="treasuryEventAnullDebitEntriesReason", required=false) final String reason, 
-            final Model model) {
+    public String annulAllDebitEntries(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, @RequestParam(
+            value = "treasuryEventAnullDebitEntriesReason", required = false) final String reason, final Model model) {
         try {
+            assertUserIsFrontOfficeMember(treasuryEvent.getDebtAccount().getFinantialInstitution(), model);
 
-            if(Strings.isNullOrEmpty(reason)) {
+            if (Strings.isNullOrEmpty(reason)) {
                 addErrorMessage(Constants.bundle("label.TreasuryEvent.annulAllDebitEntries.reason.required"), model);
             }
-            
+
             treasuryEvent.annulAllDebitEntries(reason);
-            
+
             addInfoMessage(Constants.bundle("label.TreasuryEvent.annulAllDebitEntries.success"), model);
 
-        } catch(final DomainException e) {
+        } catch (final DomainException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
-        
+
         return read(treasuryEvent, model);
     }
 }

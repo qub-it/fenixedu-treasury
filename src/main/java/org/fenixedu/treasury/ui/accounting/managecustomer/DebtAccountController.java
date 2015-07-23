@@ -107,10 +107,9 @@ public class DebtAccountController extends TreasuryBaseController {
             List<TreasuryExemption> exemptionEntries = new ArrayList<TreasuryExemption>();
             List<InvoiceEntry> pendingInvoiceEntries = new ArrayList<InvoiceEntry>();
             allInvoiceEntries.addAll(debtAccount.getActiveInvoiceEntries().collect(Collectors.toList()));
-            paymentEntries =
-                    SettlementNote.findByDebtAccount(debtAccount).filter(x -> x.isClosed() || x.isPreparing())
-                            .filter(x -> !x.getPaymentEntriesSet().isEmpty() || !x.getReimbursementEntriesSet().isEmpty())
-                            .collect(Collectors.toList());
+            paymentEntries = SettlementNote.findByDebtAccount(debtAccount).filter(x -> x.isClosed() || x.isPreparing())
+//                            .filter(x -> !x.getPaymentEntriesSet().isEmpty() || !x.getReimbursementEntriesSet().isEmpty())
+                    .collect(Collectors.toList());
 
             exemptionEntries.addAll(TreasuryExemption.findByDebtAccount(debtAccount).collect(Collectors.toList()));
 

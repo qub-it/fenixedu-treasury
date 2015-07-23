@@ -100,6 +100,9 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
         setDocumentTemplate(documentTemplate, model);
         try {
             FinantialInstitution finantialInstitution = documentTemplate.getFinantialEntity().getFinantialInstitution();
+
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             deleteDocumentTemplate(documentTemplate);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
             return redirect(FinantialInstitutionController.READ_URL + finantialInstitution.getExternalId(), model,
@@ -118,6 +121,8 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
             @RequestParam(value = "finantialentityid", required = true) FinantialEntity finantialEntity, Model model,
             RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialEntity.getFinantialInstitution(), model);
+
             TreasuryDocumentTemplate documentTemplate = createDocumentTemplate(finantialDocumentTypes, finantialEntity);
             model.addAttribute("documentTemplate", documentTemplate);
         } catch (TreasuryDomainException tde) {
@@ -144,6 +149,8 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setDocumentTemplate(documentTemplate, model);
         try {
+            assertUserIsFrontOfficeMember(documentTemplate.getFinantialEntity().getFinantialInstitution(), model);
+
             uploadDocumentTemplateFile(documentTemplate, documentTemplateFile, model);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.upload"), model);
         } catch (TreasuryDomainException tde) {

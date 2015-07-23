@@ -149,7 +149,8 @@ public class CustomerTypeController extends TreasuryBaseController {
 
         setCustomerType(customerType, model);
         try {
-            // call the Atomic delete function
+            assertUserIsFrontOfficeMember(model);
+
             deleteCustomerType(customerType);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -187,6 +188,8 @@ public class CustomerTypeController extends TreasuryBaseController {
 
         CustomerType customerType;
         try {
+            assertUserIsFrontOfficeMember(model);
+
             customerType = createCustomerType(code, name);
 
             /*
@@ -237,16 +240,9 @@ public class CustomerTypeController extends TreasuryBaseController {
 
         setCustomerType(customerType, model);
 
-        /*
-         * UpdateLogic here
-         * 
-         * do something();
-         */
-
-        /*
-         * Succes Update
-         */
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateCustomerType(code, name, model);
 
             return redirect("/treasury/administration/base/managecustomertype/customertype/read/"

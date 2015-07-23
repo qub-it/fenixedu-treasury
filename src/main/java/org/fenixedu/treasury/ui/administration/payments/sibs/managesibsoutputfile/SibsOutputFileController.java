@@ -130,6 +130,8 @@ public class SibsOutputFileController extends TreasuryBaseController {
 
         setSibsOutputFile(sibsOutputFile, model);
         try {
+            assertUserIsFrontOfficeMember(sibsOutputFile.getFinantialInstitution(), model);
+
             deleteSibsOutputFile(sibsOutputFile);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -151,6 +153,8 @@ public class SibsOutputFileController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         setSibsOutputFile(sibsOutputFile, model);
         try {
+            assertUserIsFrontOfficeMember(sibsOutputFile.getFinantialInstitution(), model);
+
             response.setContentType(sibsOutputFile.getContentType());
             String filename = sibsOutputFile.getFilename();
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
@@ -187,6 +191,8 @@ public class SibsOutputFileController extends TreasuryBaseController {
         }
 
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             SibsOutputFile sibsOutputFile = createSibsOutputFile(lastSuccessfulExportation, finantialInstitution);
 
             model.addAttribute("sibsOutputFile", sibsOutputFile);

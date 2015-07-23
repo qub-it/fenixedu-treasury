@@ -86,13 +86,9 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
 
     @Atomic
     public void deleteFinantialDocumentType(FinantialDocumentType finantialDocumentType) {
-        // CHANGE_ME: Do the processing for deleting the finantialDocumentType
-        // Do not catch any exception here
-
         finantialDocumentType.delete();
     }
 
-//				
     @RequestMapping(value = SEARCH_URI)
     public String search(
             @RequestParam(value = "type", required = false) org.fenixedu.treasury.domain.document.FinantialDocumentTypeEnum type,
@@ -110,10 +106,6 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
     }
 
     private List<FinantialDocumentType> getSearchUniverseSearchFinantialDocumentTypeDataSet() {
-        //
-        //The initialization of the result list must be done here
-        //
-        //
         return FinantialDocumentType.findAll().collect(Collectors.toList());
     }
 
@@ -127,55 +119,45 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
     @RequestMapping(value = "/search/view/{oid}")
     public String processSearchToViewAction(@PathVariable("oid") FinantialDocumentType finantialDocumentType, Model model,
             RedirectAttributes redirectAttributes) {
-
-        // CHANGE_ME Insert code here for processing viewAction
-        // If you selected multiple exists you must choose which one to use below	 
         return redirect(READ_URL + finantialDocumentType.getExternalId(), model, redirectAttributes);
     }
 
-//				
     @RequestMapping(value = READ_URI + "{oid}")
     public String read(@PathVariable("oid") FinantialDocumentType finantialDocumentType, Model model) {
         setFinantialDocumentType(finantialDocumentType, model);
         return "treasury/administration/document/managefinantialdocumenttype/finantialdocumenttype/read";
     }
 
-//
     @RequestMapping(value = DELETE_URI + "{oid}", method = RequestMethod.POST)
     public String delete(@PathVariable("oid") FinantialDocumentType finantialDocumentType, Model model,
             RedirectAttributes redirectAttributes) {
 
         setFinantialDocumentType(finantialDocumentType, model);
         try {
-            //call the Atomic delete function
+            assertUserIsFrontOfficeMember(model);
+
             deleteFinantialDocumentType(finantialDocumentType);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
 
         } catch (DomainException ex) {
-            //Add error messages to the list
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
 
         } catch (Exception ex) {
-            //Add error messages to the list
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
-        //The default mapping is the same Read View
         return redirect(READ_URL + getFinantialDocumentType(model).getExternalId(), model, redirectAttributes);
     }
 
-//				
     @RequestMapping(value = CREATE_URI, method = RequestMethod.GET)
     public String create(Model model) {
         model.addAttribute("typeValues", org.fenixedu.treasury.domain.document.FinantialDocumentTypeEnum.values());
         model.addAttribute("FinantialDocumentType_bennu_options", new ArrayList<org.fenixedu.bennu.core.domain.Bennu>()); // CHANGE_ME - MUST DEFINE RELATION
-        //model.addAttribute("FinantialDocumentType_bennu_options", org.fenixedu.bennu.core.domain.Bennu.findAll()); // CHANGE_ME - MUST DEFINE RELATION
         return "treasury/administration/document/managefinantialdocumenttype/finantialdocumenttype/create";
     }
 
-//				
     @RequestMapping(value = CREATE_URI, method = RequestMethod.POST)
     public String create(
             @RequestParam(value = "type", required = false) org.fenixedu.treasury.domain.document.FinantialDocumentTypeEnum type,
@@ -185,40 +167,22 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
             @RequestParam(value = "invoice", required = false) boolean invoice,
             @RequestParam(value = "bennu", required = false) org.fenixedu.bennu.core.domain.Bennu bennu, Model model,
             RedirectAttributes redirectAttributes) {
-        /*
-        *  Creation Logic
-        */
-
         try {
+            assertUserIsFrontOfficeMember(model);
 
             FinantialDocumentType finantialDocumentType =
                     createFinantialDocumentType(type, code, name, documentNumberSeriesPrefix, invoice, bennu);
 
-            //Success Validation
-            //Add the bean to be used in the View
             model.addAttribute("finantialDocumentType", finantialDocumentType);
             return redirect(READ_URL + getFinantialDocumentType(model).getExternalId(), model, redirectAttributes);
 
         } catch (DomainException de) {
-
-            // @formatter: off
-            /*
-             * If there is any error in validation 
-             *
-             * Add a error / warning message
-             * 
-             * addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(),model);
-             * addWarningMessage(" Warning creating due to "+ ex.getLocalizedMessage(),model); */
-            // @formatter: on
-
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
-            return create(model);
 
         } catch (Exception de) {
-            // ACFSILVA
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
-            return create(model);
         }
+        return create(model);
     }
 
     @Atomic
@@ -226,17 +190,6 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
             org.fenixedu.treasury.domain.document.FinantialDocumentTypeEnum type, java.lang.String code,
             org.fenixedu.commons.i18n.LocalizedString name, java.lang.String documentNumberSeriesPrefix, boolean invoice,
             org.fenixedu.bennu.core.domain.Bennu bennu) {
-
-        // @formatter: off
-
-        /*
-         * Modify the creation code here if you do not want to create
-         * the object with the default constructor and use the setter
-         * for each field
-         * 
-         */
-
-        // @formatter: on
 
         FinantialDocumentType finantialDocumentType = null;
         switch (type) {
@@ -258,14 +211,12 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
         return finantialDocumentType;
     }
 
-//				 
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") FinantialDocumentType finantialDocumentType, Model model) {
         setFinantialDocumentType(finantialDocumentType, model);
         return "treasury/administration/document/managefinantialdocumenttype/finantialdocumenttype/update";
     }
 
-//				
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
     public String update(@PathVariable("oid") FinantialDocumentType finantialDocumentType, @RequestParam(value = "code",
             required = false) java.lang.String code,
@@ -275,37 +226,18 @@ public class FinantialDocumentTypeController extends TreasuryBaseController {
         setFinantialDocumentType(finantialDocumentType, model);
 
         try {
-            /*
-            *  UpdateLogic here
-            */
+            assertUserIsFrontOfficeMember(model);
 
             updateFinantialDocumentType(code, name, model);
-
-            /*Succes Update */
 
             return redirect(READ_URL + getFinantialDocumentType(model).getExternalId(), model, redirectAttributes);
 
         } catch (DomainException de) {
-            // @formatter: off
-
-            /*
-            * If there is any error in validation 
-            *
-            * Add a error / warning message
-            * 
-            * addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(),model);
-            * addWarningMessage(" Warning updating due to " + de.getLocalizedMessage(),model);
-            */
-            // @formatter: on
-
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
-            return update(finantialDocumentType, model);
-
         } catch (Exception de) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
-            return update(finantialDocumentType, model);
-
         }
+        return update(finantialDocumentType, model);
     }
 
     @Atomic

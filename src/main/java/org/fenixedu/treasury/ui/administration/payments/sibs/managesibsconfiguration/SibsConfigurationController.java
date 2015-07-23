@@ -93,6 +93,8 @@ public class SibsConfigurationController extends TreasuryBaseController {
         setSibsConfiguration(sibsConfiguration, model);
 
         try {
+            assertUserIsFrontOfficeMember(sibsConfiguration.getFinantialInstitution(), model);
+
             assertUserIsBackOfficeMember(sibsConfiguration.getFinantialInstitution(), model);
             updateSibsConfiguration(entityReferenceCode, sourceInstitutionId, destinationInstitutionId, model);
 

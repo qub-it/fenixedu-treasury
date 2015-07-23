@@ -526,6 +526,9 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
 								</script>
     </c:when>
     <c:otherwise>
+        <h2>
+            <spring:message code="label.SettlementNote.reimbursementEntries" />
+        </h2>
         <div class="alert alert-warning" role="alert">
             <p>
                 <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>

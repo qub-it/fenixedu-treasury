@@ -131,6 +131,8 @@ public class VatExemptionReasonController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setVatExemptionReason(vatExemptionReason, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             deleteVatExemptionReason(vatExemptionReason);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -152,6 +154,8 @@ public class VatExemptionReasonController extends TreasuryBaseController {
     public String create(@RequestParam(value = "code", required = false) String code, @RequestParam(value = "name",
             required = false) LocalizedString name, Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(model);
+
             VatExemptionReason vatExemptionReason = createVatExemptionReason(code, name);
             model.addAttribute("vatExemptionReason", vatExemptionReason);
 
@@ -181,6 +185,8 @@ public class VatExemptionReasonController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setVatExemptionReason(vatExemptionReason, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateVatExemptionReason(code, name, model);
 
             return redirect(READ_URL + getVatExemptionReason(model).getExternalId(), model, redirectAttributes);

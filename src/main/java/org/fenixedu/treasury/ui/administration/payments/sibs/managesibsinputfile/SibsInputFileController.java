@@ -136,6 +136,8 @@ public class SibsInputFileController extends TreasuryBaseController {
 
         setSibsInputFile(sibsInputFile, model);
         try {
+            assertUserIsFrontOfficeMember(sibsInputFile.getFinantialInstitution(), model);
+
             deleteSibsInputFile(sibsInputFile);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -164,6 +166,7 @@ public class SibsInputFileController extends TreasuryBaseController {
             required = true) MultipartFile documentSibsInputFile, Model model, RedirectAttributes redirectAttributes) {
 
         try {
+            assertUserIsFrontOfficeMember(model);
 
             SibsInputFile sibsInputFile = createSibsInputFile(whenProcessedBySibs, documentSibsInputFile);
 
@@ -228,6 +231,8 @@ public class SibsInputFileController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         setSibsInputFile(sibsInputFile, model);
         try {
+            assertUserIsFrontOfficeMember(sibsInputFile.getFinantialInstitution(), model);
+
             SIBSPaymentsImporter importer = new SIBSPaymentsImporter();
             SibsReportFile reportFile = null;
             try {
@@ -262,6 +267,8 @@ public class SibsInputFileController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         setSibsInputFile(sibsInputFile, model);
         try {
+            assertUserIsFrontOfficeMember(sibsInputFile.getFinantialInstitution(), model);
+
             response.setContentType(sibsInputFile.getContentType());
             String filename = sibsInputFile.getFilename();
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
@@ -304,6 +311,8 @@ public class SibsInputFileController extends TreasuryBaseController {
         setSibsInputFile(sibsInputFile, model);
 
         try {
+            assertUserIsFrontOfficeMember(sibsInputFile.getFinantialInstitution(), model);
+
             updateSibsInputFile(whenProcessedBySibs, transactionsTotalAmount, totalCost, model);
 
             return redirect(READ_URL + getSibsInputFile(model).getExternalId(), model, redirectAttributes);

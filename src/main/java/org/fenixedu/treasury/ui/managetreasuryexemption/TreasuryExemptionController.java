@@ -90,6 +90,8 @@ public class TreasuryExemptionController extends TreasuryBaseController {
         final TreasuryEvent treasuryEvent = treasuryExemption.getTreasuryEvent();
 
         try {
+            assertUserIsFrontOfficeMember(model);
+
             treasuryExemption.delete();
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -115,6 +117,7 @@ public class TreasuryExemptionController extends TreasuryBaseController {
             final RedirectAttributes redirectAttributes) {
         setTreasuryExemptionBean(bean, model);
         try {
+            assertUserIsFrontOfficeMember(model);
 
             TreasuryExemption.create(bean.getTreasuryExemptionType(), bean.getTreasuryEvent(), bean.getReason(),
                     bean.getValuetoexempt(), bean.getProduct(), true);

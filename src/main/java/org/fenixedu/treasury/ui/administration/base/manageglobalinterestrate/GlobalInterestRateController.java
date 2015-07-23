@@ -135,6 +135,8 @@ public class GlobalInterestRateController extends TreasuryBaseController {
 
         setGlobalInterestRate(globalInterestRate, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             deleteGlobalInterestRate(globalInterestRate);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -163,6 +165,7 @@ public class GlobalInterestRateController extends TreasuryBaseController {
                     value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, Model model,
             RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(model);
 
             GlobalInterestRate globalInterestRate =
                     createGlobalInterestRate(year, description, rate, applyPaymentMonth, applyInFirstWorkday);
@@ -206,6 +209,8 @@ public class GlobalInterestRateController extends TreasuryBaseController {
         setGlobalInterestRate(globalInterestRate, model);
 
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateGlobalInterestRate(year, description, rate, applyPaymentMonth, applyInFirstWorkday, model);
 
             return redirect(READ_URL + getGlobalInterestRate(model).getExternalId(), model, redirectAttributes);

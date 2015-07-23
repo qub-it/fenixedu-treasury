@@ -98,6 +98,8 @@ public class FixedTariffController extends TreasuryBaseController {
         String productId = fixedTariff.getProduct().getExternalId();
         setFixedTariff(fixedTariff, model);
         try {
+            assertUserIsFrontOfficeMember(fixedTariff.getFinantialEntity().getFinantialInstitution(), model);
+
             deleteFixedTariff(fixedTariff);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -133,6 +135,7 @@ public class FixedTariffController extends TreasuryBaseController {
         bean.setFinantialInstitution(finantialInstitution);
         this.setFixedTariffBean(bean, model);
         return "treasury/administration/base/managefixedtariff/fixedtariff/create";
+
     }
 
     private static final String _CREATEPOSTBACK_URI = "/createpostback";
@@ -148,6 +151,8 @@ public class FixedTariffController extends TreasuryBaseController {
     public String create(@RequestParam(value = "bean", required = false) FixedTariffBean bean, Model model,
             RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(bean.getFinantialInstitution(), model);
+
             FixedTariff fixedTariff =
                     createFixedTariff(bean.getAmount(), bean.getApplyInterests(), bean.getBeginDate(),
                             bean.getDueDateCalculationType(), bean.getEndDate(), bean.getFinantialEntity(),
@@ -169,6 +174,7 @@ public class FixedTariffController extends TreasuryBaseController {
             org.fenixedu.treasury.domain.FinantialEntity finantialEntity, org.joda.time.LocalDate fixedDueDate,
             int numberOfDaysAfterCreationForDueDate, FixedTariffInterestRateBean interestRateBean, Product product) {
         InterestRate interestRate = null;
+
         FixedTariff fixedTariff =
                 FixedTariff.create(product, interestRate, finantialEntity, amount, beginDate.toDateTimeAtStartOfDay(),
                         endDate.toDateTimeAtStartOfDay(), dueDateCalculationType, fixedDueDate,
@@ -214,6 +220,8 @@ public class FixedTariffController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setFixedTariff(fixedTariff, model);
         try {
+            assertUserIsFrontOfficeMember(bean.getFinantialInstitution(), model);
+
             updateFixedTariff(bean.getAmount(), bean.getApplyInterests(), bean.getBeginDate().toDateTimeAtStartOfDay(),
                     bean.getDueDateCalculationType(), bean.getEndDate().toDateTimeAtStartOfDay(), bean.getFinantialEntity(),
                     bean.getFixedDueDate(), bean.getNumberOfDaysAfterCreationForDueDate(), bean.getInterestRate(),

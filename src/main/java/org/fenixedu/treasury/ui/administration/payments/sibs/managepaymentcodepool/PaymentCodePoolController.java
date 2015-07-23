@@ -136,6 +136,8 @@ public class PaymentCodePoolController extends TreasuryBaseController {
 
         setPaymentCodePool(paymentCodePool, model);
         try {
+            assertUserIsFrontOfficeMember(paymentCodePool.getFinantialInstitution(), model);
+
             deletePaymentCodePool(paymentCodePool);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -184,6 +186,7 @@ public class PaymentCodePoolController extends TreasuryBaseController {
                     value = "paymentmethod") PaymentMethod paymentMethod, Model model, RedirectAttributes redirectAttributes) {
 
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             PaymentCodePool paymentCodePool =
                     createPaymentCodePool(finantialInstitution, name, entityReferenceCode, minReferenceCode, maxReferenceCode,
@@ -255,6 +258,8 @@ public class PaymentCodePoolController extends TreasuryBaseController {
         setPaymentCodePool(paymentCodePool, model);
 
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             updatePaymentCodePool(finantialInstitution, name, entityReferenceCode, minReferenceCode, maxReferenceCode, minAmount,
                     maxAmount, validFrom, validTo, active, useCheckDigit, documentNumberSeries, paymentMethod, model);
 

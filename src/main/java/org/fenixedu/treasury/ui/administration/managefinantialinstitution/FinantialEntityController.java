@@ -98,6 +98,9 @@ public class FinantialEntityController extends TreasuryBaseController {
         setFinantialEntity(finantialEntity, model);
         try {
             FinantialInstitution finantialInstitution = finantialEntity.getFinantialInstitution();
+
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             deleteFinantialEntity(finantialEntity);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
             return redirect(FinantialInstitutionController.READ_URL + finantialInstitution.getExternalId(), model,
@@ -125,6 +128,8 @@ public class FinantialEntityController extends TreasuryBaseController {
             @RequestParam(value = "name", required = false) LocalizedString name, Model model,
             RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(finantialInstitution, model);
+
             FinantialEntity finantialEntity = createFinantialEntity(finantialInstitution, code, name);
             model.addAttribute("finantialEntity", finantialEntity);
             return redirect(READ_URL + getFinantialEntity(model).getExternalId(), model, redirectAttributes);
@@ -161,6 +166,8 @@ public class FinantialEntityController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setFinantialEntity(finantialEntity, model);
         try {
+            assertUserIsFrontOfficeMember(finantialEntity.getFinantialInstitution(), model);
+
             updateFinantialEntity(code, name, model);
             return redirect(READ_URL + getFinantialEntity(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {

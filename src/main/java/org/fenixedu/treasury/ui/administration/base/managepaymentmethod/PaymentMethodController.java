@@ -129,6 +129,8 @@ public class PaymentMethodController extends TreasuryBaseController {
     public String delete(@PathVariable("oid") PaymentMethod paymentMethod, Model model, RedirectAttributes redirectAttributes) {
         setPaymentMethod(paymentMethod, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             deletePaymentMethod(paymentMethod);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -150,6 +152,8 @@ public class PaymentMethodController extends TreasuryBaseController {
     public String create(@RequestParam(value = "code", required = false) String code, @RequestParam(value = "name",
             required = false) LocalizedString name, Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(model);
+
             PaymentMethod paymentMethod = createPaymentMethod(code, name);
             model.addAttribute("paymentMethod", paymentMethod);
 
@@ -181,6 +185,8 @@ public class PaymentMethodController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setPaymentMethod(paymentMethod, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updatePaymentMethod(code, name, model);
             return redirect(READ_URL + getPaymentMethod(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {

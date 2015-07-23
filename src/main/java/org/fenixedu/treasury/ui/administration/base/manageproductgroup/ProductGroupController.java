@@ -130,6 +130,8 @@ public class ProductGroupController extends TreasuryBaseController {
     public String delete(@PathVariable("oid") ProductGroup productGroup, Model model, RedirectAttributes redirectAttributes) {
         setProductGroup(productGroup, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             deleteProductGroup(productGroup);
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
@@ -151,6 +153,8 @@ public class ProductGroupController extends TreasuryBaseController {
     public String create(@RequestParam(value = "code", required = false) String code, @RequestParam(value = "name",
             required = false) LocalizedString name, Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(model);
+
             ProductGroup productGroup = createProductGroup(code, name);
             model.addAttribute("productGroup", productGroup);
 
@@ -183,6 +187,8 @@ public class ProductGroupController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setProductGroup(productGroup, model);
         try {
+            assertUserIsFrontOfficeMember(model);
+
             updateProductGroup(code, name, model);
             return redirect(READ_URL + getProductGroup(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {

@@ -143,6 +143,8 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
 
         setPaymentReferenceCode(paymentReferenceCode, model);
         try {
+            assertUserIsFrontOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
+
             assertUserIsBackOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
             deletePaymentReferenceCode(paymentReferenceCode);
 
@@ -174,6 +176,8 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             value = "state", required = false) PaymentReferenceCodeStateType state, @RequestParam(value = "paymentcodepool",
             required = false) PaymentCodePool pool, Model model, RedirectAttributes redirectAttributes) {
         try {
+            assertUserIsFrontOfficeMember(pool.getFinantialInstitution(), model);
+
             assertUserIsBackOfficeMember(pool.getFinantialInstitution(), model);
 
             PaymentReferenceCode paymentReferenceCode =
@@ -220,6 +224,8 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
         setPaymentReferenceCode(paymentReferenceCode, model);
 
         try {
+            assertUserIsFrontOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
+
             assertUserIsBackOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
 
             updatePaymentReferenceCode(referenceCode, beginDate, endDate, state, model);
