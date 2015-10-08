@@ -96,7 +96,7 @@ public class DebtAccount extends DebtAccount_Base {
     }
 
     public static Optional<DebtAccount> findUnique(final FinantialInstitution finantialInstitution, final Customer customer) {
-        return find(finantialInstitution).filter(d -> d.getCustomer() == customer).findFirst();
+        return find(finantialInstitution).filter(d -> d.isClosed() && d.getCustomer() == customer).findFirst();
     }
 
     @Atomic
@@ -163,6 +163,10 @@ public class DebtAccount extends DebtAccount_Base {
 
     public boolean isDeletable() {
         return this.getFinantialDocumentsSet().isEmpty() && getInvoiceEntrySet().isEmpty() && getTreasuryEventsSet().isEmpty();
+    }
+    
+    public boolean isClosed() {
+        return getClosed();
     }
 
     @Atomic

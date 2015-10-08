@@ -74,7 +74,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public abstract String getBusinessIdentification();
 
     public boolean isDeletable() {
-        return false;
+        return getDebtAccountsSet().isEmpty();
     }
 
     public boolean isPersonCustomer() {
@@ -90,7 +90,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         if (!isDeletable()) {
             throw new TreasuryDomainException("error.Customer.cannot.delete");
         }
-
+        
         setBennu(null);
 
         deleteDomainObject();
