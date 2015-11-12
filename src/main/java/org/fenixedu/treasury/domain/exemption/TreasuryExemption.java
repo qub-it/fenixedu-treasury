@@ -168,6 +168,10 @@ public class TreasuryExemption extends TreasuryExemption_Base {
      ************/
     // @formatter: on
 
+    public static Stream<TreasuryExemption> findAll() {
+        return Bennu.getInstance().getTreasuryExemptionsSet().stream();
+    }
+    
     public static Stream<TreasuryExemption> find(final TreasuryExemptionType treasuryExemptionType) {
         return Bennu.getInstance().getTreasuryExemptionsSet().stream()
                 .filter(t -> t.getTreasuryExemptionType() == treasuryExemptionType);

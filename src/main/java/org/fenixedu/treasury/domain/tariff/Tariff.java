@@ -102,7 +102,7 @@ public abstract class Tariff extends Tariff_Base {
             throw new TreasuryDomainException("error.Tariff.numberOfDaysAfterCreationForDueDate.must.be.positive");
         }
 
-        if (getApplyInterests()) {
+        if (isApplyInterests()) {
             if (getInterestRate() == null || getInterestRate().getInterestType() == null) {
                 throw new TreasuryDomainException("error.Tariff.interestRate.required");
             }
