@@ -170,7 +170,7 @@ ${portal.toolkit()}
 "treasuryEventDate" : "<c:out value='${searchResult.treasuryEventDate.toString()}'/>", 
 "actions" :
 " <a  class=\"btn btn-default btn-xs\" href=\"${pageContext.request.contextPath}/treasury/accounting/managecustomer/treasuryevent/search/view/${searchResult.externalId}\"><spring:message code='label.view'/></a>" +
-                "" 
+				"" 
 			},
             </c:forEach>
     ];

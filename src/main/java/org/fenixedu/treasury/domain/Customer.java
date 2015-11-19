@@ -88,6 +88,8 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public boolean isAdhocCustomer() {
         return false;
     }
+    
+    public abstract boolean isActive();
 
     @Atomic
     public void delete() {

@@ -308,6 +308,21 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
         }
     }
 
+    @Atomic
+    public void transferToDebtAccount(final DebtAccount debtAccount) {
+        if(!getDebitEntriesSet().isEmpty()) {
+            throw new TreasuryDomainException("error.TreasuryEvent.transferToDebtAccount.not.possible.debit.entries.not.empty");
+        }
+        
+        if(debtAccount.getFinantialInstitution() != getDebtAccount().getFinantialInstitution()) {
+            throw new TreasuryDomainException("error.TreasuryEvent.transferToDebtAccount.debtAccounts.with.same.finantial.institution");
+        }
+        
+        setDebtAccount(debtAccount);
+        checkRules();
+    }
+    
+    
 //    private void closeDebitEntry(final DebitEntry debitEntry, final CreditEntry creditEntry, final String reasonDescription) {
 //        final SettlementNote settlementNote =
 //                SettlementNote.create(

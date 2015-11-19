@@ -159,10 +159,10 @@ public class DebitEntry extends DebitEntry_Base {
     public void delete() {
         TreasuryDomainException.throwWhenDeleteBlocked(getDeletionBlockers());
 
-        if(getTreasuryExemption() != null) {
+        if (getTreasuryExemption() != null) {
             getTreasuryExemption().delete();
         }
-        
+
         if (this.getInterestRate() != null) {
             InterestRate oldRate = this.getInterestRate();
             this.setInterestRate(null);
@@ -344,7 +344,7 @@ public class DebitEntry extends DebitEntry_Base {
         }
 
         DebitEntry interestEntry =
-                create(debitNote, getDebtAccount(), getTreasuryEvent(), vat, interest.getInterestAmount(), when.toLocalDate(),
+                _create(debitNote, getDebtAccount(), getTreasuryEvent(), vat, interest.getInterestAmount(), when.toLocalDate(),
                         propertiesJsonToMap(getPropertiesJsonMap()), product, entryDescription, BigDecimal.ONE, null, when);
 
         addInterestDebitEntries(interestEntry);
@@ -472,7 +472,7 @@ public class DebitEntry extends DebitEntry_Base {
             if (!creditEntry.isFromExemption()) {
                 return false;
             }
-            
+
             if (creditEntry.isProcessedInClosedDebitNote()) {
                 return false;
             }
@@ -615,10 +615,25 @@ public class DebitEntry extends DebitEntry_Base {
             final Map<String, String> propertiesMap, final Product product, final String description, final BigDecimal quantity,
             final InterestRate interestRate, final DateTime entryDateTime) {
 
+        /* Debt can only be created if customer is active */
+        if (!debtAccount.getCustomer().isActive()) {
+            throw new TreasuryDomainException("error.DebitEntry.customer.not.active");
+        }
+
+        return _create(debitNote, debtAccount, treasuryEvent, vat, amount, dueDate, propertiesMap, product, description,
+                quantity, interestRate, entryDateTime);
+    }
+
+    private static DebitEntry _create(final Optional<DebitNote> debitNote, final DebtAccount debtAccount,
+            final TreasuryEvent treasuryEvent, final Vat vat, final BigDecimal amount, final LocalDate dueDate,
+            final Map<String, String> propertiesMap, final Product product, final String description, final BigDecimal quantity,
+            final InterestRate interestRate, final DateTime entryDateTime) {
+
         if (product.getActive() == false) {
             throw new TreasuryDomainException("error.DebitEntry.invalid.product.not.active");
         }
-        DebitEntry entry =
+
+        final DebitEntry entry =
                 new DebitEntry(debitNote.orElse(null), debtAccount, treasuryEvent, vat, amount, dueDate, propertiesMap, product,
                         description, quantity, null, entryDateTime);
 

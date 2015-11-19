@@ -86,8 +86,17 @@ ${portal.angularToolkit()}
 
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
-    <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp;<a class=""
-        href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/customer/read/${debtAccount.customer.externalId}"><spring:message code="label.event.back" /></a>
+    <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp;
+	<c:if test='${debtAccount.customer.active}'>
+	    <a href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/customer/read/${debtAccount.customer.externalId}">
+	    	<spring:message code="label.event.back" />
+	    </a>
+   	</c:if>
+	<c:if test='${not debtAccount.customer.active}'>
+	    <a href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/customer/read/${debtAccount.customer.personForInactivePersonCustomer.personCustomer.externalId}">
+	    	<spring:message code="label.event.back" />
+	    </a>
+   	</c:if>
     &nbsp;
 
     <%
@@ -113,12 +122,9 @@ ${portal.angularToolkit()}
     <%
         }
     %>
-
-    <c:if test='${not debtAccount.getClosed() }'>
+    <c:if test='${not debtAccount.getClosed()}'>
         <%
-            if (TreasuryAccessControl.getInstance()
-        						.isAllowToModifyInvoices(Authenticate.getUser(),
-        								finantialInstitution)) {
+            if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution) && debtAccount.getCustomer().isActive()) {
         %>
         <div class="btn-group">
             <button type="button" class=" btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -168,9 +174,7 @@ ${portal.angularToolkit()}
             }
         %>
         <%
-            if (TreasuryAccessControl.getInstance()
-        						.isAllowToModifyInvoices(Authenticate.getUser(),
-        								finantialInstitution)) {
+            if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
         %>
         <div class="btn-group">
             <button type="button" class=" btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -191,8 +195,7 @@ ${portal.angularToolkit()}
      |&nbsp;
      </c:if>
     <%
-        if (TreasuryAccessControl.getInstance().isBackOfficeMember(
-    					Authenticate.getUser(), finantialInstitution)) {
+        if (TreasuryAccessControl.getInstance().isBackOfficeMember(Authenticate.getUser(), finantialInstitution)) {
     %>
 
     <div class="btn-group">
@@ -295,6 +298,16 @@ ${portal.angularToolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.finantialInstitution" /></th>
                         <td><c:out value='${debtAccount.finantialInstitution.name}' /></td>
                     </tr>
+                    <c:if test="${debtAccount.customer.personCustomer}">
+                   	<c:if test="${not empty debtAccount.customer.person.inactivePersonCustomers || debtAccount.customer.personForInactivePersonCustomer != null}">
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.globalBalance" /></th>
+                        <td>
+                        	<c:out value="${debtAccount.finantialInstitution.currency.getValueFor(debtAccount.customer.globalBalance)}" />
+                        </td>
+                   	</c:if>
+                   	</c:if>
+                    <tr>
+                    </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.balance" /></th>
                         <td><c:out value="${debtAccount.finantialInstitution.currency.getValueFor(debtAccount.totalInDebt + debtAccount.calculatePendingInterestAmount())}" />
@@ -346,6 +359,14 @@ ${portal.angularToolkit()}
 <h2>
     <spring:message code="label.DebtAccount" />
 </h2>
+
+<c:if test="${!debtAccount.customer.active}">
+    <div class="alert alert-warning">
+    	<span class="glyphicon glyphicon-exclamation-sign"></span>
+    	<strong><spring:message code="warning.Customer.is.inactive.due.merge.message" /></strong>
+   	</div>
+</c:if>
+
 <div id="content">
     <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
 
@@ -354,6 +375,7 @@ ${portal.angularToolkit()}
         <li><a href="#payments" data-toggle="tab"><spring:message code="label.DebtAccount.payments" /></a></li>
         <li><a href="#paymentReferenceCodes" data-toggle="tab"><spring:message code="label.DebtAccount.paymentReferenceCodes" /></a></li>
     </ul>
+    
     <div id="my-tab-content" class="tab-content">
         <div class="tab-pane active" id="pending">
             <!--             <h3>Docs. Pendentes</h3> -->
@@ -454,14 +476,14 @@ ${portal.angularToolkit()}
                         </datatables:column>
                     </datatables:table>
                     <script>
-																					createDataTables(
-																							'pendingDocuments',
-																							false,
-																							false,
-																							false,
-																							"${pageContext.request.contextPath}",
-																							"${datatablesI18NUrl}");
-																				</script>
+						createDataTables(
+								'pendingDocuments',
+								false,
+								false,
+								false,
+								"${pageContext.request.contextPath}",
+								"${datatablesI18NUrl}");
+					</script>
                 </c:when>
                 <c:otherwise>
                     <div class="alert alert-warning" role="alert">
@@ -569,14 +591,14 @@ ${portal.angularToolkit()}
                         </datatables:column>
                     </datatables:table>
                     <script>
-																					createDataTables(
-																							'allDocuments',
-																							false,
-																							false,
-																							false,
-																							"${pageContext.request.contextPath}",
-																							"${datatablesI18NUrl}");
-																				</script>
+						createDataTables(
+								'allDocuments',
+								false,
+								false,
+								false,
+								"${pageContext.request.contextPath}",
+								"${datatablesI18NUrl}");
+					</script>
                 </c:when>
                 <c:otherwise>
                     <div class="alert alert-warning" role="alert">
@@ -657,14 +679,14 @@ ${portal.angularToolkit()}
                         </datatables:column>
                     </datatables:table>
                     <script>
-																					createDataTables(
-																							'paymentsDataSet',
-																							false,
-																							false,
-																							false,
-																							"${pageContext.request.contextPath}",
-																							"${datatablesI18NUrl}");
-																				</script>
+						createDataTables(
+								'paymentsDataSet',
+								false,
+								false,
+								false,
+								"${pageContext.request.contextPath}",
+								"${datatablesI18NUrl}");
+					</script>
                 </c:when>
                 <c:otherwise>
                     <div class="alert alert-warning" role="alert">

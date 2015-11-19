@@ -191,4 +191,28 @@ public class TreasuryEventController extends TreasuryBaseController {
 
         return read(treasuryEvent, model);
     }
+    
+    private static final String _TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI = "/transfereventotherdebtaccount";
+    public static final String TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URL = CONTROLLER_URL + _TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI;
+    
+    @RequestMapping(value =_TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI + "/{treasuryEventId}")
+    public String transferEventOtherDebtAccount(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, 
+            @RequestParam(value="debtAccountId", required=false) DebtAccount debtAccount, 
+            final Model model, final RedirectAttributes redirectAttributes) {
+        try {
+            assertUserIsFrontOfficeMember(treasuryEvent.getDebtAccount().getFinantialInstitution(), model);
+            
+            treasuryEvent.transferToDebtAccount(debtAccount);
+            
+            addInfoMessage(Constants.bundle("label.TreasuryEvent.transfer.to.other.debt.success"), model);
+            
+            return redirect("/treasury/accounting/managecustomer/treasuryevent/read" + "/" + treasuryEvent.getExternalId(), model, redirectAttributes);
+
+        } catch(final DomainException e) {
+            addErrorMessage(e.getLocalizedMessage(), model);
+        }
+        
+        return read(treasuryEvent, model);
+    }
+    
 }
