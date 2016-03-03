@@ -344,6 +344,13 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                         <td>[<c:out value='${settlementNote.getVersioningCreator()}' />] <joda:format value="${settlementNote.getVersioningCreationDate()}" style="SS" /></td>
                     </tr>
 
+					<c:if test="${not empty settlementNote.lastExportationDate}">
+					<tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.FinantialDocument.lastExportationDate" /></th>
+                        <td><joda:format value="${settlementNote.lastExportationDate}" style="SS" /></td>                        
+					</tr>
+					</c:if>
+
                 </tbody>
             </table>
         </form>

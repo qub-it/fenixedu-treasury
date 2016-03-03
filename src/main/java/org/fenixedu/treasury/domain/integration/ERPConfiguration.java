@@ -106,6 +106,10 @@ public class ERPConfiguration extends ERPConfiguration_Base {
     public boolean isIntegratedDocumentsExportationEnabled() {
         return getIntegratedDocumentsExportationEnabled();
     }
+    
+    public boolean isDumpWsMessages() {
+        return getDumpWsMessages();
+    }
 
     @Atomic
     public void delete() {

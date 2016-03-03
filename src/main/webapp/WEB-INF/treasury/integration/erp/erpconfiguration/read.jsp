@@ -182,7 +182,7 @@ ${portal.toolkit()}
                                 <spring:message code="label.false" />
                             </c:if></td>
                     </tr>
-                      <tr>
+                    <tr>
                         <th scope="row" class="col-xs-3"><spring:message
                                 code="label.ERPConfiguration.exportOnlyRelatedDocumentsPerExport" /></th>
                         <td><c:if
@@ -194,7 +194,18 @@ ${portal.toolkit()}
                                 <spring:message code="label.false" />
                             </c:if></td>
                     </tr>
-                    
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.ERPConfiguration.dumpWsMessages" /></th>
+                        <td><c:if
+                                test="${eRPConfiguration.dumpWsMessages}">
+                                <spring:message code="label.true" />
+                            </c:if>
+                            <c:if
+                                test="${not eRPConfiguration.dumpWsMessages}">
+                                <spring:message code="label.false" />
+                            </c:if></td>
+                    </tr>
                     
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message

@@ -5,13 +5,15 @@ import java.util.function.UnaryOperator;
 
 import oecd.standardauditfile_tax.pt_1.AuditFile;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationInput;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
 
 public interface IERPExternalService {
 
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation);
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            final DocumentsInformationInput documentsInformation);
 
     public String sendInfoOffline(DocumentsInformationInput documentsInformation);
 

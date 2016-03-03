@@ -9,6 +9,7 @@ import javax.xml.ws.BindingProvider;
 
 import oecd.standardauditfile_tax.pt_1.AuditFile;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS.StatusType;
@@ -48,7 +49,8 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
     }
 
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            final DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         output.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         final ServiceSoap client = getClient();
@@ -62,9 +64,12 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
 
         ArrayOfResposta carregarSAFTON = client.carregarSAFTON(documentsInformation.getData());
 
-        output.setSoapInboundMessage(loggingHandler.getInboundMessage());
-        output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
-
+        if (finantialInstitution.getErpIntegrationConfiguration() != null
+                && finantialInstitution.getErpIntegrationConfiguration().isDumpWsMessages()) {
+            output.setSoapInboundMessage(loggingHandler.getInboundMessage());
+            output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
+        }
+        
         for (Resposta resposta : carregarSAFTON.getResposta()) {
             output.setRequestId(resposta.getChavePrimaria());
             DocumentStatusWS status = new DocumentStatusWS();

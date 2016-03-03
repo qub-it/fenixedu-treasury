@@ -32,11 +32,13 @@ import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
+import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
+import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.ui.document.manageinvoice.CreditNoteController;
 import org.fenixedu.treasury.ui.document.manageinvoice.DebitNoteController;
 import org.fenixedu.treasury.ui.document.managepayments.SettlementNoteController;
@@ -51,9 +53,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.ist.fenixframework.Atomic;
 
 //@Component("org.fenixedu.treasury.ui.integration.erp") <-- Use for duplicate controller name disambiguation
-//@SpringFunctionality(app = TreasuryController.class, title = "label.title.integration.erp",accessGroup = "logged")// CHANGE_ME accessGroup = "group1 | group2 | groupXPTO"
+@SpringFunctionality(app = TreasuryController.class, title = "label.title.integration.erp.export.pending.documents",accessGroup = "treasuryManagers")
 //or
-@BennuSpringController(value = ERPExportOperationController.class)
+//@BennuSpringController(value = ERPExportOperationController.class)
 @RequestMapping(FinantialDocumentController.CONTROLLER_URL)
 public class FinantialDocumentController extends TreasuryBaseController {
 
@@ -132,8 +134,6 @@ public class FinantialDocumentController extends TreasuryBaseController {
         addWarningMessage(BundleUtil.getString(Constants.BUNDLE, "warning.integration.erp.invalid.document.type"), model);
         return search(finantialDocument.getInstitutionForExportation(), model, redirectAttributes);
     }
-
-//
 
     //
     // This is the EventforceIntegrationExport Method for Screen 

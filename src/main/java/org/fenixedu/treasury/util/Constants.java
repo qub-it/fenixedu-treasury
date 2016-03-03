@@ -55,6 +55,8 @@ public class Constants {
     public static final Locale DEFAULT_LANGUAGE = new Locale("PT");
     public static final String DEFAULT_COUNTRY = "PT";
 
+    private static final int ORIGIN_DOCUMENT_LIMIT = 30;
+
     /* *************
      * COUNTRY UTILS
      * *************
@@ -159,6 +161,14 @@ public class Constants {
     
     public static final String sibsTransactionUniqueIdentifier(final String paymentCode, final DateTime whenOccured) {
         return String.format("%s%s", paymentCode, whenOccured.toString("yyyyMMddHHmm"));
+    }
+
+    public static boolean isOriginDocumentNumberValid(String originDocumentNumber) {
+        if(Strings.isNullOrEmpty(originDocumentNumber)) {
+            return true;
+        }
+        
+        return originDocumentNumber.length() <= ORIGIN_DOCUMENT_LIMIT;
     }
     
 }

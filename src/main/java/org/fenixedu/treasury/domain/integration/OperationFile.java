@@ -74,15 +74,52 @@ public class OperationFile extends OperationFile_Base {
             throw new TreasuryDomainException("error.OperationFile.cannot.delete");
         }
 
+        this.setIntegrationOperationForSoapInbound(null);
+        this.setIntegrationOperationForSoapOutbound(null);
         this.setIntegrationOperation(null);
+        this.setIntegrationOperationForIntegrationLog(null);
+        this.setIntegrationOperationForErrorLog(null);
+        
         super.delete();
     }
 
     @Atomic
-    public static OperationFile create(String fileName, byte[] bytes, IntegrationOperation operation) {
+    public static OperationFile createFile(String fileName, byte[] bytes, IntegrationOperation operation) {
         OperationFile operationFile = new OperationFile();
         operationFile.init(fileName, fileName, bytes);
         operationFile.setIntegrationOperation(operation);
+        return operationFile;
+    }
+    
+    @Atomic
+    public static OperationFile createSoapInboundMessage(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
+        OperationFile operationFile = new OperationFile();
+        operationFile.init(fileName, fileName, bytes);
+        operationFile.setIntegrationOperationForSoapInbound(operation);
+        return operationFile;        
+    }
+
+    @Atomic
+    public static OperationFile createSoapOutboundMessage(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
+        OperationFile operationFile = new OperationFile();
+        operationFile.init(fileName, fileName, bytes);
+        operationFile.setIntegrationOperationForSoapOutbound(operation);
+        return operationFile;        
+    }
+    
+    @Atomic
+    public static OperationFile createErrorLog(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
+        OperationFile operationFile = new OperationFile();
+        operationFile.init(fileName, fileName, bytes);
+        operationFile.setIntegrationOperationForErrorLog(operation);
+        return operationFile;
+    }
+    
+    @Atomic
+    public static OperationFile createIntegrationLog(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
+        OperationFile operationFile = new OperationFile();
+        operationFile.init(fileName, fileName, bytes);
+        operationFile.setIntegrationOperationForIntegrationLog(operation);
         return operationFile;
     }
 

@@ -369,6 +369,13 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) creditNote.ge
                         <td>[<c:out value='${creditNote.getVersioningCreator()}' />] <joda:format value="${creditNote.getVersioningCreationDate()}" style="SS" /></td>
                     </tr>
 
+					<c:if test="${not empty creditNote.lastExportationDate}">
+					<tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.FinantialDocument.lastExportationDate" /></th>
+                        <td><joda:format value="${creditNote.lastExportationDate}" style="SS" /></td>                        
+					</tr>
+					</c:if>
+
                 </tbody>
             </table>
         </form>

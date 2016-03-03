@@ -30,6 +30,7 @@ package org.fenixedu.treasury.domain.integration;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -112,6 +113,23 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
         if (this.getFile() != null) {
             this.getFile().delete();
         }
+        
+        if(getSoapInboundMessageOperationFile() != null) {
+            getSoapInboundMessageOperationFile().delete();
+        }
+        
+        if(getSoapOutboundMessageOperationFile() != null) {
+            getSoapOutboundMessageOperationFile().delete();
+        }
+        
+        if(getErrorLogFile() != null) {
+            getErrorLogFile().delete();
+        }
+        
+        if(getIntegrationLogFile() != null) {
+            getIntegrationLogFile().delete();
+        }
+        
         this.setFile(null);
         deleteDomainObject();
     }
@@ -144,15 +162,137 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
 
     @Atomic
     public void defineSoapInboundMessage(final String soapInboundMessage) {
-        setSoapInboundMessage(soapInboundMessage != null ? soapInboundMessage : "");
+        final String filename =
+                String.format("soap_inbound_message_%s_%s.xml", this.getExternalId(), new DateTime().toString("%ddMMyyyyHHmmss"));
 
+        if(getSoapInboundMessageOperationFile() != null) {
+            getSoapInboundMessageOperationFile().delete(); 
+        }
+        
+        OperationFile.createSoapInboundMessage(filename, zipValue(soapInboundMessage != null ? soapInboundMessage : "").getBytes(), this);
     }
 
     @Atomic
     public void defineSoapOutboutMessage(final String soapOutboundMessage) {
-        setSoapOutboundMessage(soapOutboundMessage != null ? soapOutboundMessage : "");
+        final String filename =
+                String.format("soap_outbound_message_%s_%s.xml", this.getExternalId(), new DateTime().toString("%ddMMyyyyHHmmss"));
+
+        if(getSoapOutboundMessageOperationFile() != null) {
+            getSoapOutboundMessageOperationFile().delete(); 
+        }
+        
+        OperationFile.createSoapOutboundMessage(filename, zipValue(soapOutboundMessage != null ? soapOutboundMessage : "").getBytes(), this);
     }
 
+    @Override
+    public void setSoapInboundMessage(String soapInboundMessage) {
+        String value = soapInboundMessage;
+        if (value != null) {
+            value = zipValue(value);
+        }
+        super.setSoapInboundMessage(value);
+    }
+
+    @Override
+    public String getSoapInboundMessage() {
+        if(getSoapInboundMessageOperationFile() != null) {
+            byte[] content = getSoapInboundMessageOperationFile().getContent();
+            
+            try {
+                return unzip(new String(content, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return unzip(super.getSoapInboundMessage());
+        }
+    }
+
+    @Override
+    public void setSoapOutboundMessage(String soapOutboundMessage) {
+        String value = soapOutboundMessage;
+        if (value != null) {
+            value = zipValue(value);
+        }
+        super.setSoapOutboundMessage(value);
+    }
+
+    @Override
+    public String getSoapOutboundMessage() {
+        if(getSoapOutboundMessageOperationFile() != null) {
+            byte[] content = getSoapOutboundMessageOperationFile().getContent();
+            
+            try {
+                return unzip(new String(content, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return unzip(super.getSoapOutboundMessage());
+        }
+    }
+
+    @Override
+    public void setIntegrationLog(String integrationLog) {
+        final String filename =
+                String.format("integration_log_%s_%s.xml", this.getExternalId(), new DateTime().toString("%ddMMyyyyHHmmss"));
+        
+        if(getIntegrationLogFile() != null) {
+            getIntegrationLogFile().delete(); 
+        }
+        
+        OperationFile.createIntegrationLog(filename, zipValue(integrationLog != null ? integrationLog : "").getBytes(), this);
+    }
+
+    @Override
+    public String getIntegrationLog() {
+        if(getIntegrationLogFile() != null) {
+            byte[] content = getIntegrationLogFile().getContent();
+            
+            try {
+                return unzip(new String(content, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        return unzip(super.getIntegrationLog());
+    }
+
+    @Override
+    public void setErrorLog(String errorLog) {
+        final String filename =
+                String.format("error_log_%s_%s.xml", this.getExternalId(), new DateTime().toString("%ddMMyyyyHHmmss"));
+        
+        if(getErrorLogFile() != null) {
+            getErrorLogFile().delete();
+        }
+        
+        OperationFile.createErrorLog(filename, zipValue(errorLog != null ? errorLog : "").getBytes(), this);
+    }
+
+    @Override
+    public String getErrorLog() {
+        if(getErrorLogFile() != null) {
+            byte[] content = getErrorLogFile().getContent();
+            
+            try {
+                return unzip(new String(content, "UTF-8"));
+            } catch(UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        return unzip(super.getErrorLog());
+    }
+
+    // @formatter:off
+    /* **************
+     * ZIP OPERATIONS
+     * **************
+     */ 
+    // @formatter:on
+    
     private String zipValue(String value) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         GZIPOutputStream gzipOutputStream;
@@ -183,60 +323,5 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
         return value;
     }
 
-    @Override
-    public void setSoapInboundMessage(String soapInboundMessage) {
-        String value = soapInboundMessage;
-        if (value != null) {
-            value = zipValue(value);
-        }
-        super.setSoapInboundMessage(value);
-    }
-
-    @Override
-    public String getSoapInboundMessage() {
-        return unzip(super.getSoapInboundMessage());
-    }
-
-    @Override
-    public void setSoapOutboundMessage(String soapOutboundMessage) {
-        String value = soapOutboundMessage;
-        if (value != null) {
-            value = zipValue(value);
-        }
-        super.setSoapOutboundMessage(value);
-    }
-
-    @Override
-    public String getSoapOutboundMessage() {
-        return unzip(super.getSoapOutboundMessage());
-    }
-
-    @Override
-    public void setIntegrationLog(String integrationLog) {
-        String value = integrationLog;
-        if (value != null) {
-            value = zipValue(value);
-        }
-        super.setIntegrationLog(value);
-    }
-
-    @Override
-    public String getIntegrationLog() {
-        return unzip(super.getIntegrationLog());
-    }
-
-    @Override
-    public void setErrorLog(String errorLog) {
-        String value = errorLog;
-        if (value != null) {
-            value = zipValue(value);
-        }
-        super.setErrorLog(value);
-    }
-
-    @Override
-    public String getErrorLog() {
-        return unzip(super.getErrorLog());
-    }
-
+    
 }

@@ -534,7 +534,14 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
                         <th scope="row" class="col-xs-3"><spring:message code="label.Versioning.creator" /></th>
                         <td>[<c:out value='${debitNote.getVersioningCreator()}' />] <joda:format value="${debitNote.getVersioningCreationDate()}" style="SS" /></td>
                     </tr>
-
+					
+					<c:if test="${not empty debitNote.lastExportationDate}">
+					<tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.FinantialDocument.lastExportationDate" /></th>
+                        <td><joda:format value="${debitNote.lastExportationDate}" style="SS" /></td>                        
+					</tr>
+					</c:if>
+					
                 </tbody>
             </table>
         </form>

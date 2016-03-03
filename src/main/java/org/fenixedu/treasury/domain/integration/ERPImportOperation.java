@@ -81,7 +81,7 @@ public class ERPImportOperation extends ERPImportOperation_Base {
             final DateTime executionDate, final boolean processed, final boolean success, final boolean corrected,
             final String errorLog) {
         ERPImportOperation eRPImportOperation = new ERPImportOperation();
-        OperationFile file = OperationFile.create(filename, bytes, eRPImportOperation);
+        OperationFile file = OperationFile.createFile(filename, bytes, eRPImportOperation);
         eRPImportOperation.init(file, finantialInstitution, executionDate, processed, success, corrected, errorLog);
         return eRPImportOperation;
     }

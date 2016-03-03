@@ -9,6 +9,7 @@ import javax.xml.ws.BindingProvider;
 
 import oecd.standardauditfile_tax.pt_1.AuditFile;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS.StatusType;
@@ -50,7 +51,8 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
     }
 
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         output.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         final IWCFServiceWSF client = getClient();
@@ -64,15 +66,17 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
 
         ArrayOfResposta carregarSAFTON = client.carregarSAFTON(documentsInformation.getData());
 
-        output.setSoapInboundMessage(loggingHandler.getInboundMessage());
-        output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
+        if (finantialInstitution.getErpIntegrationConfiguration().isDumpWsMessages()) {
+            output.setSoapInboundMessage(loggingHandler.getInboundMessage());
+            output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
+        }
 
         for (Resposta resposta : carregarSAFTON.getResposta()) {
             output.setRequestId(resposta.getChavePrimaria().getValue());
             DocumentStatusWS status = new DocumentStatusWS();
             status.setDocumentNumber(resposta.getChavePrimaria().getValue());
-            status.setErrorDescription(String.format("[STATUS: %s] - %s", resposta.getStatus().getValue(), resposta.getMensagem()
-                    .getValue()));
+            status.setErrorDescription(
+                    String.format("[STATUS: %s] - %s", resposta.getStatus().getValue(), resposta.getMensagem().getValue()));
             status.setIntegrationStatus(covertToStatusType(resposta.getStatus().getValue()));
             output.getDocumentStatus().add(status);
         }

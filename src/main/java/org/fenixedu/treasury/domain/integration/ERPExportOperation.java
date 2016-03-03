@@ -89,9 +89,9 @@ public class ERPExportOperation extends ERPExportOperation_Base {
         ERPExportOperation eRPExportOperation = new ERPExportOperation();
         OperationFile file;
         if (data == null) {
-            file = OperationFile.create(filename, new byte[0], eRPExportOperation);
+            file = OperationFile.createFile(filename, new byte[0], eRPExportOperation);
         } else {
-            file = OperationFile.create(filename, data, eRPExportOperation);
+            file = OperationFile.createFile(filename, data, eRPExportOperation);
         }
         eRPExportOperation.init(file, finantialInstitution, executionDate, processed, success, corrected, errorLog, soapInboundMessage, soapOutboundMessage);
 

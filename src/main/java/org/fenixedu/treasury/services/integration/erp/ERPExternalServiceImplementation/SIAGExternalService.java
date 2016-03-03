@@ -6,8 +6,7 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
@@ -18,9 +17,10 @@ import org.fenixedu.treasury.services.integration.erp.siag.GestaoAcademicaServic
 import org.fenixedu.treasury.services.integration.erp.siag.GestaoAcademicaServiceService;
 import org.fenixedu.treasury.services.integration.erp.siag.IntegrationStatusOutput;
 
-import pt.ist.fenixframework.Atomic;
-
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
+
+import oecd.standardauditfile_tax.pt_1.AuditFile;
+import pt.ist.fenixframework.Atomic;
 
 public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaService> implements IERPExternalService {
 
@@ -41,7 +41,8 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
     }
 
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         org.fenixedu.treasury.services.integration.erp.siag.DocumentsInformationInput siagInput =
                 new org.fenixedu.treasury.services.integration.erp.siag.DocumentsInformationInput();
@@ -61,8 +62,8 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
             DocumentStatusWS docStatus = new DocumentStatusWS();
             docStatus.setDocumentNumber(siagStatus.getDocumentNumber());
 //            docStatus.setErrorDescription(siagStatus.getErrorDescription());
-            docStatus.setErrorDescription(String.format("[STATUS: %s] - %s", siagStatus.getIntegrationStatus(),
-                    siagStatus.getErrorDescription()));
+            docStatus.setErrorDescription(
+                    String.format("[STATUS: %s] - %s", siagStatus.getIntegrationStatus(), siagStatus.getErrorDescription()));
             docStatus.setIntegrationStatus(StatusType.valueOf(siagStatus.getIntegrationStatus().toString()));
             output.getDocumentStatus().add(docStatus);
 

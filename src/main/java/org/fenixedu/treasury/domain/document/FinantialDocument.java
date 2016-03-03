@@ -47,6 +47,7 @@ import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -170,6 +171,11 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
 //                throw new TreasuryDomainException("error.FinantialDocument.documentDate.is.after.entries.date");
 //            }
 //        }
+        
+        if(!Strings.isNullOrEmpty(getOriginDocumentNumber()) && !Constants.isOriginDocumentNumberValid(getOriginDocumentNumber())) {
+            throw new TreasuryDomainException("error.FinantialDocument.originDocumentNumber.invalid");
+        }
+        
     }
 
     protected boolean isDocumentEmpty() {
@@ -435,6 +441,18 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         }
 
         checkRules();
+    }
+    
+    public void updateLastExportationDate(final DateTime when) {
+        setLastExportationDate(when != null ? when : new DateTime());
+    }
+    
+    public boolean wasExportedBeforeDate(final DateTime when) {
+        return getLastExportationDate() != null && !getLastExportationDate().isAfter(when);
+    }
+    
+    public boolean wasExportedInInterval(final DateTime beginDate, final DateTime endDate) {
+        return getLastExportationDate() != null && new Interval(beginDate, endDate).contains(getLastExportationDate());
     }
 
     public static FinantialDocument findByUiDocumentNumber(FinantialInstitution finantialInstitution, String docNumber) {

@@ -220,6 +220,7 @@ class document.FinantialDocument {
 	String address;
 	String annulledReason;
 	String documentObservations;
+	DateTime lastExportationDate;
 }
 
 
@@ -678,7 +679,51 @@ relation IntegrationOperationOperationFile
     
     integration.IntegrationOperation playsRole integrationOperation
     {
-        multiplicity 1..1;
+        multiplicity 0..1;
+    }
+}
+
+relation IntegrationOperationSoapOutboundMessageOperationFile {
+    integration.OperationFile playsRole soapOutboundMessageOperationFile {
+        multiplicity 0..1;
+    }
+    
+    integration.IntegrationOperation playsRole integrationOperationForSoapOutbound
+    {
+        multiplicity 0..1;
+    }
+}
+
+relation IntegrationOperationSoapInboundMessageOperationFile {
+    integration.OperationFile playsRole soapInboundMessageOperationFile {
+        multiplicity 0..1;
+    }
+    
+    integration.IntegrationOperation playsRole integrationOperationForSoapInbound
+    {
+        multiplicity 0..1;
+    }
+}
+
+relation IntegrationOperationErrorLogFile {
+    integration.OperationFile playsRole errorLogFile {
+        multiplicity 0..1;
+    }
+    
+    integration.IntegrationOperation playsRole integrationOperationForErrorLog
+    {
+        multiplicity 0..1;
+    }
+}
+
+relation IntegrationOperationIntegrationLogFile {
+    integration.OperationFile playsRole integrationLogFile {
+        multiplicity 0..1;
+    }
+    
+    integration.IntegrationOperation playsRole integrationOperationForIntegrationLog
+    {
+        multiplicity 0..1;
     }
 }
 
@@ -690,6 +735,7 @@ class integration.ERPConfiguration extends integration.Configuration
     boolean exportAnnulledRelatedDocuments;
     Long maxSizeBytesToExportOnline;
     boolean integratedDocumentsExportationEnabled;
+    boolean dumpWsMessages;
 }
 relation ERPConfigurationFinantialInstitution
 {
