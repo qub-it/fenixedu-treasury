@@ -52,6 +52,7 @@ import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
 import org.fenixedu.treasury.services.integration.erp.ERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
+import org.fenixedu.treasury.ui.document.forwardpayments.ForwardPaymentController;
 import org.fenixedu.treasury.ui.document.manageinvoice.CreditNoteController;
 import org.fenixedu.treasury.ui.document.manageinvoice.DebitEntryController;
 import org.fenixedu.treasury.ui.document.manageinvoice.DebitNoteController;
@@ -186,6 +187,14 @@ public class DebtAccountController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setDebtAccount(debtAccount, model);
         return redirect(SettlementNoteController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId() + "/" + false,
+                model, redirectAttributes);
+    }
+
+    @RequestMapping(value = "/read/{oid}/forwardpayment")
+    public String processReadToForwardPayment(@PathVariable("oid") DebtAccount debtAccount, final Model model,
+            final RedirectAttributes redirectAttributes) {
+        setDebtAccount(debtAccount, model);
+        return redirect(ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId() + "/" + false,
                 model, redirectAttributes);
     }
 

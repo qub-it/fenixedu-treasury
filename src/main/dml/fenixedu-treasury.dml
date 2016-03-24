@@ -6,8 +6,9 @@ enum org.fenixedu.treasury.domain.document.FinantialDocumentStateType           
 enum org.fenixedu.treasury.domain.tariff.DueDateCalculationType                                     as DueDateCalculationType;
 enum org.fenixedu.treasury.domain.tariff.InterestType                                               as InterestType; 
 enum org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType						as PaymentReferenceCodeStateType;
-//enum org.fenixedu.treasury.domain.accesscontrol.TreasuryOperationType                               as TreasuryOperationType;
-//enum org.fenixedu.treasury.domain.accesscontrol.TreasuryOperationType.Scope                         as TreasuryOperationTypeScope;
+enum org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentStateType                           as ForwardPaymentStateType;
+//enum org.fenixedu.treasury.domain.accesscontrol.TreasuryOperationType                             as TreasuryOperationType;
+//enum org.fenixedu.treasury.domain.accesscontrol.TreasuryOperationType.Scope                       as TreasuryOperationTypeScope;
 
 //valueType org.fenixedu.treasury.domain.accesscontrol.rules.TreasuryAccessOperation as TreasuryAccessOperation {
 //    externalizeWith {
@@ -1704,4 +1705,122 @@ class accesscontrol.PersistentTreasuryManagersGroup extends .org.fenixedu.bennu.
 		.org.fenixedu.bennu.core.domain.Bennu playsRole bennuForPersistentTreasuryManagersGroup {
 	        multiplicity 0..1;
 	    }
+	}
+
+/* ****************
+ * FORWARD PAYMENTS
+ * ****************
+ */
+
+class forwardpayments.ForwardPaymentConfiguration {
+	String paymentURL;
+	String returnURL;
+	String merchantId;
+	String virtualTPAId;
+	String implementation;
+}
+
+	relation ForwardPaymentConfigurationBennu {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfigurations {
+			multiplicity *;
+		}
+		
+		.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+			multiplicity 1..1;
+		}
+	}
+	
+	relation ForwardPaymentConfigurationFinantialInstitution {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfigurations {
+			multiplicity *;
+		}
+	
+		FinantialInstitution playsRole finantialInstitution {
+			multiplicity 1..1;
+		}
+	}
+	
+	relation ForwardPaymentConfigurationDocumentNumberSeries {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfigurations {
+			multiplicity *;
+		}
+	
+		document.Series playsRole series {
+			multiplicity 1..1;
+		}
+	}
+
+class forwardpayments.ForwardPayment {
+	ForwardPaymentStateType currentState;
+	DateTime whenOccured;
+	BigDecimalT amount;
+	long orderNumber;
+}
+
+	relation ForwardPaymentBennu {
+		.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+			multiplicity 1..1;
+		}
+
+		forwardpayments.ForwardPayment playsRole forwardPayments {
+			multiplicity *;
+		}
+	}
+	
+	relation ForwardPaymentDebtAccount {
+		debt.DebtAccount playsRole debtAccount {
+			multiplicity 1..1;
+		}
+
+		forwardpayments.ForwardPayment playsRole forwardPayments {
+			multiplicity *;
+		}
+	}
+	
+	relation ForwardPaymentDebitEntries {
+		forwardpayments.ForwardPayment playsRole forwardPayments {
+			multiplicity *;
+		}
+		
+		document.DebitEntry playsRole debitEntries {
+			multiplicity *;
+		}
+	}
+	
+	relation ForwardPaymentForwardPaymentConfiguration {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfiguration {
+			multiplicity 1..1;
+		}
+	
+		forwardpayments.ForwardPayment playsRole forwardPayments {
+			multiplicity *;
+		}
+	}
+
+class forwardpayments.ForwardPaymentLog {
+	ForwardPaymentStateType type;
+	DateTime whenOccured;
+	String errorLog;
+	String requestBody;
+	String responseBody;
+}
+
+	relation ForwardPaymentLogBennu {
+		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+			multiplicity 1..1;
+		}
+
+		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogs {
+			multiplicity *;
+		}
+	}
+	
+	relation ForwardPaymentLogForwardPayment {
+		forwardpayments.ForwardPayment playsRole forwardPayment {
+			multiplicity 1..1;
+		}
+		
+		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogs {
+			multiplicity *;
+		}
 	}
