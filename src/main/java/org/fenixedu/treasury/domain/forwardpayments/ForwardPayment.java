@@ -66,15 +66,25 @@ public class ForwardPayment extends ForwardPayment_Base {
         getForwardPaymentConfiguration().execute(this, returnPaymentData);
     }
 
-    public boolean isCreated() {
-        return getCurrentState() == ForwardPaymentStateType.CREATED;
+    public void reject(final String errorMessage, final String requestBody, final String responseBody) {
+        setCurrentState(ForwardPaymentStateType.REJECTED);
+        log(errorMessage, requestBody, responseBody);
     }
 
+    public void advanceToAuthorizedState() {
+        setCurrentState(ForwardPaymentStateType.AUTHORIZED);
+        log();
+    }
+
+    public boolean isInCreatedState() {
+        return getCurrentState() == ForwardPaymentStateType.CREATED;
+    }
+    
     public boolean isActive() {
         return getCurrentState() != ForwardPaymentStateType.REJECTED && getCurrentState() != ForwardPaymentStateType.CANCELLED;
     }
 
-    public boolean isAuthorized() {
+    public boolean isInAuthorizedState() {
         return getCurrentState() == ForwardPaymentStateType.AUTHORIZED;
     }
 
@@ -87,6 +97,16 @@ public class ForwardPayment extends ForwardPayment_Base {
     }
 
     private void checkRules() {
+    }
+    
+    private ForwardPaymentLog log(final String errorMessage, final String requestBody, final String responseBody) {
+        final ForwardPaymentLog log = log();
+
+        log.setErrorLog(errorMessage);
+        log.setRequestBody(requestBody);
+        log.setResponseBody(responseBody);
+        
+        return log;
     }
 
     private ForwardPaymentLog log() {

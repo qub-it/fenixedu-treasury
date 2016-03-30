@@ -28,6 +28,7 @@ import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.encoders.Hex;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
+import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -93,31 +94,26 @@ public class TPAInvocationUtil {
         this.certificate = certificate;
         this.certPassword = certPassword;
     }
-
-    public String padding(String str, int length) {
-        boolean paddingLeft = true;
-        char paddingChar = '0';
-        if (str == null) {
-            return "";
-        }
+    
+    public Map<String, String> mapAuthenticationRequest() {
+        final LinkedHashMap<String, String> params = Maps.newLinkedHashMap();
         
-        if (str.length() > length) {
-            throw new RuntimeException("length exceeded");
-        }
+        params.put("A030", padding(TPAVirtualImplementation.AUTHENTICATION_REQUEST_MESSAGE, 4));
+        params.put("A001", padding(forwardPayment.getForwardPaymentConfiguration().getVirtualTPAId(), 9));
+        params.put("C007", padding(forwardPayment.getReferenceNumber(), 15));
+        params.put("A105", padding(TPAVirtualImplementation.CURRENCY_EURO_CODE, 4));
+        params.put("A061", padding(forwardPayment.getDebtAccount().getFinantialInstitution().getCurrency()
+                .getValueWithScale(forwardPayment.getAmount()).toString(), 8));
+        params.put("C046", "");
+        params.put("C012", forwardPayment.getReturnURL());
         
-        String strToPadding = "";
-        for (int i = 0; i != length - str.length(); i++) {
-            strToPadding = strToPadding + paddingChar;
-        }
+        final String c013 = hmacsha1(params);
+        params.put("C013", c013);
         
-        if (paddingLeft) {
-            return strToPadding + str;
-        }
-        
-        return str + strToPadding;
+        return params;
     }
 
-    public String postAuthorizationRequest() {
+    public Map<String, String> postAuthorizationRequest() {
         final LinkedHashMap<String, String> params = Maps.newLinkedHashMap();
 
         params.put("A030", TPAVirtualImplementation.AUTHORIZATION_REQUEST_MESSAGE);
@@ -133,7 +129,24 @@ public class TPAInvocationUtil {
         return post(params);
     }
 
-    private String post(final LinkedHashMap<String,String> params) {
+    public Map<String, String> postPaymentRequest(final DateTime authorizationDate) {
+        final LinkedHashMap<String, String> params = Maps.newLinkedHashMap();
+        
+        params.put("A030", TPAVirtualImplementation.PAYMENT_REQUEST_MESSAGE);
+        params.put("A001", padding(forwardPayment.getForwardPaymentConfiguration().getVirtualTPAId(), 9));
+        params.put("C007", padding(forwardPayment.getReferenceNumber(), 15));
+        params.put("A105", padding(TPAVirtualImplementation.CURRENCY_EURO_CODE, 4));
+        params.put("A061", padding(forwardPayment.getDebtAccount().getFinantialInstitution().getCurrency()
+                .getValueWithScale(forwardPayment.getAmount()).toString(), 8));
+        params.put("A037", authorizationDate.toString("YYYYMMddHHmmss"));
+        
+        final String c013 = hmacsha1(params);
+        params.put("C013", c013);
+
+        return post(params);
+    }
+    
+    private Map<String, String> post(final LinkedHashMap<String,String> params) {
         try {
             System.out.println("post:" + forwardPayment.getForwardPaymentConfiguration().getPaymentURL() + "?" + httpsParams(params));
 
@@ -174,10 +187,60 @@ public class TPAInvocationUtil {
             }
             in.close();
 
-            return strResult;
+            return convertStringToMap(strResult);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String padding(String str, int length) {
+        boolean paddingLeft = true;
+        char paddingChar = '0';
+        if (str == null) {
+            return "";
+        }
+        
+        if (str.length() > length) {
+            throw new RuntimeException("length exceeded");
+        }
+        
+        String strToPadding = "";
+        for (int i = 0; i != length - str.length(); i++) {
+            strToPadding = strToPadding + paddingChar;
+        }
+        
+        if (paddingLeft) {
+            return strToPadding + str;
+        }
+        
+        return str + strToPadding;
+    }
+
+    private Map<String, String> convertStringToMap(final String strResult) {
+        final Map<String, String> result = Maps.newHashMap();
+        if(isXml(strResult)) {
+            
+            
+            
+        } else if(isForms(strResult)) {
+            String[] keyValues = strResult.split("&");
+            for(final String kv : keyValues) {
+                final String[] kvS = kv.split("=");
+                if(kvS.length == 2) {
+                    result.put(kvS[0].trim(), kvS[1].trim());
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    private boolean isForms(String strResult) {
+        return true;
+    }
+
+    private boolean isXml(String strResult) {
+        return false;
     }
 
     private String httpsParams(final Map<String, String> params) {
@@ -207,6 +270,11 @@ public class TPAInvocationUtil {
         for (final Map.Entry<String, String> entry : params.entrySet()) {
             String strFieldResquestName = entry.getKey();
             String strFieldResquestValue = entry.getValue();
+            
+            if("A061".equals(strFieldResquestName)) {
+                strFieldResquestValue = strFieldResquestValue.replace("\\.", "");
+            }
+            
             String strFieldResquestType = propsInfo.get(strFieldResquestName).t;
 
             int intFieldResquestSize = propsInfo.get(strFieldResquestName).s;
@@ -254,6 +322,7 @@ public class TPAInvocationUtil {
         }
         return null;
     }
+
 }
 
 class MapUtil {

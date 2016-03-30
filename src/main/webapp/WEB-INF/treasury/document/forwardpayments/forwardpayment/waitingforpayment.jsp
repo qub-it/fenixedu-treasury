@@ -24,7 +24,6 @@
 <%-- ${portal.toolkit()} --%>
 ${portal.angularToolkit()}
 
-
 <link
     href="${pageContext.request.contextPath}/static/treasury/css/dataTables.responsive.css"
     rel="stylesheet" />
@@ -56,7 +55,7 @@ ${portal.angularToolkit()}
 <div class="page-header">
     <h1>
         <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.chooseInvoiceEntries" />
+            code="label.ForwardPaymentController.paymentConfirmation" />
         <small></small>
     </h1>
 
@@ -99,85 +98,42 @@ ${portal.angularToolkit()}
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
         2. <spring:message code="label.ForwardPaymentController.confirmPayment" />
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        <strong>3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" /></strong>
+        3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        4. <spring:message code="label.ForwardPaymentController.paymentConfirmation" />
+        <strong>4. <spring:message code="label.ForwardPaymentController.paymentConfirmation" /></strong>
     </p>
 </div>
 
-<script type="text/javascript">
-var CCom = "${forwardPayment.forwardPaymentConfiguration.merchantId}";
-var A001 = "${forwardPayment.forwardPaymentConfiguration.virtualTPAId}";
-
-/*	
-	CCom - Número do cartão do comerciante
-	A001 - Número do TPA Virtual
-	C007 - Referência do pagamento
-	A061 - Montante da operação
-	C046 - URL do CSS
-	C012 - URL da página de confirmação da encomenda do Comerciante
-	iFrame - Nome do iFrame onde será apresentado o formulário (Campo não obrigatório)
-	popup - Utilizar popup? (true / false)
-	popupHeight - Largura da popup
-	popupWidth - Altura da popup
-*/ 
-function submitPaymentByFrame(){
-	submitPayment('netcaixa');
-}
-
-function submitPayment(iFrame, popup, popupHeight, popupWidth){
-
-	var hiddenForm = document.createElement('FORM');
-	hiddenForm.name = "frmPayment";
-	hiddenForm.method = "POST";
+<script>
+	angular.isUndefinedOrNull = function(val) {
+		return angular.isUndefined(val) || val === null
+	};
 	
-	var height = 570; 
-	var width = 470;
-	if(popupHeight != undefined){
-		height = popupHeight;
-	}
-	
-	if(popupWidth != undefined){
-		width = popupWidth;
-	}
-	
-	if(iFrame != null && iFrame != "" && iFrame != undefined){
-		hiddenForm.target = iFrame;
-	}else if(popup != undefined && popup){
-		var popwindow = window.open('', 'formpopup', config='height=' + height + ', width=' + width + ', toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, directories=no, status=no');
-    	hiddenForm.target = 'formpopup';
-		popwindow.focus();
-	}
-
-	hiddenForm.action = '${forwardPayment.paymentURL}';
-	var hiddenInput = null;
-
-<%
-	final ForwardPayment forwardPayment = (ForwardPayment) request.getAttribute("forwardPayment");
-	final TPAVirtualImplementation implementation = (TPAVirtualImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
-	final Map<String, String> requestMap = implementation.mapAuthenticationRequest(forwardPayment);
-	for(final Map.Entry<String, String> e : requestMap.entrySet()) {
-%>
-
-	hiddenInput = document.createElement("INPUT");
-	hiddenInput.type = "hidden";
-	hiddenInput.id = "<%= e.getKey() %>";
-	hiddenInput.name = "<%= e.getKey() %>";
-	hiddenInput.value = "<%= e.getValue() %>";
-	hiddenForm.appendChild(hiddenInput);
-
-<% } %>
- 
-	document.body.appendChild(hiddenForm);
-	hiddenForm.submit();
-}
-
-$(document).ready(function() {
-	submitPaymentByFrame();
-});
+	angular.module('angularApp', [ 'ngSanitize', 'ui.select', 'bennuToolkit' ])
+			.controller( 'controller', [ '$scope', function($scope) {
+				$scope.forwardPaymentState = '${forwardPayment.currentState}';
+				
+				$scope.refreshForwardPaymentState = function() {
+					$.ajax({
+						url : '<%= ForwardPaymentController.CURRENT_FORWARD_PAYMENT_STATE_URL %>/${forwardPayment.externalId}',
+						type : "POST",
+						data : postData,
+						success : function(data, textStatus, jqXHR) {
+							angular_scope.forwardPaymentState = data;
+							angular_scope.$apply();
+						},
+						error : function(jqXHR, textStatus, errorThrown) {
+							messageAlert("Erro", jqXHR.responseText);
+						},
+					});
+				}
+			} ]);
 </script>
 
-<form id="waitingForPaymentURL" action="<%= ForwardPaymentController.WAITING_FOR_PAYMENT_URL %>/${forwardPayment.externalId}">
-</form>
-
-<iframe id="netcaixa" name="netcaixa" style="width:500px; height:600px;" scrolling="no" frameborder="0" ></iframe>
+<div ng-app="angularApp" ng-controller="controller">
+	<p><strong>A confirmar pagamento. Por favor aguarde...</strong></p>
+	
+	<p>Estado: <span>{{ forwardPaymentState }}</span></p>
+	
+	<button ng-click="refreshForwardPaymentState();">Refrescar</button>
+</div>

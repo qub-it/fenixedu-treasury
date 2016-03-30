@@ -49,7 +49,7 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         return implementation().getFormattedAmount(forwardPayment);
     }
 
-    private IForwardPaymentImplementation implementation() {
+    public IForwardPaymentImplementation implementation() {
         try {
             return (IForwardPaymentImplementation) Class.forName(getImplementation()).newInstance();
         } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -57,8 +57,8 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         }
     }
 
-    public Object execute(ForwardPayment forwardPayment, final Map<String, String> paymentData) {
-        return implementation().execute(forwardPayment, paymentData);
+    public Object execute(ForwardPayment forwardPayment, final Map<String, String> responseData) {
+        return implementation().execute(forwardPayment, null, responseData);
     }
 
     public static ForwardPaymentConfiguration create(final FinantialInstitution finantialInstitution, final Series series, final String paymentURL,

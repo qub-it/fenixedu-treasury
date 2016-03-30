@@ -114,24 +114,13 @@ ${portal.angularToolkit()}
 
 <div>
     <p>
-        1.
-        <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.chooseInvoiceEntries" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-        2.
-        <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.calculateInterest" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-        3.
-        <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.createDebitNote" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-        4.
-        <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.insertpayment" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-        <b>5. <spring:message
-                code="label.administration.manageCustomer.createSettlementNote.summary" /></b>
+        1. <spring:message code="label.ForwardPaymentController.chooseInvoiceEntries" />
+        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
+        <strong>2. <spring:message code="label.ForwardPaymentController.confirmPayment" /></strong>
+        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
+        3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
+        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
+        4. <spring:message code="label.ForwardPaymentController.paymentConfirmation" />
     </p>
 </div>
 

@@ -28,7 +28,9 @@ package org.fenixedu.treasury.ui.document.forwardpayments;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
@@ -36,6 +38,10 @@ import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
+import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
+import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
+import org.fenixedu.treasury.domain.document.FinantialDocumentType;
+import org.fenixedu.treasury.domain.document.Series;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
@@ -56,12 +62,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
 //@Component("org.fenixedu.treasury.ui.document.managePayments") <-- Use for duplicate controller name disambiguation
 @BennuSpringController(CustomerController.class)
@@ -183,7 +192,8 @@ public class ForwardPaymentController extends TreasuryBaseController {
         }
 
         bean.setInterestEntries(new ArrayList<InterestEntryBean>());
-        for (DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
+        List<DebitEntryBean> debitEntriesToIterate = Lists.newArrayList(bean.getDebitEntries());
+        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
             if (debitEntryBean.isIncluded()
                     && Constants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
 
@@ -197,7 +207,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
             }
         }
 
-        for (DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
+        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
             if (debitEntryBean.isIncluded()
                     && Constants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
                 for (final DebitEntry interestDebitEntry : debitEntryBean.getDebitEntry().getInterestDebitEntriesSet()) {
@@ -239,22 +249,35 @@ public class ForwardPaymentController extends TreasuryBaseController {
         return forwardPayment.getPaymentPage();
     }
 
-    private static final String RETURN_FORWARD_PAYMENT_URI = "/returnforwardpayment";
-    public static final String RETURN_FORWARD_PAYMENT_URL = CONTROLLER_URL + RETURN_FORWARD_PAYMENT_URI;
+    private static final String WAITING_FOR_PAYMENT_URI = "/waitingforpayment";
+    public static final String WAITING_FOR_PAYMENT_URL = CONTROLLER_URL + WAITING_FOR_PAYMENT_URI;
 
-    @RequestMapping(value = RETURN_FORWARD_PAYMENT_URI + "/{forwardPayment}", method = RequestMethod.POST)
-    public String returnforwardpayment(@PathVariable("forwardPayment") final ForwardPayment forwardPayment,
-            @RequestParam Map<String,String> paymentData, final Model model) {
-        forwardPayment.execute(paymentData);
-        
-        return null;
+    @RequestMapping(value = WAITING_FOR_PAYMENT_URI + "/{forwardPaymentId}", method = RequestMethod.GET)
+    public String waitingforpayment(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment, final Model model) {
+        model.addAttribute("forwardPayment", forwardPayment);
+
+        return jspPage("waitingforpayment");
+    }
+
+    private static final String CURRENT_FORWARD_PAYMENT_STATE_URI = "/currentforwardpaymentstate";
+    public static final String CURRENT_FORWARD_PAYMENT_STATE_URL = CONTROLLER_URL + CURRENT_FORWARD_PAYMENT_STATE_URI;
+
+    @RequestMapping(value = CURRENT_FORWARD_PAYMENT_STATE_URI + "/{forwardPaymentId}", method = RequestMethod.POST)
+    @ResponseBody
+    public String currentforwardpaymentstate(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment) {
+        return forwardPayment.getCurrentState().toString();
     }
 
     @Atomic
     public ForwardPayment processForwardPaymentCreation(SettlementNoteBean bean) {
+        final DateTime now = new DateTime();
         final DebtAccount debtAccount = bean.getDebtAccount();
         final ForwardPaymentConfiguration forwardPaymentConfiguration =
                 bean.getDebtAccount().getFinantialInstitution().getForwardPaymentConfigurationsSet().iterator().next();
+
+        final DocumentNumberSeries documentNumberSeries =
+                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
+                        forwardPaymentConfiguration.getFinantialInstitution()).get();
 
         final Set<DebitEntry> debitEntriesToPay = Sets.newHashSet();
         for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
@@ -263,12 +286,24 @@ public class ForwardPaymentController extends TreasuryBaseController {
             }
 
             if (debitEntryBean.getDebitEntry().getFinantialDocument() == null) {
-                final DebitNote debitNote = DebitNote.create(debtAccount, null, new DateTime());
+                final DebitNote debitNote = DebitNote.create(debtAccount, documentNumberSeries, now);
                 debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntryBean.getDebitEntry()));
                 debitNote.closeDocument();
             }
 
             debitEntriesToPay.add(debitEntryBean.getDebitEntry());
+        }
+
+        for (final InterestEntryBean interestEntryBean : bean.getInterestEntries()) {
+            if (interestEntryBean.isIncluded()) {
+                final DebitEntry interestDebitEntry = interestEntryBean.getDebitEntry()
+                        .createInterestRateDebitEntry(interestEntryBean.getInterest(), now, Optional.<DebitNote> empty());
+                final DebitNote debitNote = DebitNote.create(debtAccount, documentNumberSeries, now);
+                debitNote.addDebitNoteEntries(Lists.newArrayList(interestDebitEntry));
+                debitNote.closeDocument();
+
+                debitEntriesToPay.add(interestDebitEntry);
+            }
         }
 
         final ForwardPayment forwardPayment = ForwardPayment.create(forwardPaymentConfiguration, debtAccount, debitEntriesToPay);
