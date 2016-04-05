@@ -453,6 +453,8 @@ class paymentcodes.SibsConfiguration extends integration.Configuration
     String entityReferenceCode;
     String sourceInstitutionId;
     String destinationInstitutionId;
+    String sibsPaymentsBrokerUrl;
+    String sibsPaymentsBrokerSharedKey;
 }
 
  relation SibsConfigurationFinantialInstitution {
@@ -491,6 +493,7 @@ class paymentcodes.PaymentReferenceCode
 	  LocalDate validTo;
 	  Boolean active;
 	  Boolean useCheckDigit;
+	  boolean generateReferenceCodeOnDemand;
 	}
 	
 

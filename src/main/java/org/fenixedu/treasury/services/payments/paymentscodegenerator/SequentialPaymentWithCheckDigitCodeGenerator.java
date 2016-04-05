@@ -55,7 +55,11 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
     }
 
     @Override
-    public boolean canGenerateNewCode(Customer customer) {
+    public boolean canGenerateNewCode(boolean forceGeneration) {
+        if(!this.referenceCodePool.isGenerateReferenceCodeOnDemand() && !forceGeneration) {
+            return false;
+        }
+        
         final PaymentReferenceCode lastPaymentCode = findLastPaymentReferenceCode();
         return lastPaymentCode == null ? true : Integer.valueOf(getSequentialNumber(lastPaymentCode)) < referenceCodePool
                 .getMaxReferenceCode();
@@ -63,8 +67,15 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
 
     @Override
     @Atomic
-    public PaymentReferenceCode generateNewCodeFor(Customer customer, BigDecimal amount, LocalDate validFrom, LocalDate validTo,
+    public PaymentReferenceCode generateNewCodeFor(final BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount) {
+        return generateNewCodeFor(amount, validFrom, validTo, useFixedAmount, false);
+    }
+    
+    @Override
+    @Atomic
+    public PaymentReferenceCode generateNewCodeFor(final BigDecimal amount, LocalDate validFrom, LocalDate validTo,
+            boolean useFixedAmount, final boolean forceGeneration) {
 
         if (validFrom == null) {
             validFrom = referenceCodePool.getValidFrom();

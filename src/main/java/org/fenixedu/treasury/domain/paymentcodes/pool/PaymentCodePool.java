@@ -163,6 +163,10 @@ public class PaymentCodePool extends PaymentCodePool_Base {
         }
 
     }
+    
+    public boolean isGenerateReferenceCodeOnDemand() {
+        return getGenerateReferenceCodeOnDemand();
+    }
 
     @Atomic
     public void edit(final String name, final Boolean active, DocumentNumberSeries seriesToUseInPayments,

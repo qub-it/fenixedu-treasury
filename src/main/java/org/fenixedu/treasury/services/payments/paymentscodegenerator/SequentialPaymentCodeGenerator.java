@@ -12,6 +12,7 @@ import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
 import org.fenixedu.treasury.util.Constants;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import pt.ist.fenixframework.Atomic;
@@ -43,7 +44,11 @@ public class SequentialPaymentCodeGenerator extends PaymentCodeGenerator {
     private static final int NUM_SEQUENTIAL_NUMBERS = 7;
 
     @Override
-    public boolean canGenerateNewCode(Customer customer) {
+    public boolean canGenerateNewCode(boolean forceGeneration) {
+        if(!this.referenceCodePool.isGenerateReferenceCodeOnDemand() && !forceGeneration) {
+            return false;
+        }
+        
         final PaymentReferenceCode lastPaymentCode = findLastPaymentCode();
         return lastPaymentCode == null ? true : Integer.valueOf(getSequentialNumber(lastPaymentCode)) < referenceCodePool
                 .getMaxReferenceCode();
@@ -60,10 +65,58 @@ public class SequentialPaymentCodeGenerator extends PaymentCodeGenerator {
 
     @Override
     @Atomic
-    public PaymentReferenceCode generateNewCodeFor(Customer customer, BigDecimal amount, LocalDate validFrom, LocalDate validTo,
+    public PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount) {
+        return generateNewCodeFor(amount, validFrom, validTo, useFixedAmount, false);
+    }
+    
+    @Override
+    @Atomic
+    public PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom, LocalDate validTo,
+            boolean useFixedAmount, final boolean forceGeneration) {
 
-        if (!canGenerateNewCode(customer)) {
+        if(!forceGeneration) {
+            // First find unused payment code reference
+            for (final PaymentReferenceCode paymentReferenceCode : this.referenceCodePool.getPaymentReferenceCodesSet()) {
+                if(!paymentReferenceCode.isNew()) {
+                    continue;
+                }
+                
+                // Check if is associated with debt account
+                //if(paymentReferenceCode.getDebtAccount() != null) {
+                //    continue;
+                //}
+                
+                if(Constants.isGreaterThan(amount, paymentReferenceCode.getMaxAmount())) {
+                    continue;
+                }
+                
+                if(Constants.isLessThan(amount, paymentReferenceCode.getMinAmount())) {
+                    continue;
+                }
+                
+                if(paymentReferenceCode.getTargetPayment() != null) {
+                    continue;
+                }
+                
+                if(validTo != null && !paymentReferenceCode.getValidInterval().contains(validTo.toDateTimeAtStartOfDay())) {
+                    continue;
+                } else if(!paymentReferenceCode.getValidInterval().contains(new DateTime())) {
+                    continue;
+                }
+                
+                if(validFrom != null && !paymentReferenceCode.getValidInterval().contains(validFrom.toDateTimeAtStartOfDay())) {
+                    continue;
+                } else if(!paymentReferenceCode.getValidInterval().contains(new DateTime())) {
+                    continue;
+                }
+                
+                paymentReferenceCode.setPayableAmount(amount);
+                return paymentReferenceCode;
+            }
+        }
+        
+        if (!canGenerateNewCode(forceGeneration)) {
             throw new RuntimeException("Cannot generate new payment codes");
         }
 

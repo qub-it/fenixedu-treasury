@@ -171,6 +171,23 @@ ${portal.toolkit()}
                                 value='${sibsConfiguration.destinationInstitutionId}' />
                         </td>
                     </tr>
+
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.SibsConfiguration.sibsPaymentsBrokerUrl" /></th>
+                        <td><c:out
+                                value='${sibsConfiguration.sibsPaymentsBrokerUrl}' />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.SibsConfiguration.sibsPaymentsBrokerSharedKey" /></th>
+                        <td><c:out
+                                value='${sibsConfiguration.sibsPaymentsBrokerSharedKey}' />
+                        </td>
+                    </tr>
+
                 </tbody>
             </table>
         </form>

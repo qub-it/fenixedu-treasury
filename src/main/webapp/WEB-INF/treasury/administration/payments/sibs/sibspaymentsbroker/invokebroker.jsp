@@ -46,7 +46,7 @@ ${portal.toolkit()}
 <div class="page-header">
     <h1>
         <spring:message
-            code="label.administration.sibs.manageSibsConfiguration.updateSibsConfiguration" />
+            code="label.SibsPaymentsBroker.invokebroker" />
         <small></small>
     </h1>
 </div>
@@ -55,7 +55,7 @@ ${portal.toolkit()}
 <div class="well well-sm" style="display: inline-block">
     <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp;<a
         class=""
-        href="${pageContext.request.contextPath}/treasury/administration/sibs/managesibsconfiguration/sibsconfiguration/read/${sibsConfiguration.externalId}"><spring:message
+        href="${pageContext.request.contextPath}/treasury/administration/payments/sibs/managesibsinputfile/sibsinputfile/"><spring:message
             code="label.event.back" /></a> &nbsp;
 </div>
 <c:if test="${not empty infoMessages}">
@@ -96,92 +96,65 @@ ${portal.toolkit()}
 </c:if>
 
 <form method="post" class="form-horizontal">
-
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.SibsConfiguration.entityReferenceCode" />
+                    <spring:message code="label.SibsPaymentsBroker.paymentCodePool" />
                 </div>
 
-                <div class="col-sm-10">
-                    <input id="sibsConfiguration_entityReferenceCode"
-                        class="form-control" type="text"
-                        name="entityreferencecode"
-                        value='<c:out value='${not empty param.entityreferencecode ? param.entityreferencecode : sibsConfiguration.entityReferenceCode }'/>' />
+                <div class="col-sm-4">
+                    <%-- Relation to side 1 drop down rendered in input --%>
+                    <select id="sibsPaymentsBroker_paymentCodePool" class="js-example-basic-single" 
+                    	name="paymentCodePool" required>
+                        <%-- empty option remove it if you don't want to have it or give it a label CHANGE_ME --%>
+                        <c:forEach items="${paymentCodePoolList}" var="p">
+                        	<option value="${p.externalId}"><c:out value="${p.name} [${p.finantialInstitution.name}]" /></option>
+                        </c:forEach>
+                    </select>
+                    <script>
+                    	$(document).ready(function() {
+	                    	$('#sibsPaymentsBroker_paymentCodePool').select2();
+                    	});
+                    </script>
                 </div>
             </div>
+        
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.SibsConfiguration.sourceInstitutionId" />
+                    <spring:message code="label.SibsPaymentsBroker.fromDate" />
                 </div>
 
-                <div class="col-sm-10">
-                    <input id="sibsConfiguration_sourceInstitutionId"
+                <div class="col-sm-4">
+                    <input id="sibsPaymentsBroker_fromDate"
                         class="form-control" type="text"
-                        name="sourceinstitutionid"
-                        value='<c:out value='${not empty param.sourceinstitutionid ? param.sourceinstitutionid : sibsConfiguration.sourceInstitutionId }'/>' />
+                        name="fromDate" bennu-date
+                        value='<c:out value='${param.fromDate}'/>' />
                 </div>
             </div>
+
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.SibsConfiguration.destinationInstitutionId" />
+                    <spring:message code="label.SibsPaymentsBroker.toDate" />
                 </div>
 
-                <div class="col-sm-10">
-                    <input
-                        id="sibsConfiguration_destinationInstitutionId"
+                <div class="col-sm-4">
+                    <input id="sibsPaymentsBroker_toDate"
                         class="form-control" type="text"
-                        name="destinationinstitutionid"
-                        value='<c:out value='${not empty param.destinationinstitutionid ? param.destinationinstitutionid : sibsConfiguration.destinationInstitutionId }'/>' />
+                        name="toDate" bennu-date
+                        value='<c:out value='${param.toDate}'/>' />
                 </div>
             </div>
-            
-            
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.SibsConfiguration.sibsPaymentsBrokerUrl" />
-                </div>
-
-                <div class="col-sm-10">
-                    <input
-                        id="sibsConfiguration_sibsPaymentsBrokerUrl"
-                        class="form-control" type="text"
-                        name="sibsPaymentsBrokerUrl"
-                        value='<c:out value='${not empty param.sibsPaymentsBrokerUrl ? param.sibsPaymentsBrokerUrl : sibsConfiguration.sibsPaymentsBrokerUrl}'/>' />
-                </div>
-            </div>
-            
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.SibsConfiguration.sibsPaymentsBrokerSharedKey" />
-                </div>
-
-                <div class="col-sm-10">
-                    <input
-                        id="sibsConfiguration_sibsPaymentsBrokerSharedKey"
-                        class="form-control" type="text"
-                        name="sibsPaymentsBrokerSharedKey"
-                        value='<c:out value='${not empty param.sibsPaymentsBrokerSharedKey ? param.sibsPaymentsBrokerSharedKey : sibsConfiguration.sibsPaymentsBrokerSharedKey }'/>' />
-                </div>
-            </div>
-            
             
         </div>
         <div class="panel-footer">
-            <input type="submit" class="btn btn-default" role="button"
-                value="<spring:message code="label.submit" />" />
+            <input type="submit" class="btn btn-default" role="button" value="<spring:message code="label.submit" />" />
         </div>
     </div>
 </form>
 
 <script>
-	$(document).ready(function() {
+    $(document).ready(function() {
 
-	});
+    });
 </script>

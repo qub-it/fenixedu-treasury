@@ -133,7 +133,7 @@ public class SIBSPaymentsImporter {
         return message;
     }
 
-    protected void processFile(SibsInputFile inputFile, ProcessResult processResult) throws IOException {
+    private void processFile(SibsInputFile inputFile, ProcessResult processResult) throws IOException {
         processResult.addMessage("label.manager.SIBS.processingFile", inputFile.getFilename());
 
         InputStream fileInputStream = null;
@@ -145,7 +145,6 @@ public class SIBSPaymentsImporter {
             processResult.addMessage("label.manager.SIBS.linesFound", String.valueOf(sibsFile.getDetailLines().size()));
             processResult.addMessage("label.manager.SIBS.startingProcess");
 
-            
             processResult.addMessage("label.manager.SIBS.creatingReport");
 
             SibsReportFile reportFile = null;
@@ -160,18 +159,18 @@ public class SIBSPaymentsImporter {
                 ex.printStackTrace();
                 processResult.addError("error.manager.SIBS.reportException", getMessage(ex));
             }
-            
-            if(reportFile == null) {
+
+            if (reportFile == null) {
                 processResult.addError("error.manager.SIBS.report.not.created");
                 return;
             }
-            
+
             for (final SibsIncommingPaymentFileDetailLine detailLine : sibsFile.getDetailLines()) {
-                
+
                 try {
                     final SettlementNote settlementNote =
-                            processCode(detailLine, person, processResult, inputFile.getFinantialInstitution(), inputFile
-                                    .getFilename().replace("\\.inp", ""), sibsFile.getWhenProcessedBySibs(), reportFile);
+                            processCode(detailLine, person, processResult, inputFile.getFinantialInstitution(),
+                                    inputFile.getFilename().replace("\\.inp", ""), sibsFile.getWhenProcessedBySibs(), reportFile);
 
                     if (settlementNote != null) {
                         processResult.addMessage(detailLine.getCode() + " ["
@@ -193,7 +192,6 @@ public class SIBSPaymentsImporter {
                 processResult.addError("error.manager.SIBS.nonProcessedCodes");
             }
 
-
             processResult.addMessage("label.manager.SIBS.done");
 
         } finally {
@@ -203,9 +201,86 @@ public class SIBSPaymentsImporter {
         }
     }
 
+    public ProcessResult processSIBSPaymentFiles(final SibsIncommingPaymentFile sibsFile,
+            final FinantialInstitution finantialInstitution) throws IOException {
+        // HACK:    Avoid concurrent and duplicated processing file
+        synchronized (SIBSPaymentsImporter.class) {
+            ProcessResult result = new ProcessResult();
+
+            if (StringUtils.endsWithIgnoreCase(sibsFile.getFilename(), PAYMENT_FILE_EXTENSION)) {
+                result.addMessage("label.manager.SIBS.processingFile", sibsFile.getFilename());
+                try {
+                    processFile(sibsFile, finantialInstitution, result);
+                } catch (Exception e) {
+                    throw new TreasuryDomainException("error.manager.SIBS.fileException", getMessage(e));
+                } finally {
+                }
+            } else {
+                throw new TreasuryDomainException("error.manager.SIBS.notSupportedExtension", sibsFile.getFilename());
+            }
+            return result;
+        }
+    }
+
+    private void processFile(SibsIncommingPaymentFile sibsFile, final FinantialInstitution finantialInstitution,
+            ProcessResult processResult) {
+        final User person = Authenticate.getUser();
+
+        processResult.addMessage("label.manager.SIBS.linesFound", String.valueOf(sibsFile.getDetailLines().size()));
+        processResult.addMessage("label.manager.SIBS.startingProcess");
+
+        processResult.addMessage("label.manager.SIBS.creatingReport");
+
+        SibsReportFile reportFile = null;
+        try {
+            final SIBSImportationFileDTO reportDTO = new SIBSImportationFileDTO(sibsFile, finantialInstitution);
+            reportFile = SibsReportFile.processSIBSIncommingFile(reportDTO);
+            processResult.addMessage("label.manager.SIBS.reportCreated");
+            processResult.setReportFile(reportFile);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            processResult.addError("error.manager.SIBS.reportException", getMessage(ex));
+        }
+
+        if (reportFile == null) {
+            processResult.addError("error.manager.SIBS.report.not.created");
+            return;
+        }
+
+        for (final SibsIncommingPaymentFileDetailLine detailLine : sibsFile.getDetailLines()) {
+
+            try {
+                final SettlementNote settlementNote = processCode(detailLine, person, processResult, finantialInstitution,
+                        sibsFile.getFilename().replace("\\.inp", ""), sibsFile.getWhenProcessedBySibs(), reportFile);
+
+                if (settlementNote != null) {
+                    processResult.addMessage(
+                            detailLine.getCode() + " [" + finantialInstitution.getCurrency().getValueFor(detailLine.getAmount())
+                                    + "] => " + settlementNote.getUiDocumentNumber());
+//                    if (settlementNote.getAdvancedPaymentCreditNote() != null) {
+//                        processResult.addMessage("label.manager.SIBS.advancedPayment.registered",
+//                                settlementNote.getUiDocumentNumber());
+//                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                processResult.addError("error.manager.SIBS.processException", detailLine.getCode(), getMessage(e));
+            }
+        }
+
+        if (processResult.hasFailed()) {
+            processResult.addError("error.manager.SIBS.nonProcessedCodes");
+        }
+
+        processResult.addMessage("label.manager.SIBS.done");
+    }
+
     @Atomic
     protected SettlementNote processCode(SibsIncommingPaymentFileDetailLine detailLine, User person, ProcessResult result,
-            FinantialInstitution finantialInstitution, final String sibsImportationFile, YearMonthDay whenProcessedBySibs, final SibsReportFile reportFile) throws Exception {
+            FinantialInstitution finantialInstitution, final String sibsImportationFile, YearMonthDay whenProcessedBySibs,
+            final SibsReportFile reportFile) throws Exception {
 
         final PaymentReferenceCode paymentCode = getPaymentCode(detailLine.getCode(), finantialInstitution);
 
@@ -221,8 +296,8 @@ public class SIBSPaymentsImporter {
         }
 
         if (!codeToProcess.isNew()) {
-            if (SibsTransactionDetail.isReferenceProcessingDuplicate(codeToProcess.getReferenceCode(), codeToProcess
-                    .getPaymentCodePool().getEntityReferenceCode(), detailLine.getWhenOccuredTransaction())) {
+            if (SibsTransactionDetail.isReferenceProcessingDuplicate(codeToProcess.getReferenceCode(),
+                    codeToProcess.getPaymentCodePool().getEntityReferenceCode(), detailLine.getWhenOccuredTransaction())) {
                 result.addMessage("error.manager.SIBS.codeAlreadyProcessed.duplicated", codeToProcess.getReferenceCode());
                 return null;
             } else {
@@ -232,10 +307,9 @@ public class SIBSPaymentsImporter {
             }
         }
 
-        SettlementNote settlementNote =
-                codeToProcess.processPayment(person, detailLine.getAmount(), detailLine.getWhenOccuredTransaction(),
-                        detailLine.getSibsTransactionId(), sibsImportationFile, 
-                        whenProcessedBySibs.toLocalDate().toDateTimeAtStartOfDay(), reportFile);
+        SettlementNote settlementNote = codeToProcess.processPayment(person, detailLine.getAmount(),
+                detailLine.getWhenOccuredTransaction(), detailLine.getSibsTransactionId(), sibsImportationFile,
+                whenProcessedBySibs.toLocalDate().toDateTimeAtStartOfDay(), reportFile);
 
         if (settlementNote != null) {
             //Add the new SettlementNote to the TargetPayment

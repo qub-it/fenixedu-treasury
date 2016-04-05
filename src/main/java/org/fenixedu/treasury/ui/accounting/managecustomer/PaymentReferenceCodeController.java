@@ -119,7 +119,7 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
         final PaymentReferenceCode paymentReferenceCode =
                 bean.getPaymentCodePool()
                         .getReferenceCodeGenerator()
-                        .generateNewCodeFor(bean.getSelectedDebitEntries().iterator().next().getDebtAccount().getCustomer(),
+                        .generateNewCodeFor(
                                 bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
                                 bean.getPaymentCodePool().getIsFixedAmount());
 

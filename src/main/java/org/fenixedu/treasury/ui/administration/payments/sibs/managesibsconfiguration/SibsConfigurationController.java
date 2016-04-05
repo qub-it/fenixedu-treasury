@@ -87,8 +87,10 @@ public class SibsConfigurationController extends TreasuryBaseController {
     public String update(@PathVariable("oid") SibsConfiguration sibsConfiguration, @RequestParam(value = "entityreferencecode",
             required = false) String entityReferenceCode,
             @RequestParam(value = "sourceinstitutionid", required = false) String sourceInstitutionId, @RequestParam(
-                    value = "destinationinstitutionid", required = false) String destinationInstitutionId, Model model,
-            RedirectAttributes redirectAttributes) {
+                    value = "destinationinstitutionid", required = false) String destinationInstitutionId, 
+            @RequestParam(value = "sibsPaymentsBrokerUrl", required = false) final String sibsPaymentsBrokerUrl,
+            @RequestParam(value = "sibsPaymentsBrokerSharedKey", required = false) final String sibsPaymentsBrokerSharedKey,
+            Model model, RedirectAttributes redirectAttributes) {
 
         setSibsConfiguration(sibsConfiguration, model);
 
@@ -96,7 +98,8 @@ public class SibsConfigurationController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(sibsConfiguration.getFinantialInstitution(), model);
 
             assertUserIsBackOfficeMember(sibsConfiguration.getFinantialInstitution(), model);
-            updateSibsConfiguration(entityReferenceCode, sourceInstitutionId, destinationInstitutionId, model);
+            getSibsConfiguration(model).edit(entityReferenceCode, sourceInstitutionId, destinationInstitutionId, sibsPaymentsBrokerUrl,
+                    sibsPaymentsBrokerSharedKey);
 
             return redirect(READ_URL + getSibsConfiguration(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
@@ -106,10 +109,5 @@ public class SibsConfigurationController extends TreasuryBaseController {
         }
         return update(sibsConfiguration, model);
     }
-
-    @Atomic
-    public void updateSibsConfiguration(String entityReferenceCode, String sourceInstitutionId, String destinationInstitutionId,
-            Model model) {
-        getSibsConfiguration(model).edit(entityReferenceCode, sourceInstitutionId, destinationInstitutionId);
-    }
+    
 }

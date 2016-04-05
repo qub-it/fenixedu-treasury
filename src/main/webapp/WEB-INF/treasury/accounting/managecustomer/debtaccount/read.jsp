@@ -777,7 +777,9 @@ ${portal.angularToolkit()}
                                  <c:if test="${target.paymentReferenceCode.isFixedAmount() }">
                                      <c:out value="${debtAccount.finantialInstitution.currency.getValueFor(target.paymentReferenceCode.payableAmount)}" />
                                  </c:if>
-
+								<c:if test="${not target.paymentReferenceCode.isFixedAmount() }">
+									<c:out value="${debtAccount.finantialInstitution.currency.getValueFor(target.paymentReferenceCode.payableAmount)}" />
+								</c:if>
                              </div>
 
 						</datatables:column>

@@ -20,16 +20,18 @@ package org.fenixedu.treasury.services.payments.paymentscodegenerator;
 
 import java.math.BigDecimal;
 
-import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.joda.time.LocalDate;
 
 public abstract class PaymentCodeGenerator {
-    public abstract boolean canGenerateNewCode(final Customer person);
+    public abstract boolean canGenerateNewCode(boolean forceGeneration);
 
-    public abstract PaymentReferenceCode generateNewCodeFor(final Customer customer, BigDecimal amount, LocalDate validFrom,
+    public abstract PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom,
             LocalDate validTo, boolean useFixedAmount);
 
+    public abstract PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom,
+            LocalDate validTo, boolean useFixedAmount, boolean forceGeneration);
+    
     public abstract boolean isCodeMadeByThisFactory(final PaymentReferenceCode paymentCode);
 
 //    public abstract void refreshReferenceCodeGenerator();

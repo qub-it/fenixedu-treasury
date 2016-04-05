@@ -44,7 +44,7 @@ public class SibsIncommingPaymentFileDetailLine {
                 getSibsTransactionIdFrom(fields), getCodeFrom(fields));
     }
 
-    private SibsIncommingPaymentFileDetailLine(DateTime whenOccuredTransactionFrom, BigDecimal amountFrom,
+    public SibsIncommingPaymentFileDetailLine(DateTime whenOccuredTransactionFrom, BigDecimal amountFrom,
             String sibsTransactionIdFrom, String codeFrom) {
         this.whenOccuredTransaction = whenOccuredTransactionFrom;
         this.amount = amountFrom;

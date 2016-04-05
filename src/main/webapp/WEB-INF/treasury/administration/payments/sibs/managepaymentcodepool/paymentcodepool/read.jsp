@@ -261,6 +261,18 @@ ${portal.toolkit()}
                                 value="${paymentCodePool.paymentMethod.name.content}" />
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.PaymentCodePool.generateReferenceCodeOnDemand" /></th>
+                        <td><c:if
+                                test="${paymentCodePool.generateReferenceCodeOnDemand}">
+                                <spring:message code="label.true" />
+                            </c:if> <c:if
+                                test="${not paymentCodePool.generateReferenceCodeOnDemand}">
+                                <spring:message code="label.false" />
+                            </c:if>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </form>

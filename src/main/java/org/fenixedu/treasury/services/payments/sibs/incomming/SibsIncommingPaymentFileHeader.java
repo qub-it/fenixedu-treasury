@@ -35,7 +35,7 @@ public class SibsIncommingPaymentFileHeader {
 
     private String entityCode;
 
-    private SibsIncommingPaymentFileHeader(YearMonthDay whenProcessedBySibs, Integer version, String entityCode) {
+    public SibsIncommingPaymentFileHeader(YearMonthDay whenProcessedBySibs, Integer version, String entityCode) {
         this.whenProcessedBySibs = whenProcessedBySibs;
         this.version = version;
         this.entityCode = entityCode;

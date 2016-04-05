@@ -28,7 +28,7 @@ public class SibsIncommingPaymentFileFooter {
 
     private BigDecimal totalCost;
 
-    private SibsIncommingPaymentFileFooter(BigDecimal transactionsTotalAmount, BigDecimal totalCost) {
+    public SibsIncommingPaymentFileFooter(BigDecimal transactionsTotalAmount, BigDecimal totalCost) {
         this.transactionsTotalAmount = transactionsTotalAmount;
         this.totalCost = totalCost;
     }

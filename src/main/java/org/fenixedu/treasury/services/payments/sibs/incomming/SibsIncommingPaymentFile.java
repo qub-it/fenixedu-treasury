@@ -46,7 +46,7 @@ public class SibsIncommingPaymentFile {
 
     private String filename;
 
-    private SibsIncommingPaymentFile(String filename, SibsIncommingPaymentFileHeader header,
+    public SibsIncommingPaymentFile(String filename, SibsIncommingPaymentFileHeader header,
             SibsIncommingPaymentFileFooter footer, List<SibsIncommingPaymentFileDetailLine> detailLines) {
         this.filename = filename;
         this.header = header;

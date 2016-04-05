@@ -60,11 +60,14 @@ public class SibsConfiguration extends SibsConfiguration_Base {
     }
 
     @Atomic
-    public void edit(final String entityReferenceCode, final String sourceInstitutionId, final String destinationInstitutionId) {
+    public void edit(final String entityReferenceCode, final String sourceInstitutionId, final String destinationInstitutionId,
+            final String sibsPaymentsBrokerUrl, final String sibsPaymentsBrokerSharedKey) {
         setEntityReferenceCode(entityReferenceCode);
         setSourceInstitutionId(sourceInstitutionId);
         setDestinationInstitutionId(destinationInstitutionId);
-
+        setSibsPaymentsBrokerUrl(sibsPaymentsBrokerUrl);
+        setSibsPaymentsBrokerSharedKey(sibsPaymentsBrokerSharedKey);
+        
         checkRules();
     }
 
