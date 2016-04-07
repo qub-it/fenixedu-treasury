@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.ui.administration.payments.sibs.managesibsinputfile.SibsPaymentsBrokerController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt"%>
@@ -146,15 +147,58 @@ ${portal.toolkit()}
                 </div>
             </div>
             
+			<div class="form-group row">
+				<div class="col-sm-2 control-label">
+					<spring:message code="label.SibsPaymentsBroker.removeInexistentReferenceCodes" />
+				</div>
+
+				<div class="col-sm-2">
+					<select id="sibsPaymentsBroker_removeInexistentReferenceCodes" name="removeInexistentReferenceCodes" 
+						class="form-control">
+						<option value="true"><spring:message code="label.yes" /></option>
+                        <option value="false"><spring:message code="label.no" /></option>
+					</select>
+				</div>
+				<script>
+					$(document).ready(function() {
+						$("#sibsPaymentsBroker_removeInexistentReferenceCodes").select2().select2('val', '<c:out value='${param.removeInexistentReferenceCodes}'/>');
+					});
+				</script>
+			</div>
+            
+			<div class="form-group row">
+				<div class="col-sm-2 control-label">
+					<spring:message code="label.SibsPaymentsBroker.removeAlreadyProcessedCodes" />
+				</div>
+
+				<div class="col-sm-2">
+					<select id="sibsPaymentsBroker_removeAlreadyProcessedCodes" name="removeAlreadyProcessedCodes" 
+						class="form-control">
+						<option value="true"><spring:message code="label.yes" /></option>
+                        <option value="false"><spring:message code="label.no" /></option>
+					</select>
+					<script>
+						$(document).ready(function() {
+							$("#sibsPaymentsBroker_removeAlreadyProcessedCodes").select2().select2('val', '<c:out value='${param.removeAlreadyProcessedCodes}'/>');
+						});
+					</script>
+				</div>
+			</div>
         </div>
         <div class="panel-footer">
-            <input type="submit" class="btn btn-default" role="button" value="<spring:message code="label.submit" />" />
+            <button name="formAction" type="submit" class="btn btn-default" role="button" 
+            	value="<%= SibsPaymentsBrokerController.FORM_ACTION_IMPORT %>" >
+            	<spring:message code="label.SibsPaymentsBroker.import" />
+            </button>
+            <button name="formAction" type="submit" class="btn btn-default" role="button" 
+            	value="<%= SibsPaymentsBrokerController.FORM_ACTION_DEBUG %>" >
+            	<spring:message code="label.SibsPaymentsBroker.debug" />
+            </button>
         </div>
     </div>
 </form>
 
 <script>
     $(document).ready(function() {
-
     });
 </script>

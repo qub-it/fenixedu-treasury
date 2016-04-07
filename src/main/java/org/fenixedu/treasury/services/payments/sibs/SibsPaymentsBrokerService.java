@@ -12,6 +12,9 @@ import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
+import org.fenixedu.treasury.domain.paymentcodes.SibsTransactionDetail;
 import org.fenixedu.treasury.services.payments.sibs.incomming.SibsIncommingPaymentFile;
 import org.fenixedu.treasury.services.payments.sibs.incomming.SibsIncommingPaymentFileDetailLine;
 import org.fenixedu.treasury.services.payments.sibs.incomming.SibsIncommingPaymentFileFooter;
@@ -50,10 +53,12 @@ Cartaxo         - A030 (Localidade do terminal)
  */
     //@formatter:on
 
-    public static SibsIncommingPaymentFile readPaymentsFromBroker(final FinantialInstitution finantialInstitution,
-            final LocalDate fromDate, final LocalDate toDate) {
+    private static final String PAY_PREAMBLE = "E034";
+
+    public static String getPaymentsFromBroker(final FinantialInstitution finantialInstitution, final LocalDate fromDate,
+            final LocalDate toDate, final boolean removeInexistentReferenceCodes, final boolean removeAlreadyProcessedCodes) {
         if (!isSibsPaymentsBrokerActive(finantialInstitution)) {
-            return null;
+            throw new TreasuryDomainException("error.SibsPaymentsBrokerService.not.active");
         }
 
         try {
@@ -73,36 +78,90 @@ Cartaxo         - A030 (Localidade do terminal)
             }
             in.close();
 
-            strResult = strResult.substring(0, strResult.indexOf("\"data\":\"") + 8) + strResult
-                    .substring(strResult.indexOf("\"data\":\"") + 8, strResult.lastIndexOf("\"")).replaceAll("\\\\\"", "\"")
-                    + "}";
-
-            strResult = strResult.replaceAll("\"data\":\"\\[", "\"data\":[");
-
-            final SibsPayments sibsPayments = new GsonBuilder().create().fromJson(strResult, SibsPayments.class);
-
-            return parsePayments(finantialInstitution, sibsPayments);
+            return strResult;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new TreasuryDomainException(e, "error.SibsPaymentsBrokerService.error.in.communication");
         }
     }
 
+    public static SibsIncommingPaymentFile readPaymentsFromBroker(final FinantialInstitution finantialInstitution,
+            final LocalDate fromDate, final LocalDate toDate, final boolean removeInexistentReferenceCodes,
+            final boolean removeAlreadyProcessedCodes) {
+        if (!isSibsPaymentsBrokerActive(finantialInstitution)) {
+            throw new TreasuryDomainException("error.SibsPaymentsBrokerService.not.active");
+        }
+
+        String strResult = getPaymentsFromBroker(finantialInstitution, fromDate, toDate, removeInexistentReferenceCodes,
+                removeAlreadyProcessedCodes);
+
+        if(strResult.indexOf("\"data\":\"") > -1) {
+            strResult = strResult.substring(0, strResult.indexOf("\"data\":\"") + 8) + strResult
+                    .substring(strResult.indexOf("\"data\":\"") + 8, strResult.lastIndexOf("\"")).replaceAll("\\\\\"", "\"")
+                    + "}";
+    
+            strResult = strResult.replaceAll("\"data\":\"\\[", "\"data\":[");
+        }
+        
+        final SibsPayments sibsPayments = new GsonBuilder().create().fromJson(strResult, SibsPayments.class);
+
+        if (sibsPayments == null) {
+            throw new TreasuryDomainException("error.SibsPaymentsBrokerService.unable.parse.information");
+        }
+
+        if (!Strings.isNullOrEmpty(sibsPayments.error)) {
+            throw new TreasuryDomainException("error.SibsPaymentsBrokerService.error.returned.by.broker", sibsPayments.error);
+        }
+
+        return parsePayments(finantialInstitution, sibsPayments, removeInexistentReferenceCodes, removeAlreadyProcessedCodes);
+    }
+
     private static final String DATE_TIME_FORMAT = "yyyyMMddHHmm";
-    private static final int[] FIELD_SIZES = new int[] { 4, 2, 2, 4, 8, 5, 9, 10, 3, 12, 2,10, 5, 15, 9, 8 };
+    private static final int[] FIELD_SIZES = new int[] { 4, 2, 2, 4, 8, 5, 9, 10, 3, 12, 2, 10, 5, 15, 9, 8 };
     private static final Integer DEFAULT_SIBS_VERSION = 1;
 
     private static SibsIncommingPaymentFile parsePayments(final FinantialInstitution finantialInstitution,
-            final SibsPayments sibsPayments) {
+            final SibsPayments sibsPayments, boolean removeInexistentReferenceCodes, boolean removeAlreadyProcessedCodes) {
 
         final List<SibsIncommingPaymentFileDetailLine> detailLines = Lists.newArrayList();
         BigDecimal transactionsTotalAmount = BigDecimal.ZERO;
         for (final SibsPaymentEntry entry : sibsPayments.data) {
-            final String rawLine = entry.msg.substring(47);
+            if (!"SIBS".equals(entry.tipo)) {
+                continue;
+            }
+
+            if (Strings.isNullOrEmpty(entry.msg) || entry.msg.indexOf(PAY_PREAMBLE) == -1) {
+                continue;
+            }
+
+            final String rawLine = entry.msg.substring(entry.msg.indexOf(PAY_PREAMBLE));
             final String[] fields = splitLine(rawLine);
 
-            SibsIncommingPaymentFileDetailLine line =
-                    new SibsIncommingPaymentFileDetailLine(getWhenOccuredTransactionFrom(fields), getAmountFrom(fields),
-                            getSibsTransactionIdFrom(fields), getCodeFrom(fields));
+            if (fields.length != FIELD_SIZES.length) {
+                throw new TreasuryDomainException("error.SibsPaymentsBrokerService.unexpected.fields.length");
+            }
+
+            final String referenceCode = getCodeFrom(fields);
+            final String entityReferenceCode = getEntityCodeFrom(fields);
+            final DateTime whenOccuredTransactionFrom = getWhenOccuredTransactionFrom(fields);
+
+            if (!finantialInstitution.getSibsConfiguration().getEntityReferenceCode().equals(entityReferenceCode)) {
+                continue;
+            }
+
+            if (removeInexistentReferenceCodes
+                    && PaymentReferenceCode.findByReferenceCode(referenceCode, finantialInstitution).count() == 0) {
+                continue;
+            }
+
+            SibsIncommingPaymentFileDetailLine line = new SibsIncommingPaymentFileDetailLine(whenOccuredTransactionFrom,
+                    getAmountFrom(fields), getSibsTransactionIdFrom(fields), referenceCode);
+
+            if (removeAlreadyProcessedCodes && SibsTransactionDetail.isReferenceProcessingDuplicate(referenceCode,
+                    entityReferenceCode, whenOccuredTransactionFrom)) {
+                continue;
+            }
+
             detailLines.add(line);
 
             transactionsTotalAmount = transactionsTotalAmount.add(line.getAmount());
@@ -114,8 +173,16 @@ Cartaxo         - A030 (Localidade do terminal)
         final SibsIncommingPaymentFileFooter footer =
                 new SibsIncommingPaymentFileFooter(transactionsTotalAmount, BigDecimal.ZERO);
 
-        return new SibsIncommingPaymentFile(String.format("SIBS_%s.inp", new DateTime().toString("yyyyMMddHHmmss")), header, footer,
-                detailLines);
+        if (detailLines.isEmpty()) {
+            throw new TreasuryDomainException("error.SibsPaymentsBrokerService.no.payments.to.import");
+        }
+
+        return new SibsIncommingPaymentFile(String.format("SIBS_%s.inp", new DateTime().toString("yyyyMMddHHmmss")), header,
+                footer, detailLines);
+    }
+
+    public static String getEntityCodeFrom(String[] fields) {
+        return fields[5];
     }
 
     private static String getCodeFrom(String[] fields) {
