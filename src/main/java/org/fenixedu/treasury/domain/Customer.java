@@ -60,6 +60,10 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public abstract String getFiscalNumber();
 
     public abstract String getName();
+    
+    public abstract String getFirstNames();
+    
+    public abstract String getLastNames();
 
     public abstract String getIdentificationNumber();
 
@@ -80,6 +84,10 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public abstract String getPaymentReferenceBaseCode();
 
     public abstract String getBusinessIdentification();
+    
+    public abstract String getEmail();
+    
+    public abstract String getPhoneNumber();
 
     public boolean isDeletable() {
         return false;

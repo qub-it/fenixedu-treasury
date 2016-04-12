@@ -1,4 +1,4 @@
-<%@page import="org.fenixedu.treasury.ui.document.forwardpayments.implementations.TPAVirtualController"%>
+<%@page import="org.fenixedu.treasury.ui.document.forwardpayments.ForwardPaymentController"%>
 <%@page import="java.util.Map"%>
 <%@page import="org.fenixedu.treasury.domain.forwardpayments.ForwardPayment"%>
 <%@page import="org.fenixedu.treasury.domain.forwardpayments.implementations.TPAVirtualImplementation"%>
@@ -23,7 +23,6 @@
 <!-- Choose ONLY ONE:  bennuToolkit OR bennuAngularToolkit -->
 <%-- ${portal.toolkit()} --%>
 ${portal.angularToolkit()}
-
 
 <link
     href="${pageContext.request.contextPath}/static/treasury/css/dataTables.responsive.css"
@@ -56,7 +55,7 @@ ${portal.angularToolkit()}
 <div class="page-header">
     <h1>
         <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.chooseInvoiceEntries" />
+            code="label.ForwardPaymentController.paymentConfirmation" />
         <small></small>
     </h1>
 
@@ -99,64 +98,12 @@ ${portal.angularToolkit()}
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
         2. <spring:message code="label.ForwardPaymentController.confirmPayment" />
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        <strong>3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" /></strong>
+        3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
         <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        4. <spring:message code="label.ForwardPaymentController.paymentConfirmation" />
+        <strong>4. <spring:message code="label.ForwardPaymentController.paymentInsuccess" /></strong>
     </p>
 </div>
 
-<script type="text/javascript">
-var CCom = "${forwardPayment.forwardPaymentConfiguration.merchantId}";
-var A001 = "${forwardPayment.forwardPaymentConfiguration.virtualTPAId}";
-
-/*	
-	CCom - Número do cartão do comerciante
-	A001 - Número do TPA Virtual
-	C007 - Referência do pagamento
-	A061 - Montante da operação
-	C046 - URL do CSS
-	C012 - URL da página de confirmação da encomenda do Comerciante
-	iFrame - Nome do iFrame onde será apresentado o formulário (Campo não obrigatório)
-	popup - Utilizar popup? (true / false)
-	popupHeight - Largura da popup
-	popupWidth - Altura da popup
-*/ 
-function submitPaymentByFrame(){
-	submitPayment();
-}
-
-function submitPayment(){
-
-	var hiddenForm = document.createElement('FORM');
-	hiddenForm.name = "frmPayment";
-	hiddenForm.method = "POST";
-	hiddenForm.action = '${forwardPayment.forwardPaymentConfiguration.implementation().getPaymentURL(forwardPayment)}';
-	var hiddenInput = null;
-
-<%
-	final ForwardPayment forwardPayment = (ForwardPayment) request.getAttribute("forwardPayment");
-	final TPAVirtualImplementation implementation = (TPAVirtualImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
-	final Map<String, String> requestMap = implementation.mapAuthenticationRequest(forwardPayment);
-	for(final Map.Entry<String, String> e : requestMap.entrySet()) {
-%>
-
-	hiddenInput = document.createElement("INPUT");
-	hiddenInput.type = "hidden";
-	hiddenInput.id = "<%= e.getKey() %>";
-	hiddenInput.name = "<%= e.getKey() %>";
-	hiddenInput.value = "<%= e.getValue() %>";
-	hiddenForm.appendChild(hiddenInput);
-
-<% } %>
- 
-	document.body.appendChild(hiddenForm);
-	hiddenForm.submit();
-}
-
-$(document).ready(function() {
-	submitPaymentByFrame();
-});
-</script>
-
-<form id="waitingForPaymentURL" action="<%= TPAVirtualController.WAITING_FOR_PAYMENT_URL %>/${forwardPayment.externalId}">
-</form>
+<div>
+	<p><strong>Pagamento sucesso</strong></p>
+</div>

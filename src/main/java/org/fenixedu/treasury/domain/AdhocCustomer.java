@@ -165,6 +165,16 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Override
+    public String getFirstNames() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public String getLastNames() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
     public String getBusinessIdentification() {
         return this.getIdentificationNumber();
     }
@@ -184,4 +194,14 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         return null;
     }
 
+    @Override
+    public String getEmail() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        throw new RuntimeException("not supported");
+    }
+    
 }

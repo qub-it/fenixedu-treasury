@@ -342,7 +342,33 @@
 						</configuration>
 
 					</execution>
+					<execution>
+						<id>PAYLINE</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+						<configuration>
+							<packageName>org.fenixedu.treasury.services.integration.forwardpayments.payline</packageName>
 
+							<!-- <wsdlDirectory> -->
+							<!-- src/main/webapp/wsdl -->
+							<!-- </wsdlDirectory> -->
+							<wsdlFiles>
+								<wsdlFile>
+									${basedir}/src/main/resources/wsdl/forwardpayments/payline/WebPaymentAPI_V4.wsdl
+								</wsdlFile>
+							</wsdlFiles>
+							<wsdlLocation>
+								/wsdl/forwardpayments/payline/WebPaymentAPI_V4.wsdl
+							</wsdlLocation>
+							<extension>true</extension>
+							<protocol>Xsoap1.2</protocol>
+							<vmArgs>
+								<vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+							</vmArgs>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
