@@ -6,6 +6,5 @@ public enum ForwardPaymentStateType {
     AUTHENTICATED,
     AUTHORIZED,
     PAYED,
-    CANCELLED,
     REJECTED;
 }

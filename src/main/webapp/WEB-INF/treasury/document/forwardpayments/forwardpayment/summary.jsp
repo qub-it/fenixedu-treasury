@@ -2,8 +2,6 @@
 <%@page
     import="org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController"%>
 <%@page import="java.math.BigDecimal"%>
-<%@page
-    import="org.fenixedu.treasury.ui.document.managepayments.SettlementNoteController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt"%>
@@ -56,28 +54,29 @@ ${portal.angularToolkit()}
 
 <%-- TITLE --%>
 <div class="page-header">
-    <h1>
-        <spring:message
-            code="label.administration.manageCustomer.createSettlementNote.chooseInvoiceEntries" />
-        <small></small>
-    </h1>
+    <h1><spring:message code="label.ForwardPaymentController.onlinePayment" /></h1>
+    <h1><small><spring:message code="label.ForwardPaymentController.confirmPayment" /></small></h1>
     <div>
         <div class="well well-sm">
             <p>
-                <strong><spring:message
-                        code="label.DebtAccount.finantialInstitution" />:
-                </strong>${settlementNoteBean.debtAccount.finantialInstitution.name}</p>
-            <p>
-                <strong><spring:message
-                        code="label.DebtAccount.customer" />: </strong><a
-                    href="${pageContext.request.contextPath}<%=DebtAccountController.READ_URL%>${settlementNoteBean.debtAccount.externalId}">${settlementNoteBean.debtAccount.customer.businessIdentification}
-                    - ${settlementNoteBean.debtAccount.customer.name}</a>
+                <strong><spring:message code="label.DebtAccount.finantialInstitution" />: </strong>
+                ${settlementNoteBean.debtAccount.finantialInstitution.name}
             </p>
             <p>
-                <strong><spring:message
-                        code="label.Customer.fiscalNumber" />: </strong>${ settlementNoteBean.debtAccount.customer.fiscalNumber }</p>
+                <strong><spring:message code="label.DebtAccount.customer" />: </strong>
+                <a href="${pageContext.request.contextPath}<%=DebtAccountController.READ_URL%>${settlementNoteBean.debtAccount.externalId}">
+                	<c:out value='${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}' />
+                </a>
+            </p>
+            <p>
+                <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
+                <c:out value='${settlementNoteBean.debtAccount.customer.fiscalNumber}' />
+            </p>
+            <p>
+            	<strong><spring:message code="label.Customer.address" />: </strong>
+            	<c:out value='${settlementNoteBean.debtAccount.customer.address}' />
+            </p>
         </div>
-
     </div>
 </div>
 
@@ -148,14 +147,6 @@ ${portal.angularToolkit()}
 									}
 									return total.toFixed(2);
 								}
-				                $scope.processBackSubmit = function(contextPath) {
-				                	$scope.object.previousStates.pop();
-				                    var path = contextPath + $scope.object.settlementNoteStateUrls[$scope.object.previousStates.pop()];
-				                    $("#summaryForm").attr("action", path);
-				                    //Timeout necessary to make angular update the previousStates array before submit
-				                    setTimeout(function() { $("#summaryForm").submit() }, 10);                                       
-				                }								
-								$scope.currencySymbol = "${ settlementNoteBean.debtAccount.finantialInstitution.currency.symbol }";
 							} ]);
 </script>
 
@@ -166,50 +157,20 @@ ${portal.angularToolkit()}
 	}
 </script>
 
-
-<div class="panel panel-primary">
-    <div class="panel-heading">
-        <h3 class="panel-title">
-            <spring:message code="label.Customer" />
-        </h3>
-    </div>
-    <div class="panel-body">
-        <table class="table">
-            <tbody>
-                <tr>
-                    <th scope="row" class="col-xs-3"><spring:message
-                            code="label.Customer.name" /></th>
-                    <td><c:out
-                            value='${settlementNoteBean.debtAccount.customer.name}' />
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" class="col-xs-3"><spring:message
-                            code="label.Customer.fiscalNumber" /></th>
-                    <td><c:out
-                            value='${settlementNoteBean.debtAccount.customer.fiscalNumber}' />
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" class="col-xs-3"><spring:message
-                            code="label.Customer.address" /></th>
-                    <td><c:out
-                            value='${settlementNoteBean.debtAccount.customer.address}' />
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
 <div class="panel panel-primary ">
     <div class="panel-heading">
         <h3 class="panel-title">
             <spring:message
-                code="label.document.managepayments.settlementnote.InvoiceEntries" />
+                code="label.ForwardPaymentController.debitEntries.to.confirm" />
         </h3>
     </div>
     <div class="panel-body">
+		<div class="alert alert-warning" role="alert">
+			<h5>
+				<spring:message code="label.ForwardPaymentController.debitEntries.confirm.and.pay" />
+			</h5>
+		</div>
+
         <table id="debitNoteTable"
             class="table responsive table-bordered table-hover" width="100%">
             <thead>
@@ -315,21 +276,11 @@ ${portal.angularToolkit()}
             </tbody>
         </table>
         <div class="panel-footer">
-            <c:if test="${ settlementNoteBean.reimbursementNote }">
-                <p align="right">
-                    <b><spring:message
-                            code="label.document.managepayments.settlementnote.reimbursementTotal" /></b>:
-                    ${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( settlementNoteBean.debtAmountWithVat.negate() ) }
-                </p>
-            </c:if>
-            <c:if
-                test="${ not settlementNoteBean.reimbursementNote }">
-                <p align="right">
-                    <b><spring:message
-                            code="label.document.managepayments.settlementnote.paymentTotal" /></b>:
-                    ${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( settlementNoteBean.debtAmountWithVat ) }
-                </p>
-            </c:if>
+	        <p align="right">
+	            <b><spring:message
+	                    code="label.document.managepayments.settlementnote.paymentTotal" /></b>:
+	            ${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( settlementNoteBean.debtAmountWithVat ) }
+	        </p>
         </div>
     </div>
 </div>
@@ -342,16 +293,22 @@ ${portal.angularToolkit()}
     <input name="bean" type="hidden" value="{{ object }}" />
 
     <div class="panel-footer">
-        <button type="button" class="btn btn-default"
-            ng-click="processBackSubmit('${pageContext.request.contextPath}')">
-            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true" > </span>&nbsp;<spring:message code="label.event.back" />
-        </button>
-        <button type="button" class="btn btn-primary"
+		<a href="<%= ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL %>${settlementNoteBean.debtAccount.externalId}" 
+			class="btn btn-default">
+			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> </span>
+			&nbsp;
+			<spring:message code="label.event.back" />
+		</a>
+		<button type="button" class="btn btn-primary"
             onClick="javascript:processSubmit('${pageContext.request.contextPath}<%= ForwardPaymentController.SUMMARY_URL %>')">
-            <span class="glyphicon glyphicon-ok" aria-hidden="true" >&nbsp;</span><spring:message code="label.event.accounting.manageCustomer.doForwardPayment" />
+
+            <spring:message code="label.event.accounting.manageCustomer.doForwardPayment" />
+			&nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
         </button>
     </div>
 </form>
+
+<jsp:include page="${logosPage}" /> 
 
 <script>
 	$(document).ready(function() {

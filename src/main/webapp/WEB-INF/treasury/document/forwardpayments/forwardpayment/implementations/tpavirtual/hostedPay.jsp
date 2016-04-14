@@ -106,28 +106,20 @@ ${portal.angularToolkit()}
 </div>
 
 <script type="text/javascript">
-var CCom = "${forwardPayment.forwardPaymentConfiguration.merchantId}";
-var A001 = "${forwardPayment.forwardPaymentConfiguration.virtualTPAId}";
 
-/*	
+<%--	
 	CCom - Número do cartão do comerciante
 	A001 - Número do TPA Virtual
 	C007 - Referência do pagamento
 	A061 - Montante da operação
 	C046 - URL do CSS
 	C012 - URL da página de confirmação da encomenda do Comerciante
-	iFrame - Nome do iFrame onde será apresentado o formulário (Campo não obrigatório)
-	popup - Utilizar popup? (true / false)
-	popupHeight - Largura da popup
-	popupWidth - Altura da popup
-*/ 
-function submitPaymentByFrame(){
-	submitPayment();
-}
+--%> 
 
 function submitPayment(){
 
 	var hiddenForm = document.createElement('FORM');
+	hiddenForm.target = "_top";
 	hiddenForm.name = "frmPayment";
 	hiddenForm.method = "POST";
 	hiddenForm.action = '${forwardPayment.forwardPaymentConfiguration.implementation().getPaymentURL(forwardPayment)}';
@@ -154,9 +146,7 @@ function submitPayment(){
 }
 
 $(document).ready(function() {
-	submitPaymentByFrame();
+	submitPayment();
 });
-</script>
 
-<form id="waitingForPaymentURL" action="<%= TPAVirtualController.WAITING_FOR_PAYMENT_URL %>/${forwardPayment.externalId}">
-</form>
+</script>

@@ -9,8 +9,8 @@ public interface IForwardPaymentImplementation {
 
     public String getPaymentURL(final ForwardPayment forwardPayment);
 
-    public String getReturnURL(final ForwardPayment forwardPayment);
-
     public String getFormattedAmount(final ForwardPayment forwardPayment);
+    
+    public String getLogosJspPage();
 
 }

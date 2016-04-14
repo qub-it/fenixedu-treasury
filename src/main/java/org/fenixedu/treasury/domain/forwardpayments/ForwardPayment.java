@@ -1,15 +1,16 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.PaymentMethod;
+import org.fenixedu.treasury.domain.Product;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
 import org.fenixedu.treasury.domain.document.CreditEntry;
@@ -19,11 +20,13 @@ import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.document.PaymentEntry;
 import org.fenixedu.treasury.domain.document.SettlementEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
+import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.sun.xml.ws.util.Constants;
 
 public class ForwardPayment extends ForwardPayment_Base {
 
@@ -51,8 +54,8 @@ public class ForwardPayment extends ForwardPayment_Base {
         setCurrentState(ForwardPaymentStateType.CREATED);
         setWhenOccured(new DateTime());
 
-        final BigDecimal amount =
-                debitEntriesSet.stream().map(DebitEntry::getOpenAmount).reduce((a, c) -> a.add(c)).orElse(BigDecimal.ZERO);
+        final BigDecimal amount = debitEntriesSet.stream().map(DebitEntry::getOpenAmountWithInterests).reduce((a, c) -> a.add(c))
+                .orElse(BigDecimal.ZERO);
         setAmount(debtAccount.getFinantialInstitution().getCurrency().getValueWithScale(amount));
         setOrderNumber(lastForwardPayment().isPresent() ? lastForwardPayment().get().getOrderNumber() + 1 : 1);
         log();
@@ -63,30 +66,104 @@ public class ForwardPayment extends ForwardPayment_Base {
     public void reject(final String statusCode, final String errorMessage, final String requestBody, final String responseBody) {
         setCurrentState(ForwardPaymentStateType.REJECTED);
         log(statusCode, errorMessage, requestBody, responseBody);
+
+        checkRules();
+    }
+
+    public void advanceToRequestState(final String statusCode, final String statusMessage, final String requestBody,
+            final String responseBody) {
+        setCurrentState(ForwardPaymentStateType.REQUESTED);
+        log(statusCode, statusMessage, requestBody, responseBody);
+
+        checkRules();
+    }
+
+    public void advanceToAuthenticatedState(final String statusCode, final String statusMessage, final String requestBody,
+            final String responseBody) {
+        setCurrentState(ForwardPaymentStateType.AUTHENTICATED);
+        log(statusCode, statusMessage, requestBody, responseBody);
+
+        checkRules();
     }
 
     public void advanceToAuthorizedState(final String statusCode, final String errorMessage, final String requestBody,
             final String responseBody) {
+        if (!isActive()) {
+            throw new TreasuryDomainException("error.ForwardPayment.not.in.active.state");
+        }
+
+        if (isInAuthorizedState()) {
+            throw new TreasuryDomainException("error.ForwardPayment.already.authorized");
+        }
+
+        if (isInPayedState()) {
+            throw new TreasuryDomainException("error.ForwardPayment.already.payed");
+        }
+
         setCurrentState(ForwardPaymentStateType.AUTHORIZED);
         log(statusCode, errorMessage, requestBody, responseBody);
+
+        checkRules();
     }
 
+    private static final Comparator<DebitEntry> COMPARE_DEBIT_ENTRIES = new Comparator<DebitEntry>() {
+
+        @Override
+        public int compare(final DebitEntry o1, final DebitEntry o2) {
+            final Product interestProduct = TreasurySettings.getInstance().getInterestProduct();
+            if (o1.getProduct() == interestProduct && o2.getProduct() != interestProduct) {
+                return -1;
+            }
+
+            if (o1.getProduct() != interestProduct && o2.getProduct() == interestProduct) {
+                return 1;
+            }
+
+            // compare by openAmount. First higher amounts then lower amounts
+            int compareByOpenAmount = o1.getOpenAmount().compareTo(o2.getOpenAmount());
+
+            if (compareByOpenAmount != 0) {
+                return compareByOpenAmount * -1;
+            }
+
+            return o1.getExternalId().compareTo(o2.getExternalId());
+        }
+
+    };
+
     public void advanceToPayedState(final String statusCode, final String statusMessage, final BigDecimal payedAmount,
-            final DateTime transactionDate, final String transactionId, final String authorizationNumber) {
+            final DateTime transactionDate, final String transactionId, final String authorizationNumber,
+            final String requestBody, final String responseBody) {
+
+        if (!isActive()) {
+            throw new TreasuryDomainException("error.ForwardPayment.not.in.active.state");
+        }
+
+        if (isInPayedState()) {
+            throw new TreasuryDomainException("error.ForwardPayment.already.payed");
+        }
+
+        setTransactionId(transactionId);
+        setAuthorizationId(authorizationNumber);
+        setTransactionDate(transactionDate);
+        setPayedAmount(payedAmount);
         setCurrentState(ForwardPaymentStateType.PAYED);
+
+        log(statusCode, statusMessage, requestBody, responseBody);
 
         final FinantialInstitution finantialInstitution = getDebtAccount().getFinantialInstitution();
         final DocumentNumberSeries series =
                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForSettlementNote(), finantialInstitution).get();
-        final SettlementNote settlement = SettlementNote.create(getDebtAccount(), series, new DateTime(), transactionDate, null);
+        this.setSettlementNote(SettlementNote.create(getDebtAccount(), series, new DateTime(), transactionDate, null));
 
         BigDecimal amountToConsume = payedAmount;
 
         // Order entries from the highest to the lowest, first the debts and then interests
         final List<DebitEntry> orderedEntries = Lists.newArrayList(getDebitEntriesSet());
+        Collections.sort(orderedEntries, COMPARE_DEBIT_ENTRIES);
 
-        PaymentEntry.create(PaymentMethod.findAll().findAny().get(), settlement, amountToConsume, null);
-        
+        PaymentEntry.create(getForwardPaymentConfiguration().getPaymentMethod(), getSettlementNote(), amountToConsume, null);
+
         for (final DebitEntry debitEntry : orderedEntries) {
             if (org.fenixedu.treasury.util.Constants.isGreaterThan(debitEntry.getOpenAmount(), amountToConsume)) {
                 break;
@@ -94,44 +171,56 @@ public class ForwardPayment extends ForwardPayment_Base {
 
             amountToConsume = amountToConsume.subtract(debitEntry.getOpenAmount());
 
-            SettlementEntry.create(debitEntry, settlement, debitEntry.getOpenAmount(), debitEntry.getDescription(),
+            SettlementEntry.create(debitEntry, getSettlementNote(), debitEntry.getOpenAmount(), debitEntry.getDescription(),
                     new DateTime(), true);
         }
 
-        if (org.fenixedu.treasury.util.Constants.isPositive(amountToConsume)) {
-            final DocumentNumberSeries advancedSeries =
-                    DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForCreditNote(), finantialInstitution).get();
-            AdvancedPaymentCreditNote advancedNote =
-                    AdvancedPaymentCreditNote.create(getDebtAccount(), advancedSeries, new DateTime());
+        // settle interest debit entries
+        for (final DebitEntry de : orderedEntries) {
+            for (DebitEntry interestDebitEntry : de.getInterestDebitEntriesSet()) {
+                if (org.fenixedu.treasury.util.Constants.isGreaterThan(interestDebitEntry.getOpenAmount(), amountToConsume)) {
+                    break;
+                }
 
-            CreditEntry.create(advancedNote, "TODO: Pagamento em avanço",
-                    TreasurySettings.getInstance().getAdvancePaymentProduct(), null, amountToConsume, new DateTime(), null,
-                    org.fenixedu.treasury.util.Constants.DEFAULT_QUANTITY);
+                amountToConsume = amountToConsume.subtract(interestDebitEntry.getOpenAmount());
+                SettlementEntry.create(interestDebitEntry, getSettlementNote(), interestDebitEntry.getOpenAmount(),
+                        interestDebitEntry.getDescription(), new DateTime(), true);
+            }
         }
-        
 
-        settlement.closeDocument();
+        if (org.fenixedu.treasury.util.Constants.isPositive(amountToConsume)) {
+            getSettlementNote().createAdvancedPaymentCreditNote(amountToConsume,
+                    Constants.bundle("label.ForwardPayment.advancedpayment", String.valueOf(getOrderNumber())),
+                    String.valueOf(getOrderNumber()));
+        }
+
+        getSettlementNote().closeDocument();
+
+        checkRules();
     }
 
-    public void advanceToRequestState(final String statusCode, final String statusMessage) {
-        setCurrentState(ForwardPaymentStateType.REQUESTED);
-        log(statusCode, statusMessage, null, null);
+    public boolean isActive() {
+        return getCurrentState() != ForwardPaymentStateType.REJECTED;
     }
 
     public boolean isInCreatedState() {
         return getCurrentState() == ForwardPaymentStateType.CREATED;
     }
 
-    public boolean isActive() {
-        return getCurrentState() != ForwardPaymentStateType.REJECTED && getCurrentState() != ForwardPaymentStateType.CANCELLED;
-    }
-
     public boolean isInAuthorizedState() {
         return getCurrentState() == ForwardPaymentStateType.AUTHORIZED;
     }
 
-    public boolean isPaid() {
+    public boolean isInPayedState() {
         return getCurrentState() == ForwardPaymentStateType.PAYED;
+    }
+
+    public boolean isInAuthenticatedState() {
+        return getCurrentState() == ForwardPaymentStateType.AUTHENTICATED;
+    }
+
+    public boolean isInRequestedState() {
+        return getCurrentState() == ForwardPaymentStateType.REQUESTED;
     }
 
     public String getReferenceNumber() {
@@ -139,6 +228,9 @@ public class ForwardPayment extends ForwardPayment_Base {
     }
 
     private void checkRules() {
+        if (isInPayedState() && getSettlementNote() == null) {
+            throw new TreasuryDomainException("error.ForwardPayment.settlementNote.required");
+        }
     }
 
     private ForwardPaymentLog log(final String statusCode, final String statusMessage, final String requestBody,
@@ -147,6 +239,14 @@ public class ForwardPayment extends ForwardPayment_Base {
 
         log.setStatusCode(statusCode);
         log.setStatusLog(statusMessage);
+
+        if (!Strings.isNullOrEmpty(requestBody)) {
+            ForwardPaymentLogFile.createForRequestBody(log, requestBody.getBytes());
+        }
+
+        if (!Strings.isNullOrEmpty(responseBody)) {
+            ForwardPaymentLogFile.createForResponseBody(log, responseBody.getBytes());
+        }
 
         return log;
     }

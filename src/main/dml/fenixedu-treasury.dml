@@ -1717,6 +1717,8 @@ class forwardpayments.ForwardPaymentConfiguration {
 	String returnURL;
 	String virtualTPAMerchantId;
 	String virtualTPAId;
+	String virtualTPAKeyStoreName;
+	String virtualTPACertificateAlias;
 	String implementation;
 	String paylineMerchantId;
 	String paylineMerchantAccessKey;
@@ -1752,12 +1754,23 @@ class forwardpayments.ForwardPaymentConfiguration {
 			multiplicity 1..1;
 		}
 	}
+	
+	relation ForwardPaymentConfigurationPaymentMethod {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfigurations {
+			multiplicity *;
+		}
+		
+       PaymentMethod playsRole paymentMethod {
+           multiplicity 1..1;
+       }
+	}
 
 class forwardpayments.ForwardPayment {
 	ForwardPaymentStateType currentState;
 	DateTime whenOccured;
 	BigDecimalT amount;
 	BigDecimalT payedAmount;
+	DateTime authorizationDate;
 	DateTime transactionDate;
 	String transactionId;
 	String authorizationId;
@@ -1805,6 +1818,16 @@ class forwardpayments.ForwardPayment {
 			multiplicity *;
 		}
 	}
+	
+	relation ForwardPaymentSettlementNote {
+		forwardpayments.ForwardPayment playsRole forwardPayment {
+			multiplicity 0..1;
+		}
+		
+        document.SettlementNote playsRole settlementNote {
+            multiplicity 0..1;
+        }
+	}
 
 class forwardpayments.ForwardPaymentLogFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 }
@@ -1838,7 +1861,7 @@ class forwardpayments.ForwardPaymentLog {
 	
 	relation ForwardPaymentLogRequestLogFile {
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
-			multiplicity 1..1;
+			multiplicity 0..1;
 		}
 	
 		forwardpayments.ForwardPaymentLogFile playsRole requestLogFile {
@@ -1849,7 +1872,7 @@ class forwardpayments.ForwardPaymentLog {
 	relation ForwardPaymentLogResponseLogFile {
 
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
-			multiplicity 1..1;
+			multiplicity 0..1;
 		}
 	
 		forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {

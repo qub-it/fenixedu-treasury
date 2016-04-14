@@ -194,7 +194,7 @@ public class DebtAccountController extends TreasuryBaseController {
     public String processReadToForwardPayment(@PathVariable("oid") DebtAccount debtAccount, final Model model,
             final RedirectAttributes redirectAttributes) {
         setDebtAccount(debtAccount, model);
-        return redirect(ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId() + "/" + false,
+        return redirect(ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId(),
                 model, redirectAttributes);
     }
 

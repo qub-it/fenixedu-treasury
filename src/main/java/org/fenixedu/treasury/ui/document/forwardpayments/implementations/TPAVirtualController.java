@@ -45,7 +45,7 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
         TPAVirtualImplementation implementation =
                 (TPAVirtualImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
         
-        boolean status = implementation.executePayment(forwardPayment, responseData);
+        boolean status = implementation.processPayment(forwardPayment, responseData);
 
         return jspPage(status ? "tpaSuccess" : "tpaInsuccess");
     }

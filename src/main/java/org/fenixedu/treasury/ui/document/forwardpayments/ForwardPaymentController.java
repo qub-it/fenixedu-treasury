@@ -28,12 +28,14 @@ package org.fenixedu.treasury.ui.document.forwardpayments;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -67,23 +69,12 @@ import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 
-//@Component("org.fenixedu.treasury.ui.document.managePayments") <-- Use for duplicate controller name disambiguation
 @BennuSpringController(CustomerController.class)
 @RequestMapping(ForwardPaymentController.CONTROLLER_URL)
 public class ForwardPaymentController extends TreasuryBaseController {
     public static final String CONTROLLER_URL = "/treasury/document/forwardpayments/forwardpayment";
     private static final String JSP_PATH = "/treasury/document/forwardpayments/forwardpayment";
 
-    private static final String SEARCH_URI = "/";
-    public static final String SEARCH_URL = CONTROLLER_URL + SEARCH_URI;
-    private static final String UPDATE_URI = "/update/";
-    public static final String UPDATE_URL = CONTROLLER_URL + UPDATE_URI;
-    private static final String CREATE_URI = "/create";
-    public static final String CREATE_URL = CONTROLLER_URL + CREATE_URI;
-    private static final String READ_URI = "/read/";
-    public static final String READ_URL = CONTROLLER_URL + READ_URI;
-    private static final String DELETE_URI = "/delete/";
-    public static final String DELETE_URL = CONTROLLER_URL + DELETE_URI;
     private static final String CHOOSE_INVOICE_ENTRIES_URI = "/chooseInvoiceEntries/";
     public static final String CHOOSE_INVOICE_ENTRIES_URL = CONTROLLER_URL + CHOOSE_INVOICE_ENTRIES_URI;
     private static final String CALCULATE_INTEREST_URI = "/calculateInterest/";
@@ -100,14 +91,11 @@ public class ForwardPaymentController extends TreasuryBaseController {
     public static final long SEARCH_SETTLEMENT_NOTE_LIST_LIMIT_SIZE = 500;
     public static final long SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD = 30;
 
-    @RequestMapping
-    public String home(Model model) {
-        return "forward:" + SEARCH_URL;
-    }
-
     private void setSettlementNoteBean(SettlementNoteBean bean, Model model) {
         model.addAttribute("settlementNoteBeanJson", getBeanJson(bean));
         model.addAttribute("settlementNoteBean", bean);
+        model.addAttribute("logosPage",
+                Bennu.getInstance().getForwardPaymentConfigurationsSet().iterator().next().implementation().getLogosJspPage());
     }
 
     @Atomic
@@ -115,13 +103,12 @@ public class ForwardPaymentController extends TreasuryBaseController {
         settlementNote.delete(true);
     }
 
-    @RequestMapping(value = CHOOSE_INVOICE_ENTRIES_URI + "{debtAccountId}/{reimbursementNote}")
+    @RequestMapping(value = CHOOSE_INVOICE_ENTRIES_URI + "{debtAccountId}")
     public String chooseInvoiceEntries(@PathVariable(value = "debtAccountId") DebtAccount debtAccount,
-            @PathVariable(value = "reimbursementNote") boolean reimbursementNote,
             @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model) {
         assertUserIsAllowToModifySettlements(debtAccount.getFinantialInstitution(), model);
         if (bean == null) {
-            bean = new SettlementNoteBean(debtAccount, reimbursementNote);
+            bean = new SettlementNoteBean(debtAccount, false);
         }
         setSettlementNoteBean(bean, model);
         return jspPage("chooseInvoiceEntries");
@@ -269,18 +256,6 @@ public class ForwardPaymentController extends TreasuryBaseController {
             }
 
             debitEntriesToPay.add(debitEntryBean.getDebitEntry());
-        }
-
-        for (final InterestEntryBean interestEntryBean : bean.getInterestEntries()) {
-            if (interestEntryBean.isIncluded()) {
-                final DebitEntry interestDebitEntry = interestEntryBean.getDebitEntry()
-                        .createInterestRateDebitEntry(interestEntryBean.getInterest(), now, Optional.<DebitNote> empty());
-                final DebitNote debitNote = DebitNote.create(debtAccount, documentNumberSeries, now);
-                debitNote.addDebitNoteEntries(Lists.newArrayList(interestDebitEntry));
-                debitNote.closeDocument();
-
-                debitEntriesToPay.add(interestDebitEntry);
-            }
         }
 
         final ForwardPayment forwardPayment = ForwardPayment.create(forwardPaymentConfiguration, debtAccount, debitEntriesToPay);

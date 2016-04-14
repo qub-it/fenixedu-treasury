@@ -1,7 +1,5 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
-import java.util.Map;
-
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.Series;
@@ -52,14 +50,6 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
 
     private void checkRules() {
 
-    }
-
-    public String paymentURL(final ForwardPayment forwardPayment) {
-        return implementation().getPaymentURL(forwardPayment);
-    }
-
-    public String returnURL(final ForwardPayment forwardPayment) {
-        return implementation().getReturnURL(forwardPayment);
     }
 
     public String formattedAmount(final ForwardPayment forwardPayment) {
