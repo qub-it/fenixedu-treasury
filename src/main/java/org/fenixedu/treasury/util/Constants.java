@@ -28,6 +28,7 @@ package org.fenixedu.treasury.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.util.Locale;
 
 import org.fenixedu.bennu.FenixeduTreasurySpringConfiguration;
@@ -45,23 +46,24 @@ public class Constants {
     public static final BigDecimal HUNDRED_PERCENT = new BigDecimal("100.00");
 
     public static final String BUNDLE = FenixeduTreasurySpringConfiguration.BUNDLE.replace('/', '.');
-    
+
     // HACK: org.joda.time.Interval does not allow open end dates so use this date in the future
     public static final DateTime INFINITY_DATE = new DateTime().plusYears(500);
-    
-    
+
     public static final BigDecimal DEFAULT_QUANTITY = BigDecimal.ONE;
-    
+
     public static final Locale DEFAULT_LANGUAGE = new Locale("PT");
     public static final String DEFAULT_COUNTRY = "PT";
 
     private static final int ORIGIN_DOCUMENT_LIMIT = 30;
 
+    // @formatter:off
     /* *************
      * COUNTRY UTILS
      * *************
      */
-    
+    // @formatter:on
+
     public static boolean isForeignLanguage(final Locale language) {
         return !language.getLanguage().equals(DEFAULT_LANGUAGE.getLanguage());
     }
@@ -74,11 +76,11 @@ public class Constants {
         return DEFAULT_COUNTRY.equals(country.toUpperCase());
     }
 
-    // @formatter: off
+    // @formatter:off
     /**************
      * MATH UTILS *
      **************/
-    // @formatter: on
+    // @formatter:on
 
     public static boolean isNegative(final BigDecimal value) {
         return !isZero(value) && !isPositive(value);
@@ -95,15 +97,15 @@ public class Constants {
     public static boolean isGreaterThan(final BigDecimal v1, final BigDecimal v2) {
         return v1.compareTo(v2) > 0;
     }
-    
+
     public static boolean isEqual(final BigDecimal v1, final BigDecimal v2) {
         return v1.compareTo(v2) == 0;
     }
-    
+
     public static boolean isLessThan(final BigDecimal v1, final BigDecimal v2) {
         return v1.compareTo(v2) < 0;
     }
-    
+
     public static BigDecimal defaultScale(final BigDecimal v) {
         return v.setScale(20, RoundingMode.HALF_EVEN);
     }
@@ -111,64 +113,73 @@ public class Constants {
     public static BigDecimal divide(final BigDecimal a, BigDecimal b) {
         return a.divide(b, SCALE, RoundingMode.HALF_EVEN);
     }
- 
-    
-    // @formatter: off
+
+    // @formatter:off
     /**************
      * DATE UTILS *
      **************/
-    // @formatter: on
-    
+    // @formatter:on
+
     public static int numberOfDaysInYear(final int year) {
-        
-        if(new LocalDate(year, 1, 1).year().isLeap()) {
+
+        if (new LocalDate(year, 1, 1).year().isLeap()) {
             return 366;
         }
-        
+
         return 365;
     }
 
     public static LocalDate lastDayInYear(final int year) {
         return new LocalDate(year, 12, 31);
     }
-    
+
     public static LocalDate firstDayInYear(final int year) {
         return new LocalDate(year, 1, 1);
     }
-    
-    
-    
-    // @formatter: off
+
+    // @formatter:off
+    /****************
+     * STRING UTILS *
+     ****************/
+    // @formatter:on
+
+    public static boolean stringNormalizedContains(final String text, final String compound) {
+        final String textNormalized = Normalizer.normalize(text.toLowerCase(), Normalizer.Form.NFC);
+        final String compoundNormalized = Normalizer.normalize(compound.toLowerCase(), Normalizer.Form.NFC);
+        
+        return textNormalized.contains(compoundNormalized);
+    }
+
+    // @formatter:off
     /**********
      * BUNDLE *
      **********/
-    // @formatter: on
-    
-    public static String bundle(final String key, final String ... args) {
+    // @formatter:on
+
+    public static String bundle(final String key, final String... args) {
         return BundleUtil.getString(Constants.BUNDLE, key, args);
     }
-    
-    public static LocalizedString bundleI18N(final String key, final String ... args) {
-        return BundleUtil.getLocalizedString(Constants.BUNDLE, key, args);        
+
+    public static LocalizedString bundleI18N(final String key, final String... args) {
+        return BundleUtil.getLocalizedString(Constants.BUNDLE, key, args);
     }
-    
-    
+
     // @formatter: off
     /********
      * SIBS *
      ********/
     // @formatter: on
-    
+
     public static final String sibsTransactionUniqueIdentifier(final String paymentCode, final DateTime whenOccured) {
         return String.format("%s%s", paymentCode, whenOccured.toString("yyyyMMddHHmm"));
     }
-    
+
     public static boolean isOriginDocumentNumberValid(String originDocumentNumber) {
-        if(Strings.isNullOrEmpty(originDocumentNumber)) {
+        if (Strings.isNullOrEmpty(originDocumentNumber)) {
             return true;
         }
-        
+
         return originDocumentNumber.length() <= ORIGIN_DOCUMENT_LIMIT;
     }
-    
+
 }

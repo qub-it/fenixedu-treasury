@@ -15,6 +15,7 @@ import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
 import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.document.PaymentEntry;
@@ -22,11 +23,13 @@ import org.fenixedu.treasury.domain.document.SettlementEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
+import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class ForwardPayment extends ForwardPayment_Base {
 
@@ -152,9 +155,13 @@ public class ForwardPayment extends ForwardPayment_Base {
         log(statusCode, statusMessage, requestBody, responseBody);
 
         final FinantialInstitution finantialInstitution = getDebtAccount().getFinantialInstitution();
-        final DocumentNumberSeries series =
+        final DocumentNumberSeries settlementSeries =
                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForSettlementNote(), finantialInstitution).get();
-        this.setSettlementNote(SettlementNote.create(getDebtAccount(), series, new DateTime(), transactionDate, null));
+        this.setSettlementNote(SettlementNote.create(getDebtAccount(), settlementSeries, new DateTime(), transactionDate,
+                String.valueOf(getOrderNumber())));
+
+        final DocumentNumberSeries debitNoteSeries =
+                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(), finantialInstitution).get();
 
         BigDecimal amountToConsume = payedAmount;
 
@@ -165,6 +172,13 @@ public class ForwardPayment extends ForwardPayment_Base {
         PaymentEntry.create(getForwardPaymentConfiguration().getPaymentMethod(), getSettlementNote(), amountToConsume, null);
 
         for (final DebitEntry debitEntry : orderedEntries) {
+
+            if (debitEntry.getFinantialDocument() == null) {
+                final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
+                debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
+                debitNote.closeDocument();
+            }
+
             if (org.fenixedu.treasury.util.Constants.isGreaterThan(debitEntry.getOpenAmount(), amountToConsume)) {
                 break;
             }
@@ -180,6 +194,12 @@ public class ForwardPayment extends ForwardPayment_Base {
             for (DebitEntry interestDebitEntry : de.getInterestDebitEntriesSet()) {
                 if (org.fenixedu.treasury.util.Constants.isGreaterThan(interestDebitEntry.getOpenAmount(), amountToConsume)) {
                     break;
+                }
+
+                if (interestDebitEntry.getFinantialDocument() == null) {
+                    final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
+                    debitNote.addDebitNoteEntries(Lists.newArrayList(interestDebitEntry));
+                    debitNote.closeDocument();
                 }
 
                 amountToConsume = amountToConsume.subtract(interestDebitEntry.getOpenAmount());

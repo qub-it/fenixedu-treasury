@@ -3,6 +3,7 @@ package org.fenixedu.treasury.ui.document.forwardpayments.implementations;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
@@ -28,7 +29,7 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
     private static final String JSP_PATH = "/treasury/document/forwardpayments/forwardpayment/implementations/tpavirtual";
 
     public String processforwardpayment(final ForwardPayment forwardPayment, final Model model,
-            final HttpServletResponse response) {
+            final HttpServletResponse response, final HttpSession session) {
         model.addAttribute("forwardPayment", forwardPayment);
 
         return jspPage("hostedPay");

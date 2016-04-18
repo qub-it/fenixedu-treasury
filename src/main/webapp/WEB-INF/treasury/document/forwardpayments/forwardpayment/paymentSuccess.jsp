@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.ui.document.forwardpayments.ForwardPaymentController"%>
 <%@page import="org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController"%>
 <%@page import="org.fenixedu.treasury.ui.integration.erp.ERPExportOperationController"%>
 <%@page import="org.fenixedu.bennu.core.security.Authenticate"%>
@@ -67,9 +68,7 @@ ${portal.toolkit()}
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
-                <a href="${pageContext.request.contextPath}<%=DebtAccountController.READ_URL%>${settlementNote.debtAccount.externalId}">
-                	<c:out value='${settlementNote.debtAccount.customer.businessIdentification} - ${settlementNote.debtAccount.customer.name}' />
-                </a>
+               	<c:out value='${settlementNote.debtAccount.customer.businessIdentification} - ${settlementNote.debtAccount.customer.name}' />
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
@@ -81,6 +80,20 @@ ${portal.toolkit()}
             </p>
         </div>
     </div>
+</div>
+
+<%-- NAVIGATION --%>
+<div class="well well-sm" style="display: inline-block">
+	<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+	&nbsp;
+	<a class="" href="${pageContext.request.contextPath}${debtAccountUrl}${forwardPayment.debtAccount.externalId}">
+		<spring:message code="label.event.back" />
+	</a>
+	&nbsp;|&nbsp;
+    <span class="glyphicon glyphicon-print" aria-hidden="true"></span>&nbsp; 
+    <a class="" id="printLabel2" target="_blank" href="${pageContext.request.contextPath}${printSettlementNoteUrl}/${forwardPayment.externalId}">
+        <spring:message code="label.print" />
+    </a>
 </div>
 
 <c:if test="${not empty infoMessages}">
@@ -133,9 +146,9 @@ ${portal.toolkit()}
         </h3>
     </div>
     <div class="panel-body">
-		<div class="alert alert-warning" role="alert">
+		<div class="alert alert-info" role="alert">
 			<h5>
-				<spring:message code="label.ForwardPaymentController.forward.payment.concluded.success" />
+				<spring:message code="label.ForwardPayment.forward.payment.concluded.success" />
 			</h5>
 		</div>
     
@@ -153,21 +166,6 @@ ${portal.toolkit()}
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.documentNumber" /></th>
                         <td><c:out value='${settlementNote.uiDocumentNumber}' /></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.state" /></th>
-                        <td><c:if test="${settlementNote.isAnnulled()}">
-                                <span class="label label-danger">
-                            </c:if> <c:if test="${settlementNote.isPreparing() }">
-                                <span class="label label-warning">
-                            </c:if> <c:if test="${settlementNote.isClosed()}">
-                                <span class="label label-primary">
-                            </c:if> <c:out value='${settlementNote.state.descriptionI18N.content}' /></span> <c:if test="${not settlementNote.isPreparing() }">
-                                <c:if test="${settlementNote.isDocumentToExport() }">
-                                    &nbsp;<span class="label label-warning"> <spring:message code="label.FinantialDocument.document.is.pending.to.export" />
-                                    </span>
-                                </c:if>
-                            </c:if></td>
                     </tr>
 
                     <c:if test="${settlementNote.isAnnulled()}">
@@ -368,5 +366,6 @@ ${portal.toolkit()}
 					"${datatablesI18NUrl}");
 		</script>
     </c:when>
-
 </c:choose>
+
+<jsp:include page="${logosPage}" />

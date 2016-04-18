@@ -3,6 +3,7 @@ package org.fenixedu.treasury.domain.forwardpayments;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.Series;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.PaylineImplementation;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.TPAVirtualImplementation;
@@ -49,7 +50,17 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
     }
 
     private void checkRules() {
-
+        if(getFinantialInstitution() == null) {
+            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.required");
+        }
+        
+        if(getFinantialInstitution().getForwardPaymentConfigurationsSet().size() > 1) {
+            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.only.one.allowed");
+        }
+    }
+    
+    public boolean isActive() {
+        return getActive();
     }
 
     public String formattedAmount(final ForwardPayment forwardPayment) {

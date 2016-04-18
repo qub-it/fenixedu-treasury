@@ -45,8 +45,7 @@ ${portal.angularToolkit()}
 			</p>
 			<p>
 				<strong><spring:message code="label.DebtAccount.customer" />:</strong>
-				<a href="${pageContext.request.contextPath}<%=DebtAccountController.READ_URL%>${settlementNoteBean.debtAccount.externalId}">${settlementNoteBean.debtAccount.customer.businessIdentification}
-					- ${settlementNoteBean.debtAccount.customer.name}</a>
+				${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}
 			</p>
 			<p>
 				<strong><spring:message code="label.Customer.fiscalNumber" />:</strong>
@@ -60,7 +59,7 @@ ${portal.angularToolkit()}
 <div class="well well-sm" style="display: inline-block">
 	<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
 	&nbsp;
-	<a class="" href="${pageContext.request.contextPath}<%= DebtAccountController.READ_URL %>${settlementNoteBean.debtAccount.externalId}">
+	<a class="" href="${pageContext.request.contextPath}${debtAccountUrl}${settlementNoteBean.debtAccount.externalId}">
 		<spring:message code="label.event.back" />
 	</a>
 	&nbsp;
@@ -125,20 +124,20 @@ ${portal.angularToolkit()}
 			1.
 			<spring:message code="label.ForwardPaymentController.chooseInvoiceEntries" />
 		</strong>
-		<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-		2.
-		<spring:message code="label.ForwardPaymentController.confirmPayment" />
-		<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-		3.
-		<spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
-		<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-		4.
-		<spring:message code="label.ForwardPaymentController.paymentConfirmation" />
+			<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+			2.
+			<spring:message code="label.ForwardPaymentController.confirmPayment" />
+			<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+			3.
+			<spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
+			<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+			4.
+			<spring:message code="label.ForwardPaymentController.paymentConfirmation" />
 	</p>
 </div>
 
 <form name='form' method="post" class="form-horizontal" ng-app="angularAppSettlementNote" ng-controller="SettlementNoteController"
-	action='${pageContext.request.contextPath}<%= ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL %>'>
+	action='${pageContext.request.contextPath}${chooseInvoiceEntriesUrl}'>
 
 	<input name="bean" type="hidden" value="{{ object }}" />
 

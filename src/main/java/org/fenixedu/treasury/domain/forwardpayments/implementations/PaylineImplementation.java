@@ -3,6 +3,7 @@ package org.fenixedu.treasury.domain.forwardpayments.implementations;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import javax.servlet.http.HttpSession;
 import javax.xml.ws.BindingProvider;
 
 import org.fenixedu.treasury.domain.Currency;
@@ -32,6 +33,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
 
+import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
 import pt.ist.fenixframework.Atomic;
 
 public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> implements IForwardPaymentImplementation {
@@ -52,14 +54,23 @@ public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> 
         throw new RuntimeException("not applied");
     }
 
-    public String getReturnURL(final ForwardPayment forwardPayment) {
-        return String.format("%s/%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(),
-                forwardPayment.getExternalId(), ACTION_RETURN_URL);
+    public String getReturnURL(final ForwardPayment forwardPayment, final String returnControllerURL) {
+        return String.format("%s%s/%s/%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(), returnControllerURL,
+                forwardPayment.getExternalId(), ACTION_RETURN_URL, forwardPayment.getReturnForwardPaymentUrlChecksum());
     }
 
-    public String getCancelURL(final ForwardPayment forwardPayment) {
-        return String.format("%s/%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(),
-                forwardPayment.getExternalId(), ACTION_CANCEL_URL);
+    private void saveReturnUrlChecksum(final ForwardPayment forwardPayment, final String returnControllerURL, final HttpSession session) {
+        final String returnUrlToChecksum =
+                String.format("%s%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(), returnControllerURL,
+                        forwardPayment.getExternalId());
+
+        forwardPayment
+                .setReturnForwardPaymentUrlChecksum(GenericChecksumRewriter.calculateChecksum(returnUrlToChecksum, session));
+    }
+
+    public String getCancelURL(final ForwardPayment forwardPayment, final String returnControllerURL) {
+        return String.format("%s%s/%s/%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(), returnControllerURL,
+                forwardPayment.getExternalId(), ACTION_CANCEL_URL, forwardPayment.getReturnForwardPaymentUrlChecksum());
     }
 
     @Override
@@ -81,10 +92,10 @@ public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> 
     }
 
     @Atomic
-    public boolean doWebPayment(final ForwardPayment forwardPayment) {
-        PaylineImplementation implementation =
-                (PaylineImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
+    public boolean doWebPayment(final ForwardPayment forwardPayment, final String returnControllerURL, final HttpSession session) {
 
+        saveReturnUrlChecksum(forwardPayment, returnControllerURL, session);
+        
         final Payment paymentDetails = new Payment();
         paymentDetails.setAmount(getFormattedAmount(forwardPayment));
         paymentDetails.setCurrency(EURO_CURRENCY);
@@ -116,10 +127,10 @@ public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> 
 
         request.setPayment(paymentDetails);
         request.setOrder(order);
-        request.setReturnURL(implementation.getReturnURL(forwardPayment));
-        request.setCancelURL(implementation.getCancelURL(forwardPayment));
+        request.setReturnURL(getReturnURL(forwardPayment, returnControllerURL));
+        request.setCancelURL(getCancelURL(forwardPayment, returnControllerURL));
         request.setLanguageCode(LANG_PT);
-        
+
         request.setBuyer(buyerDetails);
         request.setSecurityMode(SECURITY_MODE);
 

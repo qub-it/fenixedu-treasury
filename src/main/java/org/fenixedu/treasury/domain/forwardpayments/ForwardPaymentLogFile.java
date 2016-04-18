@@ -18,6 +18,14 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
     public boolean isAccessible(final User user) {
         throw new RuntimeException("not implemented");
     }
+    
+    public String getContentAsString() {
+        if(getContent() != null) {
+            return new String(getContent());
+        }
+        
+        return null;
+    }
 
     // @formatter:off
     /* ********

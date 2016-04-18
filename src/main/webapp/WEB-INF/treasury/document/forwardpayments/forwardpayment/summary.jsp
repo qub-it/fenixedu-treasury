@@ -64,9 +64,7 @@ ${portal.angularToolkit()}
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
-                <a href="${pageContext.request.contextPath}<%=DebtAccountController.READ_URL%>${settlementNoteBean.debtAccount.externalId}">
-                	<c:out value='${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}' />
-                </a>
+               	<c:out value='${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}' />
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
@@ -113,13 +111,19 @@ ${portal.angularToolkit()}
 
 <div>
     <p>
-        1. <spring:message code="label.ForwardPaymentController.chooseInvoiceEntries" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        <strong>2. <spring:message code="label.ForwardPaymentController.confirmPayment" /></strong>
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        3. <spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
-        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
-        4. <spring:message code="label.ForwardPaymentController.paymentConfirmation" />
+	        1. 
+	        <spring:message code="label.ForwardPaymentController.chooseInvoiceEntries" />
+	        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
+        <strong>
+	        2.
+	        <spring:message code="label.ForwardPaymentController.confirmPayment" />
+	        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+        </strong>
+	        3. 
+	        <spring:message code="label.ForwardPaymentController.enterPaymentDetails" />
+	        <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> 
+	        4.
+	        <spring:message code="label.ForwardPaymentController.paymentConfirmation" />
     </p>
 </div>
 
@@ -251,28 +255,6 @@ ${portal.angularToolkit()}
                         </tr>
                     </c:if>
                 </c:forEach>
-                <c:forEach items="${ settlementNoteBean.creditEntries}"
-                    var="creditEntryBean" varStatus="loop">
-                    <c:if test="${ creditEntryBean.included }">
-                        <tr>
-                            <td><c:out
-                                    value="${ creditEntryBean.creditEntry.finantialDocument.uiDocumentNumber }" />
-                            </td>
-                            <td><c:out
-                                    value="${ creditEntryBean.creditEntry.description }" />
-                            </td>
-                            <td><c:out
-                                    value="${ creditEntryBean.documentDueDate }" />
-                            </td>
-                            <td><c:out
-                                    value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueWithScale( creditEntryBean.creditEntry.vat.taxRate ) }" />
-                            </td>
-                            <td>- <c:out
-                                    value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( creditEntryBean.creditEntry.openAmount ) }" />
-                            </td>
-                        </tr>
-                    </c:if>
-                </c:forEach>
             </tbody>
         </table>
         <div class="panel-footer">
@@ -288,19 +270,19 @@ ${portal.angularToolkit()}
 <form id='summaryForm' name='form' method="post" class="form-horizontal"
     ng-app="angularAppSettlementNote"
     ng-controller="SettlementNoteController"
-    action='${pageContext.request.contextPath}<%= ForwardPaymentController.SUMMARY_URL %>'>
+    action='${pageContext.request.contextPath}${summaryUrl}'>
 
     <input name="bean" type="hidden" value="{{ object }}" />
 
     <div class="panel-footer">
-		<a href="<%= ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL %>${settlementNoteBean.debtAccount.externalId}" 
+		<a href="${pageContext.request.contextPath}${chooseInvoiceEntriesUrl}${settlementNoteBean.debtAccount.externalId}" 
 			class="btn btn-default">
 			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> </span>
 			&nbsp;
 			<spring:message code="label.event.back" />
 		</a>
 		<button type="button" class="btn btn-primary"
-            onClick="javascript:processSubmit('${pageContext.request.contextPath}<%= ForwardPaymentController.SUMMARY_URL %>')">
+            onClick="javascript:processSubmit('${pageContext.request.contextPath}${summaryUrl}')">
 
             <spring:message code="label.event.accounting.manageCustomer.doForwardPayment" />
 			&nbsp;<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
@@ -312,6 +294,5 @@ ${portal.angularToolkit()}
 
 <script>
 	$(document).ready(function() {
-
 	});
 </script>
