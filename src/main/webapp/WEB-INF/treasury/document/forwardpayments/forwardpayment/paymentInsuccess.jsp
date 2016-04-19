@@ -55,24 +55,24 @@ ${portal.angularToolkit()}
 <%-- TITLE --%>
 <div class="page-header">
     <h1><spring:message code="label.ForwardPaymentController.onlinePayment" /></h1>
-    <h1><small><spring:message code="label.ForwardPaymentController.confirmPayment" /></small></h1>
+    <h1><small><spring:message code="label.ForwardPaymentController.paymentInsuccess" /></small></h1>
     <div>
         <div class="well well-sm">
             <p>
-                <strong><spring:message code="label.DebtAccount.finantialInstitution" />: </strong>
-                ${paymentForward.debtAccount.finantialInstitution.name}
+                <strong><spring:message code="label.DebtAccount.finantialInstitution" />:</strong>
+                ${forwardPayment.debtAccount.finantialInstitution.name}
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
-                <c:out value='${paymentForward.debtAccount.customer.businessIdentification} - ${paymentForward.debtAccount.customer.name}' />
+                <c:out value='${forwardPayment.debtAccount.customer.businessIdentification} - ${paymentForward.debtAccount.customer.name}' />
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
-                <c:out value='${paymentForward.debtAccount.customer.fiscalNumber}' />
+                <c:out value='${forwardPayment.debtAccount.customer.fiscalNumber}' />
             </p>
             <p>
             	<strong><spring:message code="label.Customer.address" />: </strong>
-            	<c:out value='${paymentForward.debtAccount.customer.address}' />
+            	<c:out value='${forwardPayment.debtAccount.customer.address}' />
             </p>
         </div>
     </div>
@@ -171,16 +171,18 @@ ${portal.angularToolkit()}
         </h3>
     </div>
     <div class="panel-body">
-		<div class="alert alert-danger" role="alert">
-			<h5>
-				<spring:message code="error.ForwardPaymentController.paymentInsuccess" />
-			</h5>
-		</div>
+		<h5 class="alert alert-danger">
+	        <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>&nbsp;
+			<spring:message code="error.ForwardPaymentController.paymentInsuccess.title" />
+		</h5>
+			
+		<p>&nbsp;</p>
+		<p><strong><spring:message code="error.ForwardPaymentController.paymentInsuccess" />:</strong></p>
+		<p><c:out value="${forwardPayment.rejectionLog}" /></p>
 
-        <div class="panel-footer">
-
-        </div>
     </div>
+	<div class="panel-footer">
+	</div>
 </div>
 
 <jsp:include page="${logosPage}" /> 

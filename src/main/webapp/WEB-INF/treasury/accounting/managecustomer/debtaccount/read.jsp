@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration"%>
 <%@page import="org.fenixedu.treasury.ui.accounting.managecustomer.PaymentReferenceCodeController"%>
 <%@page import="org.fenixedu.bennu.core.security.Authenticate"%>
 <%@page import="org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl"%>
@@ -114,13 +115,16 @@ ${portal.angularToolkit()}
 
             <li><a class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/createpayment"><span
                     class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.createPayment" /></a></li>
-
+			
+			<% if(ForwardPaymentConfiguration.isActive(debtAccount.getFinantialInstitution())) { %>
+			
             <li><a class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/forwardpayment"><span
-                    class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.forwardPayment" /></a></li>
+                    class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.forwardPayment" /></a></li>
+
+			<% } %>
 
             <li><a class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/createreimbursement"><span
                     class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.createReimbursement" /></a></li>
-
         </ul>
     </div>
     <%

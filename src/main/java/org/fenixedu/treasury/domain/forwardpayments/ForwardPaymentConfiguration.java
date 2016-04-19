@@ -50,15 +50,15 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
     }
 
     private void checkRules() {
-        if(getFinantialInstitution() == null) {
+        if (getFinantialInstitution() == null) {
             throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.required");
         }
-        
-        if(getFinantialInstitution().getForwardPaymentConfigurationsSet().size() > 1) {
+
+        if (getFinantialInstitution().getForwardPaymentConfigurationsSet().size() > 1) {
             throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.only.one.allowed");
         }
     }
-    
+
     public boolean isActive() {
         return getActive();
     }
@@ -92,6 +92,14 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
 
         return new ForwardPaymentConfiguration(finantialInstitution, series, paymentURL, returnURL, paylineMerchantId,
                 paylineMerchantAccessKey, paylineContractNumber);
+    }
+
+    public static boolean isActive(final FinantialInstitution finantialInstitution) {
+        if (finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
+            return false;
+        }
+
+        return finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().isActive();
     }
 
 }

@@ -252,20 +252,10 @@ public class ForwardPaymentController extends TreasuryBaseController {
         final ForwardPaymentConfiguration forwardPaymentConfiguration =
                 bean.getDebtAccount().getFinantialInstitution().getForwardPaymentConfigurationsSet().iterator().next();
 
-        final DocumentNumberSeries documentNumberSeries =
-                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
-                        forwardPaymentConfiguration.getFinantialInstitution()).get();
-
         final Set<DebitEntry> debitEntriesToPay = Sets.newHashSet();
         for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
             if (!debitEntryBean.isIncluded()) {
                 continue;
-            }
-
-            if (debitEntryBean.getDebitEntry().getFinantialDocument() == null) {
-                final DebitNote debitNote = DebitNote.create(debtAccount, documentNumberSeries, now);
-                debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntryBean.getDebitEntry()));
-                debitNote.closeDocument();
             }
 
             debitEntriesToPay.add(debitEntryBean.getDebitEntry());

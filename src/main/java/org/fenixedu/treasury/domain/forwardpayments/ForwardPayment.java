@@ -68,8 +68,10 @@ public class ForwardPayment extends ForwardPayment_Base {
 
     public void reject(final String statusCode, final String errorMessage, final String requestBody, final String responseBody) {
         setCurrentState(ForwardPaymentStateType.REJECTED);
-        log(statusCode, errorMessage, requestBody, responseBody);
+        setRejectionCode(statusCode);
+        setRejectionLog(errorMessage);
 
+        log(statusCode, errorMessage, requestBody, responseBody);
         checkRules();
     }
 

@@ -1769,6 +1769,8 @@ class forwardpayments.ForwardPaymentConfiguration {
 
 class forwardpayments.ForwardPayment {
 	ForwardPaymentStateType currentState;
+	String rejectionCode;
+	String rejectionLog;
 	DateTime whenOccured;
 	BigDecimalT amount;
 	BigDecimalT payedAmount;
