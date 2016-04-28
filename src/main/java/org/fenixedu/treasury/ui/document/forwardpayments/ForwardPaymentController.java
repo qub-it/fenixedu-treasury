@@ -270,7 +270,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
     }
 
     protected String forwardPaymentInsuccessUrl(final ForwardPayment forwardPayment) {
-        return FORWARD_PAYMENT_INSUCCESS_URL + "/" + forwardPayment.getExternalId();
+        return readProcessForwardPaymentUrl() + FORWARD_PAYMENT_SUCCESS_URI + forwardPayment.getExternalId();
     }
 
     protected String forwardPaymentSuccessUrl(final ForwardPayment forwardPayment) {

@@ -1,8 +1,9 @@
 package org.fenixedu.treasury.domain.forwardpayments.implementations;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,11 +44,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.qubit.solution.fenixedu.bennu.webservices.domain.keystore.DomainKeyStore;
-import com.qubit.solution.fenixedu.bennu.webservices.domain.keystore.KeyStoreFile;
 
 public class TPAInvocationUtil {
 
@@ -177,7 +176,7 @@ public class TPAInvocationUtil {
 
         requestData.putAll(params);
 
-        return post(params, false);
+        return post(params, true);
     }
 
     public Map<String, String> postPayment(final DateTime authorizationDate, final LinkedHashMap<String, String> requestData) {
@@ -196,7 +195,7 @@ public class TPAInvocationUtil {
 
         requestData.putAll(params);
 
-        return post(params, false);
+        return post(params, true);
     }
 
     private Map<String, String> post(final LinkedHashMap<String, String> params, final boolean isXml) {
@@ -204,13 +203,13 @@ public class TPAInvocationUtil {
             System.out.println(
                     "post:" + forwardPayment.getForwardPaymentConfiguration().getPaymentURL() + "?" + httpsParams(params));
 
-            final URL url = new URL(forwardPayment.getForwardPaymentConfiguration().getPaymentURL());
+            final URL url = new URL("https://teste.mbnet.pt/pvtn");
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
 
-            if (certificate != null && !Strings.isNullOrEmpty(certPassword)) {
+            if (certificate != null /* && !Strings.isNullOrEmpty(certPassword) */) {
                 try {
-                    connection.setSSLSocketFactory(getFactory());
+                    connection.setSSLSocketFactory(getFactory(new File("/home/anilmamede/Desktop/TAP_VIRTUAL/FPIE/FP/2016_04_27/0000016343.p12"), "HRX7K2BQ"));
                 } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -334,15 +333,31 @@ public class TPAInvocationUtil {
         return paramsStr;
     }
 
-    private SSLSocketFactory getFactory() throws Exception {
+//    private SSLSocketFactory getFactory() throws Exception {
+//        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+//        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+//
+//        InputStream keyInput = new ByteArrayInputStream(certificate);
+//        keyStore.load(keyInput, null);
+//        keyInput.close();
+//
+//        keyManagerFactory.init(keyStore, null);
+//
+//        SSLContext context = SSLContext.getInstance("TLS");
+//        context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+//
+//        return context.getSocketFactory();
+//    }
+
+    private SSLSocketFactory getFactory(File pKeyFile, String pKeyPassword) throws Exception {
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
-        InputStream keyInput = new ByteArrayInputStream(certificate);
-        keyStore.load(keyInput, certPassword.toCharArray());
+        InputStream keyInput = new FileInputStream(pKeyFile);
+        keyStore.load(keyInput, pKeyPassword.toCharArray());
         keyInput.close();
 
-        keyManagerFactory.init(keyStore, certPassword.toCharArray());
+        keyManagerFactory.init(keyStore, pKeyPassword.toCharArray());
 
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());

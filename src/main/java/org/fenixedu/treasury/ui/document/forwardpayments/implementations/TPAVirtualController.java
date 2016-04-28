@@ -30,9 +30,7 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
 
     public String processforwardpayment(final ForwardPayment forwardPayment, final Model model,
             final HttpServletResponse response, final HttpSession session) {
-        model.addAttribute("forwardPayment", forwardPayment);
-
-        return jspPage("hostedPay");
+        throw new RuntimeException("not used");
     }
 
     private static final String RETURN_FORWARD_PAYMENT_URI = "/returnforwardpayment";
@@ -45,20 +43,17 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
             @RequestParam final Map<String, String> responseData, final Model model, final HttpServletResponse response) {
         TPAVirtualImplementation implementation =
                 (TPAVirtualImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
-        
-        boolean status = implementation.processPayment(forwardPayment, responseData);
+        try {
+            boolean success = implementation.processPayment(forwardPayment, responseData);
 
-        return jspPage(status ? "tpaSuccess" : "tpaInsuccess");
-    }
+            if (success) {
+                return String.format("redirect:%s", forwardPayment.getForwardPaymentSuccessUrl());
+            }
 
-    private static final String WAITING_FOR_PAYMENT_URI = "/waitingforpayment";
-    public static final String WAITING_FOR_PAYMENT_URL = CONTROLLER_URL + WAITING_FOR_PAYMENT_URI;
-
-    @RequestMapping(value = WAITING_FOR_PAYMENT_URI + "/{forwardPaymentId}", method = RequestMethod.GET)
-    public String waitingforpayment(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment, final Model model) {
-        model.addAttribute("forwardPayment", forwardPayment);
-
-        return jspPage("waitingforpayment");
+            return String.format("redirect:%s", forwardPayment.getForwardPaymentInsuccessUrl());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static final String CURRENT_FORWARD_PAYMENT_STATE_URI = "/currentforwardpaymentstate";
@@ -69,9 +64,5 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
     public String currentforwardpaymentstate(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment) {
         return forwardPayment.getCurrentState().toString();
     }
-
-    private String jspPage(final String page) {
-        return JSP_PATH + "/" + page;
-    }
-
+    
 }

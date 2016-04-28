@@ -198,7 +198,7 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
 
     private BigDecimal payedAmount(Map<String, String> responseMap) {
         if (!Strings.isNullOrEmpty(responseMap.get(AMOUNT_FIELD))) {
-            return new BigDecimal(responseMap.get(AMOUNT_FIELD)).divide(new BigDecimal(100));
+            return new BigDecimal(responseMap.get(AMOUNT_FIELD));
         }
 
         return null;
@@ -221,7 +221,15 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
     }
 
     private boolean isResponseSuccess(final Map<String, String> responseMap) {
-        return responseMap.get(A038) != null && A038_SUCCESS.equals(responseMap.get(A038));
+        if(responseMap.get(A038) == null) {
+            return false;
+        } 
+        
+        try {
+            return Integer.parseInt(responseMap.get(A038)) == 0;
+        } catch(NumberFormatException e) {
+            return false;
+        }
     }
 
     private boolean isPaymentStatusSuccess(final Map<String, String> responseMap) {
@@ -254,7 +262,7 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
     }
 
     public String getReturnURL(final ForwardPayment forwardPayment) {
-        return forwardPayment.getForwardPaymentConfiguration().getReturnURL();
+        return String.format("%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(), forwardPayment.getExternalId());
     }
 
     @Override
