@@ -162,6 +162,7 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
         }
 
         forwardPayment.reject(String.valueOf(resultCode), errorMessage(responseMap), json(requestMap), json(responseMap));
+
         return false;
     }
 

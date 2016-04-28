@@ -1840,6 +1840,7 @@ class forwardpayments.ForwardPaymentLogFile extends .org.fenixedu.bennu.io.domai
 }
 
 class forwardpayments.ForwardPaymentLog {
+	int orderNumber;
 	ForwardPaymentStateType type;
 	DateTime whenOccured;
 	String statusCode;

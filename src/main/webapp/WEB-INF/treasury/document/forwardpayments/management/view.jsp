@@ -1,3 +1,7 @@
+<%@page import="org.fenixedu.treasury.domain.FinantialInstitution"%>
+<%@page import="org.fenixedu.treasury.domain.forwardpayments.ForwardPayment"%>
+<%@page import="org.fenixedu.bennu.core.security.Authenticate"%>
+<%@page import="org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl"%>
 <%@page import="org.fenixedu.treasury.ui.document.forwardpayments.ManageForwardPaymentsController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
@@ -77,6 +81,11 @@ ${portal.toolkit()}
 	</div>
 </c:if>
 
+<%
+	ForwardPayment forwardPayment = (ForwardPayment) request.getAttribute("forwardPayment");
+	FinantialInstitution finantialInstitution = forwardPayment.getDebtAccount().getFinantialInstitution();
+%>
+
 <div class="panel panel-primary">
 	<div class="panel-heading">
 		<h3 class="panel-title">
@@ -120,6 +129,21 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.transactionId" /></th>
                         <td><c:out value='${forwardPayment.transactionId}' /></td>
                     </tr>
+                    
+<%
+	if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
+%>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.forwardPaymentSuccessUrl" /></th>
+                        <td><c:out value='${forwardPayment.forwardPaymentSuccessUrl}' /></td>
+                    </tr>                    
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.forwardPaymentInsuccessUrl" /></th>
+                        <td><c:out value='${forwardPayment.forwardPaymentInsuccessUrl}' /></td>
+                    </tr>
+<%
+	}
+%>
 				</tbody>
 			</table>
 		</form>
@@ -130,7 +154,11 @@ ${portal.toolkit()}
 	<spring:message code="label.ManageForwardPayments.states" />
 </h2>
 
-<c:forEach var="log" items="${forwardPayment.forwardPaymentLogs}">
+<%
+	if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
+%>
+
+<c:forEach var="log" items="${forwardPayment.orderedForwardPaymentLogs}">
 	<div class="panel panel-primary">
 		<div class="panel-body">
 			<form method="post" class="form-horizontal">
@@ -166,3 +194,6 @@ ${portal.toolkit()}
 		</div>
 	</div>
 </c:forEach>
+<%
+	}
+%>

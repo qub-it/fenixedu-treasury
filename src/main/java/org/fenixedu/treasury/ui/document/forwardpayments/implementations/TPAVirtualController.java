@@ -30,7 +30,9 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
 
     public String processforwardpayment(final ForwardPayment forwardPayment, final Model model,
             final HttpServletResponse response, final HttpSession session) {
-        throw new RuntimeException("not used");
+
+        model.addAttribute("forwardPayment", forwardPayment);
+        return jspPage("hostedPay");
     }
 
     private static final String RETURN_FORWARD_PAYMENT_URI = "/returnforwardpayment";
@@ -38,7 +40,6 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
 
     @RequestMapping(value = RETURN_FORWARD_PAYMENT_URI + "/{forwardPaymentId}", method = RequestMethod.POST,
             produces = "text/html")
-    @ResponseBody
     public String returnforwardpayment(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment,
             @RequestParam final Map<String, String> responseData, final Model model, final HttpServletResponse response) {
         TPAVirtualImplementation implementation =
@@ -63,6 +64,10 @@ public class TPAVirtualController extends TreasuryBaseController implements IFor
     @ResponseBody
     public String currentforwardpaymentstate(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment) {
         return forwardPayment.getCurrentState().toString();
+    }
+    
+    private String jspPage(final String page) {
+        return JSP_PATH + "/" + page;
     }
     
 }

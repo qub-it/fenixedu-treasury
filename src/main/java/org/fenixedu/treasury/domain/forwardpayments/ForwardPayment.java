@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.FinantialInstitution;
@@ -247,6 +249,10 @@ public class ForwardPayment extends ForwardPayment_Base {
 
     public String getReferenceNumber() {
         return String.valueOf(getOrderNumber());
+    }
+    
+    public List<ForwardPaymentLog> getOrderedForwardPaymentLogs() {
+        return getForwardPaymentLogsSet().stream().sorted(ForwardPaymentLog.COMPARATOR_BY_ORDER).collect(Collectors.toList());
     }
 
     private void checkRules() {
