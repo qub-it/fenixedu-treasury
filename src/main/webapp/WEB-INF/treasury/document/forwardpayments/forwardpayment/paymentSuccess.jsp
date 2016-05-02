@@ -56,6 +56,13 @@ ${portal.toolkit()}
 
 <c:set var="settlementNote" value="${forwardPayment.settlementNote}" /> 
 
+<%
+    ForwardPayment forwardPayment = (ForwardPayment) request.getAttribute("forwardPayment");
+	FinantialInstitution finantialInstitution = forwardPayment.getDebtAccount().getFinantialInstitution();
+%>
+
+
+
 <%-- TITLE --%>
 <div class="page-header">
     <h1><spring:message code="label.ForwardPaymentController.onlinePayment" /></h1>
@@ -155,25 +162,21 @@ ${portal.toolkit()}
         <form method="post" class="form-horizontal">
             <table class="table">
                 <tbody>
+<% if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) { %>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Series.finantialInstitution" /></th>
                         <td><c:out value='${settlementNote.documentNumberSeries.series.finantialInstitution.name}' /></td>
                     </tr>
+<% } %>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.debtAccount" /></th>
-                        <td><c:out value='${settlementNote.debtAccount.customer.businessIdentification} - ${settlementNote.debtAccount.customer.name}' /></td>
+                        <td><c:out value='${settlementNote.debtAccount.customer.name}' /></td>
                     </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.documentNumber" /></th>
                         <td><c:out value='${settlementNote.uiDocumentNumber}' /></td>
                     </tr>
 
-                    <c:if test="${settlementNote.isAnnulled()}">
-                        <tr>
-                            <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.annulledReason" /></th>
-                            <td><c:out value='${settlementNote.annulledReason}' /></td>
-                        </tr>
-                    </c:if>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.documentDate" /></th>
                         <td><joda:format value="${settlementNote.documentDate}" style="S-" /></td>
@@ -182,39 +185,30 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.paymentDate" /></th>
                         <td><joda:format value="${settlementNote.paymentDate}" style="S-" /></td>
                     </tr>
+<% if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) { %>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.originDocumentNumber" /></th>
                         <td><c:out value='${settlementNote.originDocumentNumber}' /></td>
                     </tr>
-                    <c:if test="${not empty  settlementNote.documentObservations}">
-                        <tr>
-                            <th scope="row" class="col-xs-3"><spring:message code="label.DebitNote.documentObservations" /></th>
-                            <td><c:out value='${settlementNote.documentObservations}' /></td>
-                        </tr>
-                    </c:if>
+<% } %>
 
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.totalDebitAmount" /></th>
                         <td><c:out value='${settlementNote.currency.getValueFor(settlementNote.totalDebitAmount)}' /></td>
                     </tr>
-                    <tr>
-                        <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.totalCreditAmount" /></th>
-                        <td><c:out value='${settlementNote.currency.getValueFor(settlementNote.totalCreditAmount)}' /></td>
-                    </tr>
+
                     <tr>
                         <c:if test="${ not empty settlementNote.paymentEntriesSet }">
                             <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.totalPayedAmount" /></th>
                             <td><c:out value='${settlementNote.currency.getValueFor(settlementNote.totalPayedAmount)}' /></td>
                         </c:if>
-                        <c:if test="${ not empty settlementNote.reimbursementEntriesSet }">
-                            <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.totalReimbursementAmount" /></th>
-                            <td><c:out value='${settlementNote.currency.getValueFor(settlementNote.totalReimbursementAmount)}' /></td>
-                        </c:if>
                     </tr>
+<% if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) { %>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Versioning.creator" /></th>
                         <td>[<c:out value='${settlementNote.getVersioningCreator()}' />] <joda:format value="${settlementNote.getVersioningCreationDate()}" style="SS" /></td>
                     </tr>
+<% } %>
 
                 </tbody>
             </table>
@@ -222,6 +216,7 @@ ${portal.toolkit()}
     </div>
 </div>
 
+<% if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) { %>
 <p></p>
 <p></p>
 <h2>
@@ -287,6 +282,7 @@ ${portal.toolkit()}
 
     </c:otherwise>
 </c:choose>
+<% } %>
 
 <p></p>
 <p></p>
@@ -336,6 +332,7 @@ ${portal.toolkit()}
 <p></p>
 <p></p>
 
+<% if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) { %>
 <c:choose>
     <c:when test="${not empty settlementNote.paymentEntriesSet}">
         <h2>
@@ -367,5 +364,6 @@ ${portal.toolkit()}
 		</script>
     </c:when>
 </c:choose>
+<% } %>
 
 <jsp:include page="${logosPage}" />
