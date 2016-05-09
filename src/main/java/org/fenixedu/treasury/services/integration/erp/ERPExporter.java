@@ -56,28 +56,6 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import oecd.standardauditfile_tax.pt_1.AddressStructure;
-import oecd.standardauditfile_tax.pt_1.AddressStructurePT;
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-import oecd.standardauditfile_tax.pt_1.Header;
-import oecd.standardauditfile_tax.pt_1.MovementTax;
-import oecd.standardauditfile_tax.pt_1.OrderReferences;
-import oecd.standardauditfile_tax.pt_1.PaymentMethod;
-import oecd.standardauditfile_tax.pt_1.SAFTPTMovementTaxType;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSettlementType;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSourceBilling;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSourcePayment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.AdvancedPaymentCredit;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.Line.SourceDocumentID;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.AdvancedPayment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
-import oecd.standardauditfile_tax.pt_1.Tax;
-import oecd.standardauditfile_tax.pt_1.TaxTableEntry;
-
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.AdhocCustomer;
 import org.fenixedu.treasury.domain.Customer;
@@ -108,11 +86,34 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.Atomic.TxMode;
-
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+
+import oecd.standardauditfile_tax.pt_1.AddressStructure;
+import oecd.standardauditfile_tax.pt_1.AddressStructurePT;
+import oecd.standardauditfile_tax.pt_1.AuditFile;
+import oecd.standardauditfile_tax.pt_1.Header;
+import oecd.standardauditfile_tax.pt_1.MovementTax;
+import oecd.standardauditfile_tax.pt_1.OrderReferences;
+import oecd.standardauditfile_tax.pt_1.PaymentMethod;
+import oecd.standardauditfile_tax.pt_1.ReimbursementStatusType;
+import oecd.standardauditfile_tax.pt_1.SAFTPTMovementTaxType;
+import oecd.standardauditfile_tax.pt_1.SAFTPTSettlementType;
+import oecd.standardauditfile_tax.pt_1.SAFTPTSourceBilling;
+import oecd.standardauditfile_tax.pt_1.SAFTPTSourcePayment;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.AdvancedPaymentCredit;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.Line.SourceDocumentID;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.ReimbursementProcess;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.AdvancedPayment;
+import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
+import oecd.standardauditfile_tax.pt_1.Tax;
+import oecd.standardauditfile_tax.pt_1.TaxTableEntry;
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 
 // ******************************************************************************************************************************
 // http://info.portaldasfinancas.gov.pt/NR/rdonlyres/3B4FECDB-2380-45D7-9019-ABCA80A7E99E/0/Comunicacao_Dados_Doc_Transporte.pdf
@@ -373,6 +374,11 @@ public class ERPExporter {
             // DocumentNumber
             payment.setPaymentRefNo(document.getUiDocumentNumber());
 
+            // Finantial Transaction Reference
+            if(!Strings.isNullOrEmpty(document.getFinantialTransactionReference())) {
+                payment.setFinantialTransactionReference(document.getFinantialTransactionReference());
+            }
+            
             //OriginDocumentNumber
             payment.setSourceID(document.getOriginDocumentNumber());
 
@@ -422,6 +428,7 @@ public class ERPExporter {
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
                     
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(paymentEntry.getPaymentMethod()));
+                    method.setPaymentMethodReference(paymentEntry.getPaymentMethodId());
                     payment.getPaymentMethod().add(method);
                 }
                 payment.setSettlementType(SAFTPTSettlementType.NL);
@@ -439,6 +446,13 @@ public class ERPExporter {
                     payment.getPaymentMethod().add(method);
                     payment.setSettlementType(SAFTPTSettlementType.NR);
                 }
+                
+                // Fill reimbursement process status
+                ReimbursementProcess reimbursementProcess = new ReimbursementProcess();
+                reimbursementProcess.setStatusDate(convertToXMLDate(dataTypeFactory, document.getDocumentDate()));
+                reimbursementProcess.setStatus(ReimbursementStatusType.PENDING);
+                
+                payment.setReimbursementProcess(reimbursementProcess);
             } else {
                 PaymentMethod voidMethod = new PaymentMethod();
                 voidMethod.setPaymentAmount(BigDecimal.ZERO);
