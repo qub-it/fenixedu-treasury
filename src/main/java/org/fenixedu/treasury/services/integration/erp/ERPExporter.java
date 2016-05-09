@@ -1119,6 +1119,9 @@ public class ERPExporter {
 
         // Telephone
         // c.setTelephone("");
+        
+        c.setFiscalCountry(customer.getFiscalCountry());
+        c.setNationality(customer.getNationalityCountryCode());
 
         return c;
     }
