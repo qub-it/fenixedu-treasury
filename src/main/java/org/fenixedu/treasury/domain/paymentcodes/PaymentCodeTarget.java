@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -36,9 +37,9 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
     public abstract String getDescription();
 
     public String getTargetPayorDescription() {
-        if (getReferenceDebtAccount() != null) {
-            return getReferenceDebtAccount().getCustomer().getBusinessIdentification() + "-"
-                    + getReferenceDebtAccount().getCustomer().getName();
+        if (getDebtAccount() != null) {
+            return getDebtAccount().getCustomer().getBusinessIdentification() + "-"
+                    + getDebtAccount().getCustomer().getName();
         }
         return "----";
     }
@@ -72,7 +73,7 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
 
         List<DebitEntry> interestRateEntries = new ArrayList<DebitEntry>();
         DebitNote debitNoteForInterests = null;
-        DebtAccount referenceDebtAccount = this.getReferenceDebtAccount();
+        DebtAccount referenceDebtAccount = this.getDebtAccount();
         DocumentNumberSeries docNumberSeries = this.getDocumentSeriesForPayments();
         SettlementNote settlementNote =
                 SettlementNote.create(referenceDebtAccount, docNumberSeries, new DateTime(), whenRegistered, comments);
@@ -306,8 +307,6 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
 
     protected abstract DocumentNumberSeries getDocumentSeriesForPayments();
 
-    public abstract DebtAccount getReferenceDebtAccount();
-    
     public abstract LocalDate getDueDate();
 
 }

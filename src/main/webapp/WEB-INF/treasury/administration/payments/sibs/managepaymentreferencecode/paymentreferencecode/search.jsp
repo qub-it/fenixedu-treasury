@@ -206,8 +206,8 @@ ${portal.toolkit()}
                     <spring:message code="label.PaymentReferenceCode.client.name" />
                 </datatables:columnHead>
                 				
- 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.referenceDebtAccount != null}">
-					<c:out value="${referenceCode.targetPayment.referenceDebtAccount.customer.name}" />
+ 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.debtAccount != null}">
+					<c:out value="${referenceCode.targetPayment.debtAccount.customer.name}" />
  				</c:if>
 			</datatables:column>
 
@@ -216,8 +216,8 @@ ${portal.toolkit()}
                     <spring:message code="label.PaymentReferenceCode.client.vatNumber" />
                 </datatables:columnHead>
 				
- 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.referenceDebtAccount != null}">
-					<c:out value="${referenceCode.targetPayment.referenceDebtAccount.customer.fiscalNumber}" />
+ 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.debtAccount != null}">
+					<c:out value="${referenceCode.targetPayment.debtAccount.customer.fiscalNumber}" />
 				</c:if>
 			</datatables:column>
 
@@ -226,8 +226,8 @@ ${portal.toolkit()}
                     <spring:message code="label.PaymentReferenceCode.client.businessNumber" />
                 </datatables:columnHead>
 		
- 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.referenceDebtAccount != null}">
-					<c:out value="${referenceCode.targetPayment.referenceDebtAccount.customer.businessIdentification}" />
+ 				<c:if test="${referenceCode.targetPayment != null && referenceCode.targetPayment.debtAccount != null}">
+					<c:out value="${referenceCode.targetPayment.debtAccount.customer.businessIdentification}" />
 				</c:if>
 			</datatables:column>
 

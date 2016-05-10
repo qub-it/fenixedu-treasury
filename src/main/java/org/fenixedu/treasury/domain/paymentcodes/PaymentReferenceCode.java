@@ -252,7 +252,7 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         SettlementNote note =
                 this.getTargetPayment().processPayment(responsibleUser, amountToPay, whenRegistered, sibsTransactionId, comments);
 
-        final DebtAccount referenceDebtAccount = this.getTargetPayment().getReferenceDebtAccount();
+        final DebtAccount referenceDebtAccount = this.getTargetPayment().getDebtAccount();
         
         final String debtAccountId = referenceDebtAccount.getExternalId();
         final String customerId = referenceDebtAccount.getCustomer().getExternalId();

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -67,11 +68,13 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
 
     protected FinantialDocumentPaymentCode() {
         super();
+        setBennu(Bennu.getInstance());
     }
 
     protected void init(final FinantialDocument finantialDocument, final PaymentReferenceCode paymentReferenceCode,
             final java.lang.Boolean valid) {
         setFinantialDocument(finantialDocument);
+        setDebtAccount(finantialDocument.getDebtAccount());
         setPaymentReferenceCode(paymentReferenceCode);
         setValid(valid);
         checkRules();
@@ -87,6 +90,10 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
 
         if (getPaymentReferenceCode() == null) {
             throw new TreasuryDomainException("error.FinantialDocumentPaymentCode.paymentReferenceCode.required");
+        }
+        
+        if(getDebtAccount() == null) {
+            throw new TreasuryDomainException("error.FinantialDocumentPaymentCode.debtAccount.required");
         }
 
         // Ensure that there is only one active reference code
@@ -213,11 +220,6 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
     @Override
     protected DocumentNumberSeries getDocumentSeriesForPayments() {
         return this.getPaymentReferenceCode().getPaymentCodePool().getDocumentSeriesForPayments();
-    }
-
-    @Override
-    public DebtAccount getReferenceDebtAccount() {
-        return this.getFinantialDocument().getDebtAccount();
     }
 
     @Override

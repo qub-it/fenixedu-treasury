@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -33,12 +34,15 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     protected MultipleEntriesPaymentCode(final Set<DebitEntry> debitNoteEntries, final PaymentReferenceCode paymentReferenceCode,
             final boolean valid) {
         super();
+        setBennu(Bennu.getInstance());
         init(debitNoteEntries, paymentReferenceCode, valid);
     }
 
     protected void init(final Set<DebitEntry> debitNoteEntries, final PaymentReferenceCode paymentReferenceCode,
             final boolean valid) {
         getInvoiceEntriesSet().addAll(debitNoteEntries);
+        setDebtAccount(debitNoteEntries.iterator().next().getDebtAccount());
+
         setPaymentReferenceCode(paymentReferenceCode);
         setValid(valid);
         checkRules();
@@ -54,7 +58,7 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
             throw new TreasuryDomainException("error.MultipleEntriesPaymentCode.debitEntries.empty");
         }
 
-        final DebtAccount debtAccount = getReferenceDebtAccount();
+        final DebtAccount debtAccount = getDebtAccount();
         for (final InvoiceEntry invoiceEntry : getInvoiceEntriesSet()) {
             final DebitEntry debitEntry = (DebitEntry) invoiceEntry;
 
@@ -69,24 +73,20 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
                         "error.MultipleEntriesPaymentCode.debit.entry.open.amount.must.be.greater.than.zero");
             }
 
-            // Ensure debit entries are closed in finantial documents
-            if (!(debitEntry.getFinantialDocument() != null && debitEntry.getFinantialDocument().isClosed())) {
-                throw new TreasuryDomainException(
-                        "error.MultipleEntriesPaymentCode.debit.entry.not.finantial.document.nor.closed");
-            }
-
             // Ensure that there is only one payment code active reference for debit entry
+            boolean hasFinantialDocumentPaymentCode = debitEntry.getFinantialDocument() != null
+                    && FinantialDocumentPaymentCode.findNewByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0;
+            hasFinantialDocumentPaymentCode |= debitEntry.getFinantialDocument() != null
+                    && FinantialDocumentPaymentCode.findUsedByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0;
 
-            if (FinantialDocumentPaymentCode.findNewByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0
-                    || FinantialDocumentPaymentCode.findUsedByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0) {
+            if (hasFinantialDocumentPaymentCode) {
                 throw new TreasuryDomainException(
-                        "error.MultipleEntriesPaymentCode.debit.entry.finantial.with.active.payment.code", debitEntry
-                                .getFinantialDocument().getUiDocumentNumber());
+                        "error.MultipleEntriesPaymentCode.debit.entry.finantial.with.active.payment.code",
+                        debitEntry.getFinantialDocument().getUiDocumentNumber());
             }
 
-            final long activePaymentCodesOnDebitEntryCount =
-                    MultipleEntriesPaymentCode.findNewByDebitEntry(debitEntry).count()
-                            + MultipleEntriesPaymentCode.findUsedByDebitEntry(debitEntry).count();
+            final long activePaymentCodesOnDebitEntryCount = MultipleEntriesPaymentCode.findNewByDebitEntry(debitEntry).count()
+                    + MultipleEntriesPaymentCode.findUsedByDebitEntry(debitEntry).count();
 
             if (activePaymentCodesOnDebitEntryCount > 1) {
                 throw new TreasuryDomainException("error.MultipleEntriesPaymentCode.debit.entry.with.active.payment.code",
@@ -106,11 +106,6 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     }
 
     @Override
-    public DebtAccount getReferenceDebtAccount() {
-        return getInvoiceEntriesSet().iterator().next().getDebtAccount();
-    }
-
-    @Override
     public String getDescription() {
         final StringBuilder builder = new StringBuilder();
         for (FinantialDocumentEntry entry : getOrderedInvoiceEntries()) {
@@ -123,9 +118,8 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     public SettlementNote processPayment(final User person, final BigDecimal amountToPay, final DateTime whenRegistered,
             final String sibsTransactionId, final String comments) {
 
-        Set<InvoiceEntry> invoiceEntriesToPay =
-                this.getInvoiceEntriesSet().stream().sorted((x, y) -> y.getOpenAmount().compareTo(x.getOpenAmount()))
-                        .collect(Collectors.toSet());
+        Set<InvoiceEntry> invoiceEntriesToPay = this.getInvoiceEntriesSet().stream()
+                .sorted((x, y) -> y.getOpenAmount().compareTo(x.getOpenAmount())).collect(Collectors.toSet());
 
         return internalProcessPayment(person, amountToPay, whenRegistered, sibsTransactionId, comments, invoiceEntriesToPay);
     }
@@ -148,8 +142,8 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
 
     @Override
     protected DocumentNumberSeries getDocumentSeriesInterestDebits() {
-        return DocumentNumberSeries.find(FinantialDocumentType.findForDebitNote(), this.getPaymentReferenceCode()
-                .getPaymentCodePool().getDocumentSeriesForPayments().getSeries());
+        return DocumentNumberSeries.find(FinantialDocumentType.findForDebitNote(),
+                this.getPaymentReferenceCode().getPaymentCodePool().getDocumentSeriesForPayments().getSeries());
     }
 
     @Override
@@ -188,7 +182,7 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     public LocalDate getDueDate() {
         return getInvoiceEntriesSet().stream().map(InvoiceEntry::getDueDate).sorted().findFirst().orElse(null);
     }
-    
+
     @Atomic
     public static MultipleEntriesPaymentCode create(final Set<DebitEntry> debitNoteEntries,
             final PaymentReferenceCode paymentReferenceCode, final boolean valid) {

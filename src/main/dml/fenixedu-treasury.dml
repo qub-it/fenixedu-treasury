@@ -562,6 +562,15 @@ class paymentcodes.PaymentReferenceCode
         }
     }
     
+    relation PaymentCodeTargetBennu {
+        paymentcodes.PaymentCodeTarget playsRole targetPayment {
+            multiplicity *;
+        }
+    
+	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+	        multiplicity 1..1;
+	    }
+    }
 
     relation FinantialDocumentPaymentCodeFinantialDocument {
         document.FinantialDocument playsRole finantialDocument {
@@ -593,6 +602,16 @@ class paymentcodes.PaymentReferenceCode
         }
     }
 	
+	/* The relation with debt account is to pay when debts are deleted */
+	relation PaymentReferenceCodeTargetDebtAccount {
+		paymentcodes.PaymentCodeTarget playsRole paymentCodeTargets {
+			multiplicity *;
+		}
+		
+		debt.DebtAccount playsRole debtAccount {
+			multiplicity 0..1;
+		}
+	}
 	
 	class paymentcodes.SibsReportFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	  DateTime whenProcessedBySibs;
