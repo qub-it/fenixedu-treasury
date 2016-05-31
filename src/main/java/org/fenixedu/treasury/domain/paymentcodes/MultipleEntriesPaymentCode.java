@@ -15,7 +15,6 @@ import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
-import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentEntry;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
@@ -27,9 +26,13 @@ import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.collect.Sets;
+
 import pt.ist.fenixframework.Atomic;
 
 public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base {
+
+    private static final int MAX_PAYMENT_CODES_FOR_DEBIT_ENTRY = 2;
 
     protected MultipleEntriesPaymentCode(final Set<DebitEntry> debitNoteEntries, final PaymentReferenceCode paymentReferenceCode,
             final boolean valid) {
@@ -76,6 +79,7 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
             // Ensure that there is only one payment code active reference for debit entry
             boolean hasFinantialDocumentPaymentCode = debitEntry.getFinantialDocument() != null
                     && FinantialDocumentPaymentCode.findNewByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0;
+
             hasFinantialDocumentPaymentCode |= debitEntry.getFinantialDocument() != null
                     && FinantialDocumentPaymentCode.findUsedByFinantialDocument(debitEntry.getFinantialDocument()).count() > 0;
 
@@ -88,7 +92,7 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
             final long activePaymentCodesOnDebitEntryCount = MultipleEntriesPaymentCode.findNewByDebitEntry(debitEntry).count()
                     + MultipleEntriesPaymentCode.findUsedByDebitEntry(debitEntry).count();
 
-            if (activePaymentCodesOnDebitEntryCount > 1) {
+            if (activePaymentCodesOnDebitEntryCount > MAX_PAYMENT_CODES_FOR_DEBIT_ENTRY) {
                 throw new TreasuryDomainException("error.MultipleEntriesPaymentCode.debit.entry.with.active.payment.code",
                         debitEntry.getDescription(), debitEntry.getFinantialDocument().getUiDocumentNumber());
             }
@@ -211,6 +215,22 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
         return debitEntry.getPaymentCodesSet().stream();
     }
 
+    public static Stream<MultipleEntriesPaymentCode> findWithDebitEntries(final Set<DebitEntry> debitEntries) {
+        final Set<MultipleEntriesPaymentCode> paymentCodes =
+                debitEntries.stream().map(d -> d.getPaymentCodesSet()).flatMap(p -> p.stream()).collect(Collectors.toSet());
+        
+        final Set<MultipleEntriesPaymentCode> result = Sets.newHashSet();
+        for(final MultipleEntriesPaymentCode code : paymentCodes) {
+            if(!Sets.difference(code.getInvoiceEntriesSet(), debitEntries).isEmpty()) {
+                continue;
+            }
+            
+            result.add(code);
+        }
+        
+        return result.stream();
+    }
+
     public static Stream<MultipleEntriesPaymentCode> findByValid(FinantialInstitution finantialInstitution, final boolean valid) {
         return findAll(finantialInstitution).filter(i -> valid == i.getValid());
     }
@@ -221,6 +241,14 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
 
     public static Stream<MultipleEntriesPaymentCode> findUsedByDebitEntry(final DebitEntry debitEntry) {
         return find(debitEntry).filter(p -> p.getPaymentReferenceCode().isUsed());
+    }
+
+    public static Stream<MultipleEntriesPaymentCode> findNewByDebitEntriesSet(final Set<DebitEntry> debitEntries) {
+        return findWithDebitEntries(debitEntries).filter(p -> p.getPaymentReferenceCode().isNew());
+    }
+
+    public static Stream<MultipleEntriesPaymentCode> findUsedByDebitEntriesSet(final Set<DebitEntry> debitEntries) {
+        return findWithDebitEntries(debitEntries).filter(p -> p.getPaymentReferenceCode().isUsed());
     }
 
 }
