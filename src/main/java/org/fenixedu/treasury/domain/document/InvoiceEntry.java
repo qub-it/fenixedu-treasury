@@ -72,9 +72,7 @@ public abstract class InvoiceEntry extends InvoiceEntry_Base {
         if (getFinantialDocument() != null && !getFinantialDocument().isPreparing()) {
             blockers.add(BundleUtil.getString(Constants.BUNDLE, "error.invoiceentry.cannot.be.deleted.document.is.not.preparing"));
         }
-        if (!getPaymentCodesSet().isEmpty()) {
-            blockers.add(BundleUtil.getString(Constants.BUNDLE, "error.invoiceentry.cannot.be.deleted.paymentcodes.is.not.empty"));
-        }
+
         if (!getSettlementEntriesSet().isEmpty()) {
             blockers.add(BundleUtil.getString(Constants.BUNDLE,
                     "error.invoiceentry.cannot.be.deleted.settlemententries.is.not.empty"));

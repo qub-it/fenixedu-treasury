@@ -171,6 +171,8 @@ public class DebitEntry extends DebitEntry_Base {
         this.setDebitEntry(null);
         this.setTreasuryEvent(null);
 
+        this.getPaymentCodesSet().clear();
+        
         super.delete();
     }
 

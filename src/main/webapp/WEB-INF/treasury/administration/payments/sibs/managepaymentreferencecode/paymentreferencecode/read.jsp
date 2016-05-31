@@ -134,6 +134,14 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.PaymentCodePool.finantialInstitution" /></th>
                         <td><c:out value='${paymentReferenceCode.paymentCodePool.finantialInstitution.name}' /></td>
                     </tr>
+                <c:if test="${not empty paymentReferenceCode.targetPayment.debtAccount}">
+                    <th scope="row" class="col-xs-3"><spring:message code="label.PaymentReferenceCode.client.name" /></th>
+                    <td><c:out value='${paymentReferenceCode.targetPayment.debtAccount.customer.name}' /></td>
+                </c:if>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.PaymentReferenceCode.paymentCodePool" /></th>
+                        <td><c:out value='${paymentReferenceCode.paymentCodePool.name}' /></td>
+                    </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.PaymentReferenceCode.paymentCodePool" /></th>
                         <td><c:out value='${paymentReferenceCode.paymentCodePool.name}' /></td>
