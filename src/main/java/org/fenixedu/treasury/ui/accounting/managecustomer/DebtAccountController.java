@@ -112,6 +112,15 @@ public class DebtAccountController extends TreasuryBaseController {
 
     @RequestMapping(value = READ_URI + "{oid}")
     public String read(@PathVariable("oid") DebtAccount debtAccount, Model model, RedirectAttributes redirectAttributes) {
+        return read(debtAccount, true, model, redirectAttributes);
+    }
+
+    @RequestMapping(value = READ_URI + "{oid}/{filterAnnuled}")
+    public String read(@PathVariable("oid") DebtAccount debtAccount, @PathVariable("filterAnnuled") final Boolean filterAnnuled, Model model,
+            RedirectAttributes redirectAttributes) {
+        
+        boolean filterAnnuledValue = filterAnnuled != null && filterAnnuled;
+
         assertUserIsFrontOfficeMember(debtAccount.getFinantialInstitution(), model);
         setDebtAccount(debtAccount, model);
         checkFinantialInstitutionData(model);
@@ -119,10 +128,13 @@ public class DebtAccountController extends TreasuryBaseController {
         List<SettlementNote> paymentEntries = new ArrayList<SettlementNote>();
         List<TreasuryExemption> exemptionEntries = new ArrayList<TreasuryExemption>();
         List<InvoiceEntry> pendingInvoiceEntries = new ArrayList<InvoiceEntry>();
-        allInvoiceEntries.addAll(debtAccount.getActiveInvoiceEntries().collect(Collectors.toList()));
-        paymentEntries = SettlementNote.findByDebtAccount(debtAccount).filter(x -> x.isClosed() || x.isPreparing())
-//                            .filter(x -> !x.getPaymentEntriesSet().isEmpty() || !x.getReimbursementEntriesSet().isEmpty())
-                .collect(Collectors.toList());
+        allInvoiceEntries.addAll(debtAccount.getInvoiceEntrySet()
+                .stream()
+                .filter(x -> x.getFinantialDocument() == null || x.getFinantialDocument() != null
+                        && (!filterAnnuledValue || !x.getFinantialDocument().isAnnulled())).collect(Collectors.toList()));
+        
+        paymentEntries = SettlementNote.findByDebtAccount(debtAccount)
+                .filter(x -> x.isClosed() || x.isPreparing() || (!filterAnnuledValue || !x.isAnnulled())).collect(Collectors.toList());
 
         exemptionEntries.addAll(TreasuryExemption.findByDebtAccount(debtAccount).collect(Collectors.toList()));
 
@@ -160,6 +172,7 @@ public class DebtAccountController extends TreasuryBaseController {
 
         model.addAttribute("invalidFiscalCode", isInvalidFiscalCode(debtAccount));
         model.addAttribute("incompleteAddress", hasIncompleteAddress(debtAccount));
+        model.addAttribute("filterAnnuled", filterAnnuled);
 
         return "treasury/accounting/managecustomer/debtaccount/read";
     }
@@ -194,8 +207,8 @@ public class DebtAccountController extends TreasuryBaseController {
     public String processReadToForwardPayment(@PathVariable("oid") DebtAccount debtAccount, final Model model,
             final RedirectAttributes redirectAttributes) {
         setDebtAccount(debtAccount, model);
-        return redirect(ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId(),
-                model, redirectAttributes);
+        return redirect(ForwardPaymentController.CHOOSE_INVOICE_ENTRIES_URL + getDebtAccount(model).getExternalId(), model,
+                redirectAttributes);
     }
 
     @RequestMapping(value = "/read/{oid}/createdebtentry")

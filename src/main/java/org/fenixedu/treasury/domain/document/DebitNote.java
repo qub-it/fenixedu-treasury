@@ -242,7 +242,7 @@ public class DebitNote extends DebitNote_Base {
     public void anullDebitNoteWithCreditNote(String reason, boolean anullGeneratedInterests) {
 
         if (this.getFinantialDocumentEntriesSet().size() > 0) {
-            if (this.isClosed() == true) {
+            if (this.isClosed()) {
 
                 DateTime now = new DateTime();
 
@@ -314,12 +314,15 @@ public class DebitNote extends DebitNote_Base {
                 this.setAnnulledReason(reason);
 
             } else {
-                throw new TreasuryDomainException("error.DebitNote.cannot.anull.is.not.closed");
+                for (DebitEntry debitEntry : this.getDebitEntriesSet()) {
+                }
+                
+                this.setState(FinantialDocumentStateType.ANNULED);
+                this.setAnnulledReason(reason);
             }
         } else {
             throw new TreasuryDomainException("error.DebitNote.cannot.anull.is.empty");
         }
-
     }
 
     @Atomic

@@ -250,6 +250,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
             </a></li>
     		
 		</c:if>
+<%-- 		
         <c:if test="${debitNote.isPreparing()}">
             <li>
             
@@ -262,7 +263,8 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
             </li> 
            
 		</c:if>
-        <c:if test="${debitNote.isClosed()}">
+--%>		
+        <c:if test="${debitNote.isPreparing() || debitNote.isClosed()}">
             <%--             <c:if test="${debitNote.openAmount > 0  }"> --%>
                 <li>
                 

@@ -274,11 +274,15 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public boolean isEventAnnuled() {
-        return getEventAnnuled();
+        return (getFinantialDocument() != null && getFinantialDocument().isAnnulled()) || getEventAnnuled();
     }
 
     @Override
     public BigDecimal getOpenAmount() {
+        if(getFinantialDocument() != null && getFinantialDocument().isAnnulled()) {
+            return BigDecimal.ZERO;
+        }
+        
         final BigDecimal openAmount = this.getAmountWithVat().subtract(getPayedAmount());
 
         return getCurrency().getValueWithScale(isPositive(openAmount) ? openAmount : BigDecimal.ZERO);
@@ -671,6 +675,10 @@ public class DebitEntry extends DebitEntry_Base {
 
     @Override
     public BigDecimal getOpenAmountWithInterests() {
+        if(getFinantialDocument() != null && getFinantialDocument().isAnnulled()) {
+            return BigDecimal.ZERO;
+        }
+        
         if (Constants.isEqual(getOpenAmount(), BigDecimal.ZERO)) {
             return getOpenAmount();
         } else {

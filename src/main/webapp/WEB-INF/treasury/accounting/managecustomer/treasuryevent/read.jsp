@@ -559,6 +559,9 @@ ${portal.toolkit()}
                     </datatables:columnHead>
                     <c:out
                         value="${debitEntry.finantialDocument.uiDocumentNumber}" />
+					<c:if test="${not empty debitEntry.finantialDocument && debitEntry.finantialDocument.isAnnulled()}">
+						<span class="label label-danger"><c:out value='${debitEntry.finantialDocument.state.descriptionI18N.content}' /></span>
+					</c:if>
                 </datatables:column>
                 <datatables:column cssStyle="width:10%">
                     <datatables:columnHead>
@@ -582,11 +585,11 @@ ${portal.toolkit()}
                         <c:out value="${debitEntry.description}" />
                     </p>
 
-                    <c:if test="${debitEntry.eventAnnuled}">
-                        <p class="label label-danger">
-                            <spring:message code="label.TreasuryExemption.removedFromEvent" />
-                        </p>
-                    </c:if>
+					<p>
+	                    <c:if test="${debitEntry.eventAnnuled}">
+	                        <span class="label label-danger"><spring:message code="label.TreasuryExemption.removedFromEvent" /></span>
+	                    </c:if>
+                    </p>
                 </datatables:column>
                 <datatables:column cssStyle="width:10%">
                     <datatables:columnHead>
@@ -622,7 +625,7 @@ ${portal.toolkit()}
                             </a>
                             </div>
                         </c:if>
-                        <c:if test="${debitEntry.eventAnnuled}">
+                        <c:if test="${debitEntry.eventAnnuled && (empty debitEntry.finantialDocument || !debitEntry.finantialDocument.isAnnulled())}">
                         <div class="well well-sm"
                                 style="display: inline-block">
                                 <span aria-hidden="true"
@@ -638,14 +641,14 @@ ${portal.toolkit()}
                 </datatables:column>
             </datatables:table>
             <script>
-													createDataTables(
-															'allDebitEntriesTable',
-															false,
-															false,
-															false,
-															"${pageContext.request.contextPath}",
-															"${datatablesI18NUrl}");
-												</script>
+				createDataTables(
+						'allDebitEntriesTable',
+						true,
+						false,
+						false,
+						"${pageContext.request.contextPath}",
+						"${datatablesI18NUrl}");
+			</script>
         </c:when>
         <c:otherwise>
             <div class="alert alert-warning" role="alert">
@@ -666,7 +669,7 @@ ${portal.toolkit()}
         </h2>
         <div class="tab-pane" id="allActiveCreditEntriesDataSet">
             <p></p>
-            <datatables:table id="allActiveCreditEntriesDataSet"
+            <datatables:table id="allActiveCreditEntriesDataSetTable"
                 row="creditEntry"
                 data="${allActiveCreditEntriesDataSet}"
                 cssClass="table responsive table-bordered table-hover"
@@ -710,14 +713,14 @@ ${portal.toolkit()}
                 </datatables:column>
             </datatables:table>
             <script>
-													createDataTables(
-															'allActiveCreditEntriesDataSet',
-															false,
-															false,
-															false,
-															"${pageContext.request.contextPath}",
-															"${datatablesI18NUrl}");
-												</script>
+				createDataTables(
+						'allActiveCreditEntriesDataSetTable',
+						true,
+						false,
+						false,
+						"${pageContext.request.contextPath}",
+						"${datatablesI18NUrl}");
+			</script>
         </div>
     </c:when>
 </c:choose>
