@@ -239,6 +239,7 @@ class document.FinantialDocument {
 	
 	class document.SettlementNote extends document.FinantialDocument {
 	   DateTime paymentDate;
+	   String finantialTransactionReference;
 	}
 
 class document.FinantialDocumentEntry {
