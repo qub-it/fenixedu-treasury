@@ -114,8 +114,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceClientConfiguration;
-import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceConfiguration;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
@@ -1645,18 +1643,9 @@ public class SAPExporter implements IERPExporter {
     }
 
     private UnaryOperator<AuditFile> getAuditFilePreProcessOperator(final FinantialInstitution finantialInstitution) {
-
-        String className = finantialInstitution.getErpIntegrationConfiguration().getImplementationClassName();
-        try {
-
-            WebServiceClientConfiguration clientConfiguration = WebServiceConfiguration.readByImplementationClass(className);
-
-            IERPExternalService client = clientConfiguration.getClient();
-
-            throw new RuntimeException("error");
-        } catch (Exception e) {
-            throw new TreasuryDomainException("error.ERPConfiguration.invalid.external.service");
-        }
+        return (AuditFile x) -> {
+            return x;
+        };
     }
 
 }
