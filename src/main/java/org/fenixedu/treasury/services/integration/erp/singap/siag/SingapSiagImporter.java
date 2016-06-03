@@ -25,7 +25,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FenixEdu Treasury.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fenixedu.treasury.services.integration.erp;
+package org.fenixedu.treasury.services.integration.erp.singap.siag;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -38,13 +38,6 @@ import java.util.Set;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-import oecd.standardauditfile_tax.pt_1.PaymentMethod;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSettlementType;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.Line;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.Customer;
@@ -61,6 +54,13 @@ import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.PaymentMethod;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTSettlementType;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments.Payment;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments.Payment.Line;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument;
+import org.fenixedu.treasury.services.integration.erp.IERPImporter;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS.StatusType;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
@@ -69,10 +69,10 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
-
-import com.google.common.base.Strings;
 
 // ******************************************************************************************************************************
 // http://info.portaldasfinancas.gov.pt/NR/rdonlyres/3B4FECDB-2380-45D7-9019-ABCA80A7E99E/0/Comunicacao_Dados_Doc_Transporte.pdf
@@ -83,13 +83,13 @@ import com.google.common.base.Strings;
 // Versão 1.0.3
 // https://info.portaldasfinancas.gov.pt/NR/rdonlyres/BA9FB096-D482-445D-A5DB-C05B1980F7D7/0/Portaria_274_2013_21_09.pdf
 // ******************************************************************************************************************************
-public class ERPImporter {
+public class SingapSiagImporter implements IERPImporter {
 
     private static JAXBContext jaxbContext = null;
-    private static Logger logger = LoggerFactory.getLogger(ERPImporter.class);
+    private static Logger logger = LoggerFactory.getLogger(SingapSiagImporter.class);
     private InputStream fileStream;
 
-    public ERPImporter(InputStream fileStream) {
+    public SingapSiagImporter(InputStream fileStream) {
         this.fileStream = fileStream;
     }
 
@@ -111,7 +111,8 @@ public class ERPImporter {
     }
 
     @Atomic(mode = TxMode.WRITE)
-    public DocumentsInformationOutput processAuditFile(ERPImportOperation eRPImportOperation) {
+    @Override
+    public DocumentsInformationOutput processAuditFile(final ERPImportOperation eRPImportOperation) {
         DocumentsInformationOutput result = new DocumentsInformationOutput();
         result.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         result.setRequestId(eRPImportOperation.getExternalId());
@@ -414,7 +415,7 @@ public class ERPImporter {
         for (WorkDocument w : file.getSourceDocuments().getWorkingDocuments().getWorkDocument()) {
             result.add(w.getDocumentNumber());
         }
-        for (oecd.standardauditfile_tax.pt_1.SourceDocuments.SalesInvoices.Invoice i : file.getSourceDocuments()
+        for (org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.SalesInvoices.Invoice i : file.getSourceDocuments()
                 .getSalesInvoices().getInvoice()) {
             result.add(i.getInvoiceNo());
         }
@@ -423,4 +424,11 @@ public class ERPImporter {
         }
         return result;
     }
+
+    @Override
+    public String readTaxRegistrationNumberFromAuditFile() {
+        final AuditFile auditFile = readAuditFileFromXML();
+        return auditFile.getHeader().getTaxRegistrationNumber() + "";
+    }
+    
 }

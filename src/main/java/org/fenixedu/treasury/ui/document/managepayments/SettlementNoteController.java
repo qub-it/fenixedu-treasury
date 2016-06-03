@@ -63,7 +63,7 @@ import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
@@ -143,8 +143,8 @@ public class SettlementNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = CHOOSE_INVOICE_ENTRIES_URI + "{debtAccountId}/{reimbursementNote}")
-    public String chooseInvoiceEntries(@PathVariable(value = "debtAccountId") DebtAccount debtAccount, @PathVariable(
-            value = "reimbursementNote") boolean reimbursementNote,
+    public String chooseInvoiceEntries(@PathVariable(value = "debtAccountId") DebtAccount debtAccount,
+            @PathVariable(value = "reimbursementNote") boolean reimbursementNote,
             @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model) {
         assertUserIsAllowToModifySettlements(debtAccount.getFinantialInstitution(), model);
         if (bean == null) {
@@ -166,15 +166,13 @@ public class SettlementNoteController extends TreasuryBaseController {
                 if (debitEntryBean.getDebtAmountWithVat().compareTo(BigDecimal.ZERO) == 0) {
                     debitEntryBean.setNotValid(true);
                     error = true;
-                    addErrorMessage(
-                            BundleUtil.getString(Constants.BUNDLE, "error.DebitEntry.debtAmount.equal.zero",
-                                    Integer.toString(i + 1)), model);
+                    addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.DebitEntry.debtAmount.equal.zero",
+                            Integer.toString(i + 1)), model);
                 } else if (debitEntryBean.getDebtAmountWithVat().compareTo(debitEntryBean.getDebitEntry().getOpenAmount()) > 0) {
                     debitEntryBean.setNotValid(true);
                     error = true;
-                    addErrorMessage(
-                            BundleUtil.getString(Constants.BUNDLE, "error.DebitEntry.exceeded.openAmount",
-                                    Integer.toString(i + 1)), model);
+                    addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.DebitEntry.exceeded.openAmount",
+                            Integer.toString(i + 1)), model);
                 } else {
                     debitEntryBean.setNotValid(false);
                 }
@@ -281,14 +279,14 @@ public class SettlementNoteController extends TreasuryBaseController {
         boolean error = false;
         if (bean.getPaymentEntries().stream().anyMatch(peb -> peb.getPaymentAmount().compareTo(BigDecimal.ZERO) == 0)) {
             error = true;
-            String errorMessage =
-                    bean.isReimbursementNote() ? "error.SettlementNote.reimbursement.equal.zero" : "error.SettlementNote.payment.equal.zero";
+            String errorMessage = bean
+                    .isReimbursementNote() ? "error.SettlementNote.reimbursement.equal.zero" : "error.SettlementNote.payment.equal.zero";
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, errorMessage), model);
         }
         if (debitSum.compareTo(paymentSum) != 0) {
             error = true;
-            String errorMessage =
-                    bean.isReimbursementNote() ? "error.SettlementNote.no.match.reimbursement.credit" : "error.SettlementNote.no.match.payment.debit";
+            String errorMessage = bean
+                    .isReimbursementNote() ? "error.SettlementNote.no.match.reimbursement.credit" : "error.SettlementNote.no.match.payment.debit";
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, errorMessage), model);
         }
         if (error) {
@@ -320,35 +318,34 @@ public class SettlementNoteController extends TreasuryBaseController {
         if (bean.getDocNumSeries().getSeries().getCertificated() == false) {
             documentDate = bean.getDate().toDateTimeAtStartOfDay();
         }
-        SettlementNote settlementNote =
-                SettlementNote.create(bean.getDebtAccount(), bean.getDocNumSeries(), documentDate, bean.getDate()
-                        .toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber());
+        SettlementNote settlementNote = SettlementNote.create(bean.getDebtAccount(), bean.getDocNumSeries(), documentDate,
+                bean.getDate().toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber());
         settlementNote.processSettlementNoteCreation(bean);
         settlementNote.closeDocument();
         return settlementNote;
     }
 
     @RequestMapping(value = SEARCH_URI)
-    public String search(
-            @RequestParam(value = "debtaccount", required = false) DebtAccount debtAccount,
+    public String search(@RequestParam(value = "debtaccount", required = false) DebtAccount debtAccount,
             @RequestParam(value = "documentnumberseries", required = false) DocumentNumberSeries documentNumberSeries,
             @RequestParam(value = "currency", required = false) Currency currency,
             @RequestParam(value = "documentnumber", required = false) String documentNumber,
-            @RequestParam(value = "documentdatefrom", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateFrom,
-            @RequestParam(value = "documentdateto", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateTo,
-            @RequestParam(value = "documentduedate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime documentDueDate,
-            @RequestParam(value = "origindocumentnumber", required = false) String originDocumentNumber, @RequestParam(
-                    value = "state", required = false) FinantialDocumentStateType state, Model model) {
-        List<SettlementNote> searchsettlementnoteResultsDataSet =
-                filterSearchSettlementNote(debtAccount, documentNumberSeries, currency, documentNumber, documentDateFrom,
-                        documentDateTo, documentDueDate, originDocumentNumber, state);
+            @RequestParam(value = "documentdatefrom",
+                    required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateFrom,
+            @RequestParam(value = "documentdateto",
+                    required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateTo,
+            @RequestParam(value = "documentduedate",
+                    required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime documentDueDate,
+            @RequestParam(value = "origindocumentnumber", required = false) String originDocumentNumber,
+            @RequestParam(value = "state", required = false) FinantialDocumentStateType state, Model model) {
+        List<SettlementNote> searchsettlementnoteResultsDataSet = filterSearchSettlementNote(debtAccount, documentNumberSeries,
+                currency, documentNumber, documentDateFrom, documentDateTo, documentDueDate, originDocumentNumber, state);
 
         // add the results dataSet to the model
         model.addAttribute("listSize", searchsettlementnoteResultsDataSet.size());
         model.addAttribute("searchsettlementnoteResultsDataSet", searchsettlementnoteResultsDataSet);
-        searchsettlementnoteResultsDataSet =
-                searchsettlementnoteResultsDataSet.stream().limit(SEARCH_SETTLEMENT_NOTE_LIST_LIMIT_SIZE)
-                        .collect(Collectors.toList());
+        searchsettlementnoteResultsDataSet = searchsettlementnoteResultsDataSet.stream()
+                .limit(SEARCH_SETTLEMENT_NOTE_LIST_LIMIT_SIZE).collect(Collectors.toList());
 
 //        model.addAttribute("SettlementNote_finantialDocumentType_options",
 //                FinantialDocumentType.findAll().collect(Collectors.toList()));
@@ -372,29 +369,28 @@ public class SettlementNoteController extends TreasuryBaseController {
             Currency currency, String documentNumber, LocalDate documentDateFrom, LocalDate documentDateTo,
             DateTime documentDueDate, String originDocumentNumber, FinantialDocumentStateType state) {
 
-        return getSearchUniverseSearchSettlementNoteDataSet()
-                .stream()
+        return getSearchUniverseSearchSettlementNoteDataSet().stream()
                 .filter(settlementNote -> FinantialDocumentType.findForSettlementNote() == settlementNote
                         .getFinantialDocumentType()
-                        || FinantialDocumentType.findForReimbursementNote() == settlementNote.getFinantialDocumentType())
+                || FinantialDocumentType.findForReimbursementNote() == settlementNote.getFinantialDocumentType())
                 .filter(settlementNote -> debtAccount == null || debtAccount == settlementNote.getDebtAccount())
                 .filter(settlementNote -> documentNumberSeries == null
                         || documentNumberSeries == settlementNote.getDocumentNumberSeries())
                 .filter(settlementNote -> currency == null || currency == settlementNote.getCurrency())
                 .filter(settlementNote -> documentNumber == null || documentNumber.length() == 0
                         || settlementNote.getDocumentNumber() != null && settlementNote.getDocumentNumber().length() > 0
-                        && settlementNote.getUiDocumentNumber().toLowerCase().contains(documentNumber.toLowerCase()))
+                                && settlementNote.getUiDocumentNumber().toLowerCase().contains(documentNumber.toLowerCase()))
                 .filter(creditNote -> documentDateFrom == null
                         || creditNote.getDocumentDate().toLocalDate().isEqual(documentDateFrom)
                         || creditNote.getDocumentDate().toLocalDate().isAfter(documentDateFrom))
-                .filter(creditNote -> documentDateTo == null
-                        || creditNote.getDocumentDate().toLocalDate().isEqual(documentDateTo)
+                .filter(creditNote -> documentDateTo == null || creditNote.getDocumentDate().toLocalDate().isEqual(documentDateTo)
                         || creditNote.getDocumentDate().toLocalDate().isBefore(documentDateTo))
                 .filter(settlementNote -> documentDueDate == null || documentDueDate.equals(settlementNote.getDocumentDueDate()))
                 .filter(settlementNote -> originDocumentNumber == null || originDocumentNumber.length() == 0
                         || settlementNote.getOriginDocumentNumber() != null
-                        && settlementNote.getOriginDocumentNumber().length() > 0
-                        && settlementNote.getOriginDocumentNumber().toLowerCase().contains(originDocumentNumber.toLowerCase()))
+                                && settlementNote.getOriginDocumentNumber().length() > 0
+                                && settlementNote.getOriginDocumentNumber().toLowerCase()
+                                        .contains(originDocumentNumber.toLowerCase()))
                 .filter(settlementNote -> state == null || state.equals(settlementNote.getState())).collect(Collectors.toList());
     }
 
@@ -449,9 +445,10 @@ public class SettlementNoteController extends TreasuryBaseController {
 
     //
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(@PathVariable("oid") SettlementNote settlementNote, @RequestParam(value = "origindocumentnumber",
-            required = false) java.lang.String originDocumentNumber, @RequestParam(value = "documentobservations",
-            required = false) java.lang.String documentObservations, Model model, RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable("oid") SettlementNote settlementNote,
+            @RequestParam(value = "origindocumentnumber", required = false) java.lang.String originDocumentNumber,
+            @RequestParam(value = "documentobservations", required = false) java.lang.String documentObservations, Model model,
+            RedirectAttributes redirectAttributes) {
 
         setSettlementNote(settlementNote, model);
 
@@ -475,9 +472,8 @@ public class SettlementNoteController extends TreasuryBaseController {
         setSettlementNote(settlementNote, model);
         try {
             assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
-            anullReason =
-                    anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
-                            + new DateTime().toString("YYYY-MM-dd HH:mm");
+            anullReason = anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
+                    + new DateTime().toString("YYYY-MM-dd HH:mm");
             settlementNote.changeState(FinantialDocumentStateType.ANNULED, anullReason);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE,
                     "label.document.managepayments.SettlementNote.document.anulled.sucess"), model);
@@ -492,24 +488,23 @@ public class SettlementNoteController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
+            IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
 
             String output =
-                    ERPExporter.exportFinantialDocumentToXML(
-                            settlementNote.getDebtAccount().getFinantialInstitution(),
+                    erpExporter.exportFinantialDocumentToXML(settlementNote.getDebtAccount().getFinantialInstitution(),
                             settlementNote
-                                    .findRelatedDocuments(
-                                            new HashSet<FinantialDocument>(),
+                                    .findRelatedDocuments(new HashSet<FinantialDocument>(),
                                             settlementNote.getDebtAccount().getFinantialInstitution()
                                                     .getErpIntegrationConfiguration().getExportAnnulledRelatedDocuments())
                                     .stream().collect(Collectors.toList()));
             response.setContentType("text/xml");
             response.setCharacterEncoding("Windows-1252");
-            String filename =
-                    URLEncoder.encode(
-                            StringNormalizer.normalizePreservingCapitalizedLetters((settlementNote.getDebtAccount()
-                                    .getFinantialInstitution().getFiscalNumber()
-                                    + "_" + settlementNote.getUiDocumentNumber() + ".xml").replaceAll("/", "_")
-                                    .replaceAll("\\s", "_").replaceAll(" ", "_")), "Windows-1252");
+            String filename = URLEncoder.encode(StringNormalizer.normalizePreservingCapitalizedLetters(
+                    (settlementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber() + "_"
+                            + settlementNote.getUiDocumentNumber() + ".xml").replaceAll("/", "_").replaceAll("\\s", "_")
+                                    .replaceAll(" ", "_")),
+                    "Windows-1252");
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
 
             response.getOutputStream().write(output.getBytes("Windows-1252"));
@@ -568,13 +563,14 @@ public class SettlementNoteController extends TreasuryBaseController {
     @RequestMapping(value = TRANSACTIONS_SUMMARY_URI, method = RequestMethod.POST)
     public String processSearchToTransactionsSummary(
             @RequestParam(value = "finantialInstitution", required = true) FinantialInstitution finantialInstitution,
-            @RequestParam(value = "documentdatefrom", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateFrom,
-            @RequestParam(value = "documentdateto", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateTo,
+            @RequestParam(value = "documentdatefrom",
+                    required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateFrom,
+            @RequestParam(value = "documentdateto",
+                    required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateTo,
             Model model) {
         if (Days.daysBetween(documentDateFrom, documentDateTo).getDays() > SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD) {
-            addErrorMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.day.limit.exceeded",
-                            String.valueOf(SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD)), model);
+            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.day.limit.exceeded",
+                    String.valueOf(SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD)), model);
         } else {
             //TODO: THE FILTER TO INTERNAL SERIES SHOULD BE A GET PARAMETER
             List<SettlementNote> notes =
@@ -612,28 +608,20 @@ public class SettlementNoteController extends TreasuryBaseController {
 
     private void populateSummaryTransactions(Model model, List<SettlementNote> notes, LocalDate beginDate, LocalDate endDate) {
         Map<PaymentMethod, BigDecimal> payments =
-                getPaymentEntriesDataSet(notes).stream().collect(
-                        Collectors.groupingBy(PaymentEntry::getPaymentMethod,
-                                Collectors.reducing(BigDecimal.ZERO, PaymentEntry::getPayedAmount, BigDecimal::add)));
+                getPaymentEntriesDataSet(notes).stream().collect(Collectors.groupingBy(PaymentEntry::getPaymentMethod,
+                        Collectors.reducing(BigDecimal.ZERO, PaymentEntry::getPayedAmount, BigDecimal::add)));
         Map<PaymentMethod, BigDecimal> reimbursements =
-                getReimbursementEntriesDataSet(notes).stream().collect(
-                        Collectors.groupingBy(ReimbursementEntry::getPaymentMethod,
-                                Collectors.reducing(BigDecimal.ZERO, ReimbursementEntry::getReimbursedAmount, BigDecimal::add)));
+                getReimbursementEntriesDataSet(notes).stream().collect(Collectors.groupingBy(ReimbursementEntry::getPaymentMethod,
+                        Collectors.reducing(BigDecimal.ZERO, ReimbursementEntry::getReimbursedAmount, BigDecimal::add)));
 
-        Map<PaymentMethod, BigDecimal> paymentsOutOfTimeWindow =
-                getPaymentEntriesDataSet(notes)
-                        .stream()
-                        .filter(x -> x.getSettlementNote().getPaymentDate().toLocalDate().isBefore(beginDate))
-                        .collect(
-                                Collectors.groupingBy(PaymentEntry::getPaymentMethod,
-                                        Collectors.reducing(BigDecimal.ZERO, PaymentEntry::getPayedAmount, BigDecimal::add)));
-        Map<PaymentMethod, BigDecimal> reimbursementsOutOfTimeWindow =
-                getReimbursementEntriesDataSet(notes)
-                        .stream()
-                        .filter(x -> x.getSettlementNote().getPaymentDate().toLocalDate().isBefore(beginDate))
-                        .collect(
-                                Collectors.groupingBy(ReimbursementEntry::getPaymentMethod, Collectors.reducing(BigDecimal.ZERO,
-                                        ReimbursementEntry::getReimbursedAmount, BigDecimal::add)));
+        Map<PaymentMethod, BigDecimal> paymentsOutOfTimeWindow = getPaymentEntriesDataSet(notes).stream()
+                .filter(x -> x.getSettlementNote().getPaymentDate().toLocalDate().isBefore(beginDate))
+                .collect(Collectors.groupingBy(PaymentEntry::getPaymentMethod,
+                        Collectors.reducing(BigDecimal.ZERO, PaymentEntry::getPayedAmount, BigDecimal::add)));
+        Map<PaymentMethod, BigDecimal> reimbursementsOutOfTimeWindow = getReimbursementEntriesDataSet(notes).stream()
+                .filter(x -> x.getSettlementNote().getPaymentDate().toLocalDate().isBefore(beginDate))
+                .collect(Collectors.groupingBy(ReimbursementEntry::getPaymentMethod,
+                        Collectors.reducing(BigDecimal.ZERO, ReimbursementEntry::getReimbursedAmount, BigDecimal::add)));
 
         PaymentMethod.findAll().forEach(pm -> {
             if (payments.get(pm) == null) {
@@ -649,25 +637,21 @@ public class SettlementNoteController extends TreasuryBaseController {
         model.addAttribute("reimbursementsOutOfTimeWindowDataSet", reimbursementsOutOfTimeWindow);
     }
 
-    private List<SettlementNote> filterSearchSettlementNote(FinantialInstitution finantialInstitution,
-            LocalDate documentDateFrom, LocalDate documentDateTo, boolean filterInternalSeriesOnly) {
+    private List<SettlementNote> filterSearchSettlementNote(FinantialInstitution finantialInstitution, LocalDate documentDateFrom,
+            LocalDate documentDateTo, boolean filterInternalSeriesOnly) {
 
         //Only filter de SettlementNotes from the "internal" series and from the final institution
         // And appy TimeWindow to the "DOCUMENT_DATE"
-        Stream<SettlementNote> streamFilter =
-                SettlementNote
-                        .findAll()
-                        .filter(note -> note.isClosed())
-                        .filter(note -> note.getDebtAccount().getFinantialInstitution().equals(finantialInstitution))
-                        .filter(note -> note.getDocumentDate().toLocalDate().isAfter(documentDateFrom)
-                                || note.getDocumentDate().toLocalDate().isEqual(documentDateFrom))
-                        .filter(note -> note.getDocumentDate().toLocalDate().isBefore(documentDateTo)
-                                || note.getDocumentDate().toLocalDate().isEqual(documentDateTo));
+        Stream<SettlementNote> streamFilter = SettlementNote.findAll().filter(note -> note.isClosed())
+                .filter(note -> note.getDebtAccount().getFinantialInstitution().equals(finantialInstitution))
+                .filter(note -> note.getDocumentDate().toLocalDate().isAfter(documentDateFrom)
+                        || note.getDocumentDate().toLocalDate().isEqual(documentDateFrom))
+                .filter(note -> note.getDocumentDate().toLocalDate().isBefore(documentDateTo)
+                        || note.getDocumentDate().toLocalDate().isEqual(documentDateTo));
 
         if (filterInternalSeriesOnly == true) {
-            streamFilter =
-                    streamFilter.filter(note -> note.getDocumentNumberSeries().getSeries().getExternSeries() == false
-                            && note.getDocumentNumberSeries().getSeries().getLegacy() == false);
+            streamFilter = streamFilter.filter(note -> note.getDocumentNumberSeries().getSeries().getExternSeries() == false
+                    && note.getDocumentNumberSeries().getSeries().getLegacy() == false);
 
         }
 
@@ -675,8 +659,7 @@ public class SettlementNoteController extends TreasuryBaseController {
     }
 
     private List<SettlementEntry> getSettlementEntriesDataSet(List<SettlementNote> notes) {
-        return notes
-                .stream()
+        return notes.stream()
                 //Filter only settlement Entries where there was payments / rehimbursments
                 .filter(x -> Constants.isPositive(x.getTotalPayedAmount())
                         || Constants.isPositive(x.getTotalReimbursementAmount()))
@@ -710,22 +693,26 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
 
             try {
+                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                        .getERPExternalServiceImplementation().getERPExporter();
                 //Force a check status first of the document 
-                ERPExporter.checkIntegrationDocumentStatus(settlementNote);
+                erpExporter.checkIntegrationDocumentStatus(settlementNote);
             } catch (Exception ex) {
 
             }
 
             List<FinantialDocument> documentsToExport = Collections.singletonList(settlementNote);
-            ERPExportOperation output =
-                    ERPExporter.exportFinantialDocumentToIntegration(settlementNote.getDebtAccount().getFinantialInstitution(),
-                            documentsToExport);
+
+            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
+                    settlementNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
-            addErrorMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
-                            + ex.getLocalizedMessage(), model);
+            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
+                    + ex.getLocalizedMessage(), model);
         }
         return read(settlementNote, model);
     }

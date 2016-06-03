@@ -40,7 +40,7 @@ import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.util.Constants;
@@ -246,8 +246,9 @@ public class ERPExportOperationController extends TreasuryBaseController {
         setERPExportOperation(eRPExportOperation, model);
         try {
             assertUserIsFrontOfficeMember(eRPExportOperation.getFinantialInstitution(), model);
-
-            ERPExportOperation retryExportOperation = ERPExporter.retryExportToIntegration(eRPExportOperation);
+            final IERPExporter erpExporter = eRPExportOperation.getFinantialInstitution().getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+            
+            ERPExportOperation retryExportOperation = erpExporter.retryExportToIntegration(eRPExportOperation);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
 
             return redirect(READ_URL + retryExportOperation.getExternalId(), model, redirectAttributes);

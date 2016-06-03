@@ -50,7 +50,7 @@ import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController;
@@ -410,8 +410,12 @@ public class CreditNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(creditNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
 
             creditNote.recalculateAmountValues();
+
+            final IERPExporter erpExporter = creditNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
             String output =
-                    ERPExporter.exportFinantialDocumentToXML(
+                    erpExporter.exportFinantialDocumentToXML(
                             creditNote.getDebtAccount().getFinantialInstitution(),
                             creditNote
                                     .findRelatedDocuments(
@@ -447,13 +451,20 @@ public class CreditNoteController extends TreasuryBaseController {
 
             //Force a check status first of the document
             try {
-                ERPExporter.checkIntegrationDocumentStatus(creditNote);
+                final IERPExporter erpExporter = creditNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                        .getERPExternalServiceImplementation().getERPExporter();
+
+                erpExporter.checkIntegrationDocumentStatus(creditNote);
             } catch (Exception ex) {
 
             }
-            List<FinantialDocument> documentsToExport = Collections.singletonList(creditNote);
+            
+            final List<FinantialDocument> documentsToExport = Collections.singletonList(creditNote);
+            final IERPExporter erpExporter = creditNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
             ERPExportOperation output =
-                    ERPExporter.exportFinantialDocumentToIntegration(creditNote.getDebtAccount().getFinantialInstitution(),
+                    erpExporter.exportFinantialDocumentToIntegration(creditNote.getDebtAccount().getFinantialInstitution(),
                             documentsToExport);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);

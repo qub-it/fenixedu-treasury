@@ -94,8 +94,8 @@ public class ERPIntegrationService extends BennuWebService {
         ERPImportOperation operation = ERPImportOperation.create(filename, documentsInformation.getData(), finantialInstitution,
                 now, false, false, false, null);
 
-        ERPImporter importer = new ERPImporter(operation.getFile().getStream());
-        DocumentsInformationOutput result = importer.processAuditFile(operation);
+        final IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
+        final DocumentsInformationOutput result = erpImporter.processAuditFile(operation);
         return result;
     }
 
@@ -125,8 +125,9 @@ public class ERPIntegrationService extends BennuWebService {
             File externalFile = new File(documentsInformation.getDataURI());
             byte[] bytes = Files.toByteArray(externalFile);
             operation = ERPImportOperation.create(filename, bytes, finantialInstitution, now, false, false, false, null);
-            ERPImporter importer = new ERPImporter(operation.getFile().getStream());
-            importer.processAuditFile(operation);
+            
+            IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
+            erpImporter.processAuditFile(operation);
             return operation.getExternalId();
         } catch (Exception e) {
             if (operation != null) {
@@ -259,7 +260,8 @@ public class ERPIntegrationService extends BennuWebService {
                 .filter(l -> l.isProcessedInClosedDebitNote()).map(l -> l.getFinantialDocument()).collect(Collectors.toList());
 
         if (interestFinantialDocumentsSet.size() > 0) {
-            final String saftResult = ERPExporter.exportFinantialDocumentToXML(
+            final IERPExporter erpExporter = debitEntry.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+            final String saftResult = erpExporter.exportFinantialDocumentToXML(
                     debitEntry.getDebtAccount().getFinantialInstitution(), interestFinantialDocumentsSet);
 
             try {
