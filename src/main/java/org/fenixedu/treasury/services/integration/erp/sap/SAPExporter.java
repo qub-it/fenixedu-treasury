@@ -567,7 +567,7 @@ public class SAPExporter implements IERPExporter {
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Customer> baseCustomers,
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
         WorkDocument workDocument = new WorkDocument();
-
+        
         // Find the Customer in BaseCustomers
         org.fenixedu.treasury.generated.sources.saft.sap.Customer customer = null;
 
@@ -606,6 +606,12 @@ public class SAPExporter implements IERPExporter {
             dataTypeFactory = DatatypeFactory.newInstance();
             DateTime documentDate = document.getDocumentDate();
 
+            /* Anil: 14/06/2016: Fill with 0's the Hash element */
+            workDocument.setDueDate(convertToXMLDate(dataTypeFactory, document.getDocumentDueDate().toDateTimeAtStartOfDay()));
+
+            /* Anil: 14/06/2016: Fill with 0's the Hash element */
+            workDocument.setHash(Strings.repeat("0", 172));
+            
             // SystemEntryDate
             workDocument.setSystemEntryDate(convertToXMLDateTime(dataTypeFactory, documentDate));
 
@@ -883,6 +889,7 @@ public class SAPExporter implements IERPExporter {
 
             // AuditFileVersion
             header.setAuditFileVersion(auditVersion);
+            header.setIdProcesso(finantialInstitution.getErpIntegrationConfiguration().getErpIdProcess());
 
             // BusinessName - Nome da Empresa
             header.setBusinessName(finantialInstitution.getCompanyName());
@@ -963,7 +970,8 @@ public class SAPExporter implements IERPExporter {
             header.setProductVersion(SaftConfig.PRODUCT_VERSION());
 
             // SoftwareCertificateNumber
-            header.setSoftwareCertificateNumber(BigInteger.valueOf(SaftConfig.SOFTWARE_CERTIFICATE_NUMBER()));
+            /* Changed to 0 instead of -1 decribed in SaftConfig.SOFTWARE_CERTIFICATE_NUMBER() */
+            header.setSoftwareCertificateNumber(BigInteger.valueOf(0));
 
             // StartDate
             header.setStartDate(dataTypeFactory.newXMLGregorianCalendarDate(startDate.getYear(), startDate.getMonthOfYear(),
@@ -1079,6 +1087,8 @@ public class SAPExporter implements IERPExporter {
     private org.fenixedu.treasury.generated.sources.saft.sap.Customer convertCustomerToSAFTCustomer(Customer customer) {
         org.fenixedu.treasury.generated.sources.saft.sap.Customer c =
                 new org.fenixedu.treasury.generated.sources.saft.sap.Customer();
+
+        c.setDisable("");
 
         // AccountID
         /*
