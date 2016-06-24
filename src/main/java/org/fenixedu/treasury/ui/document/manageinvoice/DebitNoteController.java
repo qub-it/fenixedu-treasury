@@ -133,16 +133,8 @@ public class DebitNoteController extends TreasuryBaseController {
             setDebitNote(debitNote, model);
 
             if (debitNote.isClosed() && debitNote.getDocumentNumberSeries().getSeries().getCertificated()) {
-                model.addAttribute("anullDebitNoteMessage", BundleUtil.getString(Constants.BUNDLE,
+                model.addAttribute("anullDebitNoteMessage", BundleUtil.getString(Constants.BUNDLE, 
                         "label.document.manageInvoice.readDebitNote.confirmAnullWithCreditNote"));
-            } else {
-//                if (TreasuryAccessControl.getInstance().isManager()) {
-//                    model.addAttribute("anullDebitNoteMessage",
-//                            BundleUtil.getString(Constants.BUNDLE, "label.document.manageInvoice.readDebitNote.confirmAnull"));
-//                } else {
-                model.addAttribute("anullDebitNoteMessage", BundleUtil.getString(Constants.BUNDLE,
-                        "label.document.manageInvoice.readDebitNote.confirmAnullWithCreditNote"));
-//                }
             }
 
             return "treasury/document/manageinvoice/debitnote/read";
@@ -426,11 +418,12 @@ public class DebitNoteController extends TreasuryBaseController {
         setDebitNote(debitNote, model);
 
         try {
-//            assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            debitNote.changeState(FinantialDocumentStateType.CLOSED, "");
-            addInfoMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.document.manageinvoice.DebitNote.document.closed.sucess"),
-                    model);
+
+            // assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
+
+            debitNote.closeDocument();
+            
+            addInfoMessage(Constants.bundle("label.document.manageinvoice.DebitNote.document.closed.sucess"), model);
         } catch (TreasuryDomainException tde) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tde.getLocalizedMessage(), model);
         } catch (Exception de) {

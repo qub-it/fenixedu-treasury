@@ -181,7 +181,7 @@ public class DebitEntry extends DebitEntry_Base {
         this.setTreasuryEvent(null);
 
         this.getPaymentCodesSet().clear();
-        
+
         super.delete();
     }
 
@@ -236,9 +236,8 @@ public class DebitEntry extends DebitEntry_Base {
             return new InterestRateBean();
         }
 
-        InterestRateBean calculateInterest =
-                getInterestRate().calculateInterest(amountInDebtMap(whenToCalculate), createdInterestEntriesMap(), getDueDate(),
-                        whenToCalculate);
+        InterestRateBean calculateInterest = getInterestRate().calculateInterest(amountInDebtMap(whenToCalculate),
+                createdInterestEntriesMap(), getDueDate(), whenToCalculate);
         return calculateInterest;
     }
 
@@ -283,11 +282,15 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public boolean isEventAnnuled() {
-        return getEventAnnuled();
+        return (getFinantialDocument() != null && getFinantialDocument().isAnnulled()) || getEventAnnuled();
     }
 
     @Override
     public BigDecimal getOpenAmount() {
+        if(isAnnulled()) {
+            return BigDecimal.ZERO;
+        }
+
         final BigDecimal openAmount = this.getAmountWithVat().subtract(getPayedAmount());
 
         return getCurrency().getValueWithScale(isPositive(openAmount) ? openAmount : BigDecimal.ZERO);
@@ -406,19 +409,16 @@ public class DebitEntry extends DebitEntry_Base {
                     BundleUtil.getString(Constants.BUNDLE, "label.TreasuryExemption.credit.entry.exemption.description",
                             getDescription(), treasuryExemption.getTreasuryExemptionType().getName().getContent());
 
-            final DocumentNumberSeries documentNumberSeriesCreditNote =
-                    DocumentNumberSeries.find(FinantialDocumentType.findForCreditNote(), this.getFinantialDocument()
-                            .getDocumentNumberSeries().getSeries());
+            final DocumentNumberSeries documentNumberSeriesCreditNote = DocumentNumberSeries.find(
+                    FinantialDocumentType.findForCreditNote(), this.getFinantialDocument().getDocumentNumberSeries().getSeries());
             final DocumentNumberSeries documentNumberSeriesSettlementNote =
-                    DocumentNumberSeries.find(FinantialDocumentType.findForSettlementNote(), this.getFinantialDocument()
-                            .getDocumentNumberSeries().getSeries());
+                    DocumentNumberSeries.find(FinantialDocumentType.findForSettlementNote(),
+                            this.getFinantialDocument().getDocumentNumberSeries().getSeries());
 
-            final CreditNote creditNote =
-                    CreditNote.create(getDebtAccount(), documentNumberSeriesCreditNote, new DateTime(),
-                            (DebitNote) getFinantialDocument(), null);
-            CreditEntry creditEntryFromExemption =
-                    CreditEntry.createFromExemption(treasuryExemption, creditNote, description, amountWithoutVat, new DateTime(),
-                            this);
+            final CreditNote creditNote = CreditNote.create(getDebtAccount(), documentNumberSeriesCreditNote, new DateTime(),
+                    (DebitNote) getFinantialDocument(), null);
+            CreditEntry creditEntryFromExemption = CreditEntry.createFromExemption(treasuryExemption, creditNote, description,
+                    amountWithoutVat, new DateTime(), this);
 
             creditNote.closeDocument();
 
@@ -631,8 +631,8 @@ public class DebitEntry extends DebitEntry_Base {
             throw new TreasuryDomainException("error.DebitEntry.customer.not.active");
         }
 
-        return _create(debitNote, debtAccount, treasuryEvent, vat, amount, dueDate, propertiesMap, product, description,
-                quantity, interestRate, entryDateTime);
+        return _create(debitNote, debtAccount, treasuryEvent, vat, amount, dueDate, propertiesMap, product, description, quantity,
+                interestRate, entryDateTime);
     }
 
     private static DebitEntry _create(final Optional<DebitNote> debitNote, final DebtAccount debtAccount,
@@ -644,9 +644,8 @@ public class DebitEntry extends DebitEntry_Base {
             throw new TreasuryDomainException("error.DebitEntry.invalid.product.not.active");
         }
 
-        final DebitEntry entry =
-                new DebitEntry(debitNote.orElse(null), debtAccount, treasuryEvent, vat, amount, dueDate, propertiesMap, product,
-                        description, quantity, null, entryDateTime);
+        final DebitEntry entry = new DebitEntry(debitNote.orElse(null), debtAccount, treasuryEvent, vat, amount, dueDate,
+                propertiesMap, product, description, quantity, null, entryDateTime);
 
         if (interestRate != null) {
             InterestRate.createForDebitEntry(entry, interestRate);
@@ -680,6 +679,10 @@ public class DebitEntry extends DebitEntry_Base {
 
     @Override
     public BigDecimal getOpenAmountWithInterests() {
+        if (isAnnulled()) {
+            return BigDecimal.ZERO;
+        }
+
         if (Constants.isEqual(getOpenAmount(), BigDecimal.ZERO)) {
             return getOpenAmount();
         } else {
@@ -720,9 +723,31 @@ public class DebitEntry extends DebitEntry_Base {
         }
 
         //HACK: This should be done using GJSON
-        return "{\"" + TreasuryEventKeys.DEGREE_CODE + "\":\"" + degreeCode + "\",\"" + TreasuryEventKeys.EXECUTION_YEAR
-                + "\":\"" + executionYear + "\"}";
+        return "{\"" + TreasuryEventKeys.DEGREE_CODE + "\":\"" + degreeCode + "\",\"" + TreasuryEventKeys.EXECUTION_YEAR + "\":\""
+                + executionYear + "\"}";
         //WHY ISN't 
+    }
+
+    @Atomic
+    public void annulDebitEntry(final String reason) {
+        if(isAnnulled()) {
+            throw new TreasuryDomainException("error.DebitEntry.cannot.annul.is.already.annuled");
+        }
+        
+        if (getFinantialDocument() != null) {
+            throw new TreasuryDomainException("error.DebitEntry.cannot.annul.with.finantial.document");
+        }
+        
+        if(Strings.isNullOrEmpty(reason)) {
+            throw new TreasuryDomainException("error.DebitEntry.annul.debit.entry,requires.reason");
+        }
+
+        final DebitNote debitNote = DebitNote.create(getDebtAccount(), DocumentNumberSeries.findUniqueDefault(
+                FinantialDocumentType.findForDebitNote(), getDebtAccount().getFinantialInstitution()).get(), new DateTime());
+
+        setFinantialDocument(debitNote);
+
+        debitNote.anullDebitNoteWithCreditNote(reason, false);
     }
 
 //    /*******************************************************************

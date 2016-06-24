@@ -111,10 +111,10 @@ public class CreditNoteController extends TreasuryBaseController {
         setCreditNote(creditNote, model);
         try {
             assertUserIsAllowToModifyInvoices(creditNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            creditNote.changeState(FinantialDocumentStateType.CLOSED, "");
-            addInfoMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.document.manageinvoice.CreditNote.document.closed.sucess"),
-                    model);
+
+            creditNote.closeDocument();
+
+            addInfoMessage(Constants.bundle("label.document.manageinvoice.CreditNote.document.closed.sucess"), model);
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
         }
@@ -127,7 +127,7 @@ public class CreditNoteController extends TreasuryBaseController {
         setCreditNote(creditNote, model);
         try {
             assertUserIsAllowToModifyInvoices(creditNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            creditNote.changeState(FinantialDocumentStateType.ANNULED, anullReason);
+            creditNote.anullDocument(anullReason);
             addInfoMessage(
                     BundleUtil.getString(Constants.BUNDLE, "label.document.manageinvoice.CreditNote.document.anulled.sucess"),
                     model);

@@ -231,82 +231,72 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
     @Atomic
     public void annulAllDebitEntries(final String reason) {
 
-        if (isAbleToDeleteAllDebitEntries()) {
-            DebitEntry.findActive(this).forEach(x -> x.delete());
-        } else {
-            final String reasonDescription =
-                    Constants.bundle("label.TreasuryEvent.credit.by.annulAllDebitEntries.reason", reason);
+        final String reasonDescription =
+                Constants.bundle("label.TreasuryEvent.credit.by.annulAllDebitEntries.reason", reason);
 
-            final Set<DebitEntry> unprocessedDebitEntries = Sets.newHashSet();
-            while(DebitEntry.findActive(this).map(DebitEntry.class::cast).count() > 0) {
-                final DebitEntry debitEntry = DebitEntry.findActive(this).map(DebitEntry.class::cast).findFirst().get();
+        final Set<DebitEntry> unprocessedDebitEntries = Sets.newHashSet();
+        while(DebitEntry.findActive(this).map(DebitEntry.class::cast).count() > 0) {
+            final DebitEntry debitEntry = DebitEntry.findActive(this).map(DebitEntry.class::cast).findFirst().get();
 
-                if(Constants.isEqual(debitEntry.getAvailableAmountForCredit(), BigDecimal.ZERO)) {
-                    throw new TreasuryDomainException("error.TreasuryEvent.annulAllDebitEntries.debitEntry.nothing.to.credit", debitEntry.getDescription());
-                }
-                
-                if (debitEntry.isAnnulled()) {
-                    continue;
-                }
-
-                if (!debitEntry.isProcessedInDebitNote()) {
-                    unprocessedDebitEntries.add(debitEntry);
-                    // Remove from active debit entries
-                    debitEntry.annulOnEvent();
-                    continue;
-                }
-
-                if (!debitEntry.isProcessedInClosedDebitNote()) {
-                    debitEntry.getFinantialDocument().closeDocument();
-                }
-
-                // ensure interest debit entries are closed in document entry
-                for (final DebitEntry otherDebitEntry : ((DebitNote) debitEntry.getFinantialDocument()).getDebitEntriesSet()) {
-                    for (final DebitEntry interestDebitEntry : otherDebitEntry.getInterestDebitEntriesSet()) {
-                        if (!interestDebitEntry.isProcessedInDebitNote()) {
-                            final DebitNote debitNoteForUnprocessedEntries = DebitNote.create(
-                                    getDebtAccount(),
-                                    DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
-                                            getDebtAccount().getFinantialInstitution()).get(), new DateTime());
-                            interestDebitEntry.setFinantialDocument(debitNoteForUnprocessedEntries);
-                        }
-
-                        if (!interestDebitEntry.isProcessedInClosedDebitNote()) {
-                            interestDebitEntry.getFinantialDocument().closeDocument();
-                        }
-                    }
-                }
-                
-                ((DebitNote) debitEntry.getFinantialDocument()).anullDebitNoteWithCreditNote(reasonDescription);
-
-                for (final DebitEntry otherDebitEntry : ((DebitNote) debitEntry.getFinantialDocument()).getDebitEntriesSet()) {
-                    for (final DebitEntry interestDebitEntry : otherDebitEntry.getInterestDebitEntriesSet()) {
-                        interestDebitEntry.annulOnEvent();
-                    }
-                    
-                    otherDebitEntry.annulOnEvent();
-                }
+            if(Constants.isEqual(debitEntry.getAvailableAmountForCredit(), BigDecimal.ZERO)) {
+                debitEntry.annulOnEvent();
+                continue;
+            }
+            
+            if (debitEntry.isAnnulled()) {
+                continue;
             }
 
-            if (!unprocessedDebitEntries.isEmpty()) {
-                final DebitNote debitNoteForUnprocessedEntries =
+            if (!debitEntry.isProcessedInDebitNote()) {
+                final DebitNote debitNote =
                         DebitNote.create(
                                 getDebtAccount(),
                                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
                                         getDebtAccount().getFinantialInstitution()).get(), new DateTime());
 
-                debitNoteForUnprocessedEntries.addDebitNoteEntries(Lists.newArrayList(unprocessedDebitEntries));
-                debitNoteForUnprocessedEntries.closeDocument();
-                debitNoteForUnprocessedEntries.anullDebitNoteWithCreditNote(reasonDescription);
+                debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
             }
 
-            for (final DebitEntry debitEntry : getDebitEntriesSet()) {
-                for (final DebitEntry interestDebitEntry : debitEntry.getInterestDebitEntriesSet()) {
+            if (!debitEntry.isProcessedInClosedDebitNote()) {
+                ((DebitNote) debitEntry.getFinantialDocument()).anullDebitNoteWithCreditNote(reasonDescription, false);
+            }
+
+            // ensure interest debit entries are closed in document entry
+            for (final DebitEntry otherDebitEntry : ((DebitNote) debitEntry.getFinantialDocument()).getDebitEntriesSet()) {
+                for (final DebitEntry interestDebitEntry : otherDebitEntry.getInterestDebitEntriesSet()) {
+                    if (!interestDebitEntry.isProcessedInDebitNote()) {
+                        final DebitNote debitNoteForUnprocessedEntries = DebitNote.create(
+                                getDebtAccount(),
+                                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
+                                        getDebtAccount().getFinantialInstitution()).get(), new DateTime());
+                        interestDebitEntry.setFinantialDocument(debitNoteForUnprocessedEntries);
+                    }
+
+                    if (!interestDebitEntry.isProcessedInClosedDebitNote()) {
+                        ((DebitNote) interestDebitEntry.getFinantialDocument()).anullDebitNoteWithCreditNote(reasonDescription, false);
+                    }
+                }
+            }
+            
+            if (debitEntry.isProcessedInClosedDebitNote()) {
+                ((DebitNote) debitEntry.getFinantialDocument()).anullDebitNoteWithCreditNote(reasonDescription, false);
+            }
+            
+            for (final DebitEntry otherDebitEntry : ((DebitNote) debitEntry.getFinantialDocument()).getDebitEntriesSet()) {
+                for (final DebitEntry interestDebitEntry : otherDebitEntry.getInterestDebitEntriesSet()) {
                     interestDebitEntry.annulOnEvent();
                 }
                 
-                debitEntry.annulOnEvent();
+                otherDebitEntry.annulOnEvent();
             }
+        }
+
+        for (final DebitEntry debitEntry : getDebitEntriesSet()) {
+            for (final DebitEntry interestDebitEntry : debitEntry.getInterestDebitEntriesSet()) {
+                interestDebitEntry.annulOnEvent();
+            }
+            
+            debitEntry.annulOnEvent();
         }
 
         while (!getTreasuryExemptionsSet().isEmpty()) {
@@ -328,23 +318,6 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
         checkRules();
     }
     
-    
-//    private void closeDebitEntry(final DebitEntry debitEntry, final CreditEntry creditEntry, final String reasonDescription) {
-//        final SettlementNote settlementNote =
-//                SettlementNote.create(
-//                        debitEntry.getDebtAccount(),
-//                        DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForSettlementNote(),
-//                                getDebtAccount().getFinantialInstitution()).get(), new DateTime(), null);
-//
-//        SettlementEntry.create(debitEntry, settlementNote, creditEntry.getOpenAmount(), debitEntry.getDescription(),
-//                new DateTime(), false);
-//        SettlementEntry.create(creditEntry, settlementNote, debitEntry.getOpenAmount(), creditEntry.getDescription(),
-//                new DateTime(), false);
-//
-//        settlementNote.setDocumentObservations(reasonDescription);
-//        settlementNote.closeDocument();
-//    }
-
     public boolean isAbleToDeleteAllDebitEntries() {
         return DebitEntry.findActive(this).map(l -> l.isDeletable()).reduce((a, c) -> a && c).orElse(Boolean.TRUE);
     }

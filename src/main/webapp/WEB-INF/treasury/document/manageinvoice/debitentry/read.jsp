@@ -44,13 +44,12 @@ ${portal.toolkit()}
 </div>
 
 <%
-        DebitEntry debitEntry = (DebitEntry) request
-                        .getAttribute("debitEntry");
+DebitEntry debitEntry = (DebitEntry) request.getAttribute("debitEntry");
 FinantialInstitution finantialInstitution = (FinantialInstitution) debitEntry.getDebtAccount().getFinantialInstitution();
-    %>
+%>
     
-  <% 
-                if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
+<% 
+	if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
 %>  
 <div class="modal fade" id="deleteModal">
     <div class="modal-dialog">
@@ -83,6 +82,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitEntry.ge
     </div>
     <!-- /.modal-dialog -->
 </div>
+
 <!-- /RemoveFromDocument modal -->
 <div class="modal fade" id="removeFromDocumentModal">
     <div class="modal-dialog">
@@ -118,10 +118,57 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitEntry.ge
 </div>
 <!-- /.modal -->
 
+<!-- /AnnulFromDocument modal -->
+<div class="modal fade" id="annulDebitEntryModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="deleteForm" action="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitentry/read/${debitEntry.externalId}/annuldebitentry"
+                method="POST">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">
+                        <spring:message code="label.confirmation" />
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <p><spring:message code="label.document.manageInvoice.readDebitEntry.confirmAnnulDebitEntry" /></p>
+                    <p>&nbsp;</p>
+                    
+		            <div class="form-group row">
+		                <div class="col-sm-2 control-label">
+		                    <spring:message code="label.DebitEntry.annul.debit.entry.reason" />
+		                </div>
+		
+		                <div class="col-sm-10">
+		                    <input id="" class="form-control" type="text" name="annulDebitEntryReason" />
+		                </div>
+		            </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <spring:message code="label.close" />
+                    </button>
+                    <button id="annulButton" class="btn btn-danger" type="submit">
+                        <spring:message code="label.annul" />
+                    </button>
+                </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+
+
 <%} %>
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
-    <c:if test="${not empty debitEntry.finantialDocument }">
+    <c:if test="${not empty debitEntry.finantialDocument}">
         <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;<a class=""
             href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/read/${debitEntry.finantialDocument.externalId}"><spring:message
                 code="label.document.manageInvoice.event.backToDebitNote" /></a>&nbsp|&nbsp; 
@@ -132,20 +179,29 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitEntry.ge
 <% 
                 if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
 %>          
-    <c:if test="${empty debitEntry.finantialDocument ||  debitEntry.finantialDocument.isPreparing()}">
-        |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;<a class="" href="#" data-toggle="modal" data-target="#deleteModal"><spring:message
-                code="label.event.delete" /></a> &nbsp; 
+ 
+    <c:if test="${empty debitEntry.finantialDocument}">
+        |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;
+        <a class="" href="#" data-toggle="modal" data-target="#annulDebitEntryModal">
+        	<spring:message code="label.annul" />
+        </a>&nbsp;
     </c:if>
+
     <c:if test="${empty debitEntry.finantialDocument || not debitEntry.finantialDocument.isAnnulled()}">
-        |&nbsp;<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;<a class=""
-            href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitentry/update/${debitEntry.externalId}"><spring:message code="label.event.update" /></a>
-	&nbsp;
+        |&nbsp;<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;
+        <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitentry/update/${debitEntry.externalId}">
+        	<spring:message code="label.event.update" />
+        </a>
+		&nbsp;
 	</c:if>
+
     <c:if test="${not empty debitEntry.finantialDocument && debitEntry.finantialDocument.isPreparing()}">
         |&nbsp;<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<a class="" href="#" data-toggle="modal" data-target="#removeFromDocumentModal"><spring:message
                 code="label.event.document.manageinvoice.debitentry.removefromdocument" /></a>
-    &nbsp;
+    	&nbsp;
     </c:if>
+
+
 <%} %>
 </div>
 <c:if test="${not empty infoMessages}">

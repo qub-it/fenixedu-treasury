@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController"%>
 <%@page import="org.fenixedu.treasury.ui.document.forwardpayments.ManageForwardPaymentsController"%>
 <%@page import="org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration"%>
 <%@page import="org.fenixedu.treasury.ui.accounting.managecustomer.PaymentReferenceCodeController"%>
@@ -39,6 +40,19 @@ ${portal.angularToolkit()}
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/webjars/angular-ui-select/0.11.2/select.min.css" />
 <script src="${pageContext.request.contextPath}/webjars/angular-ui-select/0.11.2/select.min.js"></script>
 
+<style type="text/css">
+
+.my-table-options .input-group-addon {
+	border: 0px solid #ccc;
+	border-radius: 0px;
+}
+
+.my-table-options .input-group-addon .form-control {
+	border: 0px solid #ccc;
+	border-radius: 0px;
+}
+
+</style>
 
 <%-- TITLE --%>
 <div class="page-header">
@@ -455,6 +469,11 @@ ${portal.angularToolkit()}
                                         href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/read/${pendingEntry.finantialDocument.externalId}"> <c:out
                                             value="${pendingEntry.finantialDocument.uiDocumentNumber}" />
                                     </a>
+                                    
+									<c:if test="${pendingEntry.finantialDocument.isAnnulled()}">
+	                                <p><span class="label label-danger"><c:out value='${pendingEntry.finantialDocument.state.descriptionI18N.content}' /></span>
+		                            </c:if>
+                                                                
                                 </c:if>
                                 <c:if test="${pendingEntry.isCreditNoteEntry() }">
                                     <a target="_blank"
@@ -471,7 +490,7 @@ ${portal.angularToolkit()}
                             <datatables:columnHead>
                                 <spring:message code="label.InvoiceEntry.description" />
                             </datatables:columnHead>
-                            <c:out value="${pendingEntry.description}" />
+                            <p><c:out value="${pendingEntry.description}" /></p>
                         </datatables:column>
                         <datatables:column cssStyle="width:10%;align:right">
                             <datatables:columnHead>
@@ -524,7 +543,7 @@ ${portal.angularToolkit()}
                     <script>
 						createDataTables(
 								'pendingDocuments',
-								false,
+								true,
 								false,
 								false,
 								"${pageContext.request.contextPath}",
@@ -549,7 +568,31 @@ ${portal.angularToolkit()}
             <p></p>
             <c:choose>
                 <c:when test="${not empty allDocumentsDataSet}">
+                
+					<div class="my-table-option row">
+					  <div class="col-xs-12">
+					    <div class="input-group">
+					      <span class="input-group-addon">
+					        <input id="includeAnnuledCheckbox" type="checkbox" aria-label="...">
+					      </span>
+					      <input type="text" class="form-control" aria-label="..." value="<spring:message code="label.DebtAccountController.show.annuled" />" disabled />
+					    </div>
+					  </div>
+					</div>
+					<div class="my-table-option row">
+					  <div class="col-xs-12">
+					    <div class="input-group">
+					      <span class="input-group-addon">
+					        <input id="filterSettledItemsWithoutPayments" type="checkbox" aria-label="..." >
+					      </span>
+					      <input type="text" class="form-control" aria-label="..." value="Exluir items liquidados sem pagamentos" disabled />
+					    </div>
+					  </div>
+					</div>
+                	
                     <datatables:table id="allDocuments" row="entry" data="${allDocumentsDataSet}" cssClass="table table-bordered table-hover" cdn="false" cellspacing="2">
+	                   <datatables:column><c:out value="${not empty entry.finantialDocument && entry.finantialDocument.isAnnulled()}" /></datatables:column>
+	                   <datatables:column><c:out value="${not empty entry.finantialDocument && entry.finantialDocument.totalSettledWithoutPaymentEntries}" /></datatables:column>
                         <datatables:column cssStyle="width:80px">
                             <datatables:columnHead>
                                 <spring:message code="label.InvoiceEntry.date" />
@@ -574,6 +617,11 @@ ${portal.angularToolkit()}
                                         href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/read/${entry.finantialDocument.externalId}"> <c:out
                                             value="${entry.finantialDocument.uiDocumentNumber}" />
                                     </a>
+                                    
+									<c:if test="${entry.finantialDocument.isAnnulled()}">
+	                                <p><span class="label label-danger"><c:out value='${entry.finantialDocument.state.descriptionI18N.content}' /></span>
+		                            </c:if>
+                                    
                                 </c:if>
                                 <c:if test="${entry.isCreditNoteEntry() }">
                                     <a target="_blank"
@@ -590,9 +638,9 @@ ${portal.angularToolkit()}
                             <datatables:columnHead>
                                 <spring:message code="label.InvoiceEntry.description" />
                             </datatables:columnHead>
-                            <c:out value="${entry.description}" />
+                            <p><c:out value="${entry.description}" /></p>
                         </datatables:column>
-                        <datatables:column cssStyle="width:90px">
+                        <datatables:column cssStyle="width:10%;align:right">
                             <datatables:columnHead>
                                 <spring:message code="label.Invoice.totalAmount" />
                             </datatables:columnHead>
@@ -609,7 +657,7 @@ ${portal.angularToolkit()}
                         <%-- 								<c:out value="${entry.debtAccount.finantialInstitution.currency.getValueFor(pendingEntry.creditAmount)}" /> --%>
                         <!-- 							</div> -->
                         <%-- 						</datatables:column> --%>
-                        <datatables:column cssStyle="width:90px;align:right">
+                        <datatables:column cssStyle="width:10%;align:right">
                             <datatables:columnHead>
                                 <spring:message code="label.InvoiceEntry.openAmount" />
                             </datatables:columnHead>
@@ -636,15 +684,49 @@ ${portal.angularToolkit()}
                             </a>
                         </datatables:column>
                     </datatables:table>
-                    <script>
-						createDataTables(
-								'allDocuments',
-								false,
-								false,
-								false,
-								"${pageContext.request.contextPath}",
-								"${datatablesI18NUrl}");
-					</script>
+					<script>
+                    	$(document).ready(function() {
+                    		var table = $('#allDocuments').DataTable({
+                    			language : { url : "${datatablesI18NUrl}" },
+	                    		"dom": '<"col-sm-6"l><"col-sm-6"f>rtip', //FilterBox = YES && ExportOptions = NO
+	                			"bDeferRender" : true,
+	                			"bPaginate" : false,
+	                	        "columnDefs": [ 
+									{ "targets": [0], "visible": false, "searchable": true },
+									{ "targets": [1], "visible": false, "searchable": true } 
+	                	        ],
+	                            "tableTools": {
+	                                "sSwfPath": "${pageContext.request.contextPath}/static/treasury/swf/copy_csv_xls_pdf.swf"
+	                            }
+                    		});
+                    		
+                    		table.columns.adjust().draw();
+                    		
+							$('#allDocuments tbody').on( 'click', 'tr', function () {
+							      $(this).toggleClass('selected');
+							});
+							
+							$.fn.dataTable.ext.search.push(
+							    function( settings, data, dataIndex ) {
+							        var includeAnnuledChecked = $('#includeAnnuledCheckbox').is(':checked');
+							        var annuled = (data[0].trim() === "true");
+							        
+							        var filterSettledItemsWithoutPayments = $('#filterSettledItemsWithoutPayments').is(':checked');
+							        var totalSettledWithoutPaymentEntries = (data[1].trim() === "true");
+							        
+							        return (!annuled || includeAnnuledChecked) && (!totalSettledWithoutPaymentEntries || !filterSettledItemsWithoutPayments);
+							    }
+							);
+							
+							$('#includeAnnuledCheckbox').click(function() {
+								table.columns.adjust().draw();
+							});
+							
+							$('#filterSettledItemsWithoutPayments').click(function() {
+								table.columns.adjust().draw();
+							});
+                    	});
+				</script>
                 </c:when>
                 <c:otherwise>
                     <div class="alert alert-warning" role="alert">
@@ -678,6 +760,11 @@ ${portal.angularToolkit()}
                             </datatables:columnHead>
                             <a target="_blank" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${payment.externalId}"> <c:out
                                     value="${payment.uiDocumentNumber}" />
+                                    
+							<c:if test="${payment.isAnnulled()}">
+                               <p><span class="label label-danger"><c:out value='${payment.state.descriptionI18N.content}' /></span>
+                            </c:if>
+                                    
                         </datatables:column>
                         <datatables:column>
                             <datatables:columnHead>
@@ -727,7 +814,7 @@ ${portal.angularToolkit()}
                     <script>
 						createDataTables(
 								'paymentsDataSet',
-								false,
+								true,
 								false,
 								false,
 								"${pageContext.request.contextPath}",
@@ -814,7 +901,7 @@ ${portal.angularToolkit()}
                     <script>
 						createDataTables(
 								'usedPaymentCodeTargets',
-								false,
+								true,
 								false,
 								false,
 								"${pageContext.request.contextPath}",

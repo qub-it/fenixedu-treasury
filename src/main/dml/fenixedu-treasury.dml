@@ -256,7 +256,6 @@ class document.FinantialDocumentEntry {
 		BigDecimalT vatRate;
 		BigDecimalT netAmount;
 		BigDecimalT amountWithVat;
-	
 	}
 
 	class document.DebitEntry extends document.InvoiceEntry {

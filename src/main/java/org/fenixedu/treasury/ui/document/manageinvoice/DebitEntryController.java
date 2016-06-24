@@ -202,15 +202,14 @@ public class DebitEntryController extends TreasuryBaseController {
     // @formatter: off
 
     @RequestMapping(value = "/createpostback", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    public @ResponseBody ResponseEntity<String> createpostback(
-            @RequestParam(value = "bean", required = true) DebitEntryBean bean, Model model) {
+    public @ResponseBody ResponseEntity<String> createpostback(@RequestParam(value = "bean", required = true) DebitEntryBean bean,
+            Model model) {
 
         Product product = bean.getProduct();
         if (product != null) {
             bean.setVat(bean.getDebtAccount().getFinantialInstitution().getActiveVat(product.getVatType(), new DateTime()));
-            Tariff tariff =
-                    product.getActiveTariffs(bean.getDebtAccount().getFinantialInstitution(), new DateTime()).findFirst()
-                            .orElse(null);
+            Tariff tariff = product.getActiveTariffs(bean.getDebtAccount().getFinantialInstitution(), new DateTime()).findFirst()
+                    .orElse(null);
 
             if (tariff != null) {
                 if (tariff instanceof FixedTariff) {
@@ -225,8 +224,8 @@ public class DebitEntryController extends TreasuryBaseController {
                         bean.setInterestRate(new FixedTariffInterestRateBean());
                     }
                 } else {
-                    bean.setAmount(bean.getDebtAccount().getFinantialInstitution().getCurrency()
-                            .getValueWithScale(BigDecimal.ZERO));
+                    bean.setAmount(
+                            bean.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(BigDecimal.ZERO));
                     bean.setDueDate(new LocalDate());
                 }
             } else {
@@ -250,10 +249,9 @@ public class DebitEntryController extends TreasuryBaseController {
                 redirect(DebitNoteController.READ_URL + bean.getFinantialDocument().getExternalId(), model, redirectAttributes);
             }
 
-            DebitEntry debitEntry =
-                    createDebitEntry(bean.getFinantialDocument(), bean.getDebtAccount(), bean.getDescription(),
-                            bean.getProduct(), bean.getAmount(), bean.getQuantity(), bean.getDueDate(), bean.getEntryDate(),
-                            bean.getTreasuryEvent(), bean.isApplyInterests(), bean.getInterestRate());
+            DebitEntry debitEntry = createDebitEntry(bean.getFinantialDocument(), bean.getDebtAccount(), bean.getDescription(),
+                    bean.getProduct(), bean.getAmount(), bean.getQuantity(), bean.getDueDate(), bean.getEntryDate(),
+                    bean.getTreasuryEvent(), bean.isApplyInterests(), bean.getInterestRate());
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
 
@@ -262,8 +260,8 @@ public class DebitEntryController extends TreasuryBaseController {
             setDebitEntry(debitEntry, model);
 
             if (getDebitEntry(model).getFinantialDocument() != null) {
-                return redirect(DebitNoteController.READ_URL + getDebitEntry(model).getFinantialDocument().getExternalId(),
-                        model, redirectAttributes);
+                return redirect(DebitNoteController.READ_URL + getDebitEntry(model).getFinantialDocument().getExternalId(), model,
+                        redirectAttributes);
             } else {
                 return redirect(DebtAccountController.READ_URL + getDebitEntry(model).getDebtAccount().getExternalId(), model,
                         redirectAttributes);
@@ -314,16 +312,14 @@ public class DebitEntryController extends TreasuryBaseController {
         Optional<Vat> activeVat =
                 Vat.findActiveUnique(product.getVatType(), debtAccount.getFinantialInstitution(), new DateTime());
 
-        DebitEntry debitEntry =
-                DebitEntry.create(Optional.<DebitNote> ofNullable(debitNote), debtAccount, treasuryEvent, activeVat.orElse(null),
-                        amount, dueDate, null, product, description, quantity, null, entryDateTime);
+        DebitEntry debitEntry = DebitEntry.create(Optional.<DebitNote> ofNullable(debitNote), debtAccount, treasuryEvent,
+                activeVat.orElse(null), amount, dueDate, null, product, description, quantity, null, entryDateTime);
 
         if (applyInterests) {
-            InterestRate interestRate =
-                    InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
-                            interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
-                            interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
-                            interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
+            InterestRate interestRate = InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
+                    interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
+                    interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
+                    interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
             debitEntry.changeInterestRate(interestRate);
         }
 
@@ -337,8 +333,8 @@ public class DebitEntryController extends TreasuryBaseController {
     // @formatter: off
 
     @RequestMapping(value = "/updatepostback/{oid}", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    public @ResponseBody String updatepostback(@PathVariable("oid") DebitEntry debitEntry, @RequestParam(value = "bean",
-            required = false) DebitEntryBean bean, Model model) {
+    public @ResponseBody String updatepostback(@PathVariable("oid") DebitEntry debitEntry,
+            @RequestParam(value = "bean", required = false) DebitEntryBean bean, Model model) {
 
         // Do validation logic ?!?!
         this.setDebitEntryBean(bean, model);
@@ -442,12 +438,10 @@ public class DebitEntryController extends TreasuryBaseController {
         debitEntry.edit(description, amount, quantity, treasuryEvent, dueDate);
         if (applyInterests) {
             if (debitEntry.getInterestRate() == null) {
-                InterestRate interestRate =
-                        InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
-                                interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
-                                interestRateBean.getMaximumDaysToApplyPenalty(),
-                                interestRateBean.getMaximumMonthsToApplyPenalty(), interestRateBean.getInterestFixedAmount(),
-                                interestRateBean.getRate());
+                InterestRate interestRate = InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
+                        interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
+                        interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
+                        interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
 
             } else {
                 InterestRate rate = debitEntry.getInterestRate();
@@ -489,8 +483,8 @@ public class DebitEntryController extends TreasuryBaseController {
     }
 
     private static final String _SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URI = "/searchpendingentries/view/";
-    public static final String SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URL = CONTROLLER_URL
-            + _SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URI;
+    public static final String SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URL =
+            CONTROLLER_URL + _SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URI;
 
     @RequestMapping(value = _SEARCHPENDINGENTRIES_TO_VIEW_ACTION_URI + "{oid}")
     public String processSearchPendingEntriesToViewAction(@PathVariable("oid") DebitEntry debitEntry, Model model,
@@ -536,12 +530,39 @@ public class DebitEntryController extends TreasuryBaseController {
                 removeFromDocument(debitEntry);
                 return redirect(DebitNoteController.READ_URL + debitNote.getExternalId(), model, redirectAttributes);
             }
+
             addWarningMessage(BundleUtil.getString(Constants.BUNDLE,
                     "label.error.document.manageinvoice.debitentry.invalid.state.remove.debitentry"), model);
             return redirect(DebitEntryController.READ_URL + debitEntry.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
         }
+        return redirect(DebitEntryController.READ_URL + debitEntry.getExternalId(), model, redirectAttributes);
+    }
+
+    private static final String _ANNUL_DEBIT_ENTRY_URI = "/read/{oid}/annuldebitentry";
+
+    @RequestMapping(value = _ANNUL_DEBIT_ENTRY_URI, method = RequestMethod.POST)
+    public String annuldebitentry(
+            @PathVariable("oid") final DebitEntry debitEntry, 
+            @RequestParam(value="annulDebitEntryReason", required=false) final String annulDebitEntryReason,
+            final Model model,
+            final RedirectAttributes redirectAttributes) {
+        
+        try {
+
+            assertUserIsAllowToModifyInvoices(debitEntry.getDebtAccount().getFinantialInstitution(), model);
+            if (debitEntry.getFinantialDocument() == null) {
+
+                debitEntry.annulDebitEntry(annulDebitEntryReason);
+                
+                return redirect(DebitNoteController.READ_URL + debitEntry.getFinantialDocument().getExternalId(), model, redirectAttributes);
+            }
+
+        } catch (Exception ex) {
+            addErrorMessage(ex.getLocalizedMessage(), model);
+        }
+        
         return redirect(DebitEntryController.READ_URL + debitEntry.getExternalId(), model, redirectAttributes);
     }
 

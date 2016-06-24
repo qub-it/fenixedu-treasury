@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -156,6 +157,14 @@ public abstract class Invoice extends Invoice_Base {
             return (InvoiceEntry) entry;
         }
         return null;
+    }
+    
+    public boolean isTotalSettledWithoutPaymentEntries() {
+        if(isAnnulled() || Constants.isPositive(getOpenAmount())) {
+            return false;
+        }
+        
+        return !getRelatedSettlementEntries().stream().map(e -> !((SettlementNote) e.getFinantialDocument()).getPaymentEntriesSet().isEmpty()).reduce((a, c) -> a || c).orElse(false);
     }
 
 }

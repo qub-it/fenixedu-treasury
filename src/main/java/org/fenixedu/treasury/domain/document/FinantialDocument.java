@@ -307,36 +307,6 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     }
 
     @Atomic
-    protected void anullDocument(boolean freeEntries, String anulledReason) {
-        anullDocument(freeEntries, anulledReason, true);
-    }
-
-    @Atomic
-    protected void anullDocument(boolean freeEntries, String anulledReason, boolean markDocumentToExport) {
-        if (this.isPreparing() || this.isClosed()) {
-            if (Boolean.TRUE.booleanValue() == this.getDocumentNumberSeries().getSeries().getCertificated()) {
-                throw new TreasuryDomainException("error.FinantialDocument.certificatedseris.cannot.anulled");
-            }
-            setState(FinantialDocumentStateType.ANNULED);
-            if (Authenticate.getUser() != null) {
-                setAnnulledReason(anulledReason + " - [" + Authenticate.getUser().getUsername() + "]"
-                        + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
-            } else {
-                setAnnulledReason(anulledReason + " - " + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
-            }
-            //If we want to free entries and the document is in "Preparing" state, the Entries will become "free"
-            if (freeEntries && this.isPreparing()) {
-                this.getFinantialDocumentEntriesSet().forEach(x -> this.removeFinantialDocumentEntries(x));
-            }
-
-            if (markDocumentToExport) {
-                this.markDocumentToExport();
-            }
-        }
-        checkRules();
-    }
-
-    @Atomic
     public void delete(boolean deleteEntries) {
         if (!isDeletable()) {
             throw new TreasuryDomainException("error.FinantialDocument.cannot.delete");
@@ -412,34 +382,6 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         } else {
             return BigDecimal.ZERO;
         }
-    }
-
-    @Atomic
-    public void changeState(FinantialDocumentStateType newState, String reason) {
-        //Same state, do nothing...
-        if (newState == this.getState()) {
-            return;
-        }
-
-        if (this.isPreparing()) {
-            if (newState == FinantialDocumentStateType.ANNULED) {
-                this.anullDocument(true, reason);
-            }
-
-            if (newState == FinantialDocumentStateType.CLOSED) {
-                this.closeDocument();
-            }
-        } else if (this.isClosed() && newState == FinantialDocumentStateType.ANNULED) {
-            this.anullDocument(false, reason);
-        } else if (this.isAnnulled() && newState == FinantialDocumentStateType.CLOSED) {
-            //trying to close an anulled document... do nothing....
-            return;
-        } else {
-            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE,
-                    "error.FinantialDocumentState.invalid.state.change.request"));
-        }
-
-        checkRules();
     }
 
     public static FinantialDocument findByUiDocumentNumber(FinantialInstitution finantialInstitution, String docNumber) {

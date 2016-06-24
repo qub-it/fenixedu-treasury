@@ -233,7 +233,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
                 code="label.document.manageInvoice.readDebitEntry.event.backToDebtAccount" />
         </a> 
 <% 
-                if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
+if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
 %>        
             <div class="btn-group">
                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -250,33 +250,31 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
             </a></li>
     		
 		</c:if>
+
         <c:if test="${debitNote.isPreparing()}">
             <li>
-            
-            
-            <a class="" href="#" data-toggle="modal" data-target="#deleteModal"> <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> <spring:message code="label.event.delete" /></a>  
-            </li>
-            <li>
-            <a class="" href="#" data-toggle="modal" data-target="#closeModal"> <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.closeDebitNote" />
-            </a>
+	            <a class="" href="#" data-toggle="modal" data-target="#closeModal">
+	            	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span> 
+	            	<spring:message code="label.event.document.manageInvoice.closeDebitNote" />
+	            </a>
             </li> 
            
 		</c:if>
-        <c:if test="${debitNote.isClosed()}">
-            <%--             <c:if test="${debitNote.openAmount > 0  }"> --%>
-                <li>
-                
-                
-                <a class="" href="#" data-toggle="modal" data-target="#anullModal"> <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.anullDebitNote" />
-            </a> 
-            </li>
-                		
-<%--             </c:if> --%>
+
+        <c:if test="${debitNote.isPreparing() || debitNote.isClosed()}">
+
             <li>
-            
-            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/create?debitnote=${debitNote.externalId}"> <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <spring:message
-                    code="label.event.document.manageInvoice.createCreditNote" />
-            </a>
+                <a class="" href="#" data-toggle="modal" data-target="#anullModal"> 
+                	<span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                	<spring:message code="label.event.document.manageInvoice.anullDebitNote" />
+	            </a>
+            </li>
+
+            <li>
+	            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/create?debitnote=${debitNote.externalId}">
+	            	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+	            	<spring:message code="label.event.document.manageInvoice.createCreditNote" />
+	            </a>
             </li>
 		    
             <c:if test="${debitNote.openAmount > 0  }">
@@ -286,17 +284,11 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
                     code="label.event.document.manageInvoice.debitNote.calculateInterestValue" />
                     </a>
                 </li>
-                <li>
-                <a class=""
-                    href="${pageContext.request.contextPath}/treasury/document/managepayments/paymentreferencecode/createpaymentcodeindebitnote?debitnote=${debitNote.externalId}">
-                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>    <spring:message code="label.event.document.manageInvoice.createPaymentCodeInDebitNote" />
-                </a>
-               </li>
             </c:if>
         </c:if>
         </ul>
         </div>
-<%}else{ %>
+<%} else { %>
             <div class="btn-group">
                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
@@ -304,16 +296,18 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitNote.get
                     </spring:message>
                     <span class="caret"></span>
                 </button>
-<ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-        <c:if test="${debitNote.isPreparing()}">
-            <li>
-            <a class="" href="#" data-toggle="modal" data-target="#closeModal"> <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.closeDebitNote" />
-            </a>
-            </li>            
-        </c:if>
-
- </ul>
-</div>
+				<ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+				        <c:if test="${debitNote.isPreparing()}">
+				            <li>
+					            <a class="" href="#" data-toggle="modal" data-target="#closeModal">
+					            	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+					            	<spring:message code="label.event.document.manageInvoice.closeDebitNote" />
+					            </a>
+				            </li>            
+				        </c:if>
+				
+				 </ul>
+			</div>
 <%} %>
         <c:if test="${not debitNote.isPreparing()}">
 |

@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -343,31 +344,32 @@ public class SettlementNote extends SettlementNote_Base {
 
     }
 
-    @Override
-    public void anullDocument(boolean freeEntries, String anulledReason, boolean markDocumentToExport) {
+    @Atomic
+    public void anullDocument(final String anulledReason, final boolean markDocumentToExport) {
         if (this.isPreparing()) {
             this.delete(true);
-        } else {
+        } else if (this.isClosed()) {
             setState(FinantialDocumentStateType.ANNULED);
             setAnnulledReason(anulledReason);
-            if (markDocumentToExport) {
-                // Settlement note can never free entries 
+
+            // Settlement note can never free entries 
+            if(markDocumentToExport) {
                 this.markDocumentToExport();
             }
+
             //if we have advanced payments, we must "anull" the "advanced payments"
             if (this.getAdvancedPaymentCreditNote() != null) {
                 //only "disconnect" the advanced payment credit note
                 this.setAdvancedPaymentCreditNote(null);
                 // this.getAdvancedPaymentCreditNote().anullDocument(freeEntries, anulledReason);
             }
+            
             checkRules();
+        } else {
+            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE,
+                    "error.FinantialDocumentState.invalid.state.change.request"));
         }
-    }
-
-    @Override
-    @Atomic
-    public void anullDocument(boolean freeEntries, String reason) {
-        anullDocument(freeEntries, reason, true);
+        
     }
 
     public BigDecimal getTotalDebitAmount() {
@@ -395,7 +397,7 @@ public class SettlementNote extends SettlementNote_Base {
         }
 
         if (this.getAdvancedPaymentCreditNote() != null) {
-            this.getAdvancedPaymentCreditNote().changeState(FinantialDocumentStateType.CLOSED, "");
+            this.getAdvancedPaymentCreditNote().closeDocument();
         }
         super.closeDocument();
     }

@@ -32,9 +32,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -214,12 +217,34 @@ public class CreditNote extends CreditNote_Base {
         return documentsBaseList;
     }
 
-    @Override
-    protected void anullDocument(boolean freeEntries, String reason) {
-        if (getCreditEntries().anyMatch(ce -> !ce.getSettlementEntriesSet().isEmpty())) {
-            throw new TreasuryDomainException("error.CreditNote.cannot.delete.has.settlemententries");
-        }
-        super.anullDocument(false, reason);
-    }
+    @Atomic
+    public void anullDocument(final String reason) {
+        
+        if (this.isPreparing()) {
+        
+            if (this.getDocumentNumberSeries().getSeries().getCertificated()) {
+                throw new TreasuryDomainException("error.FinantialDocument.certificatedseris.cannot.anulled");
+            }
+            
+            if (getCreditEntries().anyMatch(ce -> !ce.getSettlementEntriesSet().isEmpty())) {
+                throw new TreasuryDomainException("error.CreditNote.cannot.delete.has.settlemententries");
+            }
+            
+            setState(FinantialDocumentStateType.ANNULED);
 
+            if (Authenticate.getUser() != null) {
+                setAnnulledReason(reason + " - [" + Authenticate.getUser().getUsername() + "]"
+                        + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
+            } else {
+                setAnnulledReason(reason + " - " + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
+            }
+            
+        } else {
+            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE,
+                    "error.FinantialDocumentState.invalid.state.change.request"));
+        }
+        
+        checkRules();
+    }
+    
 }
