@@ -332,7 +332,15 @@ public class DebitNote extends DebitNote_Base {
             this.setAnnulledReason(reason);
 
         } else if(isPreparing()) {
+            if(!getCreditNoteSet().isEmpty()) {
+                throw new TreasuryDomainException("error.DebitNote.creditNote.not.empty");
+            }
+            
             for (DebitEntry debitEntry : this.getDebitEntriesSet()) {
+                if(Constants.isPositive(debitEntry.getExemptedAmount())) {
+                    throw new TreasuryDomainException("error.DebitNote.annul.not.possible.remove.exemption.on.debit.entry", debitEntry.getDescription());
+                }
+                
                 // Also remove from treasury event
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();

@@ -42,12 +42,12 @@ ${portal.angularToolkit()}
 
 <style type="text/css">
 
-.my-table-options .input-group-addon {
+.my-table-option .input-group-addon {
 	border: 0px solid #ccc;
 	border-radius: 0px;
 }
 
-.my-table-options .input-group-addon .form-control {
+.my-table-option .input-group .form-control {
 	border: 0px solid #ccc;
 	border-radius: 0px;
 }

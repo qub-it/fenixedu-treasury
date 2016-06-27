@@ -111,8 +111,9 @@ public class DebtAccountController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = READ_URI + "{oid}")
-    public String read(@PathVariable("oid") final DebtAccount debtAccount, final Model model, final RedirectAttributes redirectAttributes) {
-        
+    public String read(@PathVariable("oid") final DebtAccount debtAccount, final Model model,
+            final RedirectAttributes redirectAttributes) {
+
         boolean filterAnnuledValue = false;
 
         assertUserIsFrontOfficeMember(debtAccount.getFinantialInstitution(), model);
@@ -122,9 +123,8 @@ public class DebtAccountController extends TreasuryBaseController {
         List<SettlementNote> paymentEntries = new ArrayList<SettlementNote>();
         List<TreasuryExemption> exemptionEntries = new ArrayList<TreasuryExemption>();
         List<InvoiceEntry> pendingInvoiceEntries = new ArrayList<InvoiceEntry>();
-        allInvoiceEntries.addAll(debtAccount.getInvoiceEntrySet()
-                .stream().collect(Collectors.toList()));
-        
+        allInvoiceEntries.addAll(debtAccount.getInvoiceEntrySet().stream().collect(Collectors.toList()));
+
         paymentEntries = SettlementNote.findByDebtAccount(debtAccount).collect(Collectors.toList());
 
         exemptionEntries.addAll(TreasuryExemption.findByDebtAccount(debtAccount).collect(Collectors.toList()));
@@ -309,7 +309,9 @@ public class DebtAccountController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsFrontOfficeMember(debtAccount.getFinantialInstitution(), model);
-            List<FinantialDocument> pendingDocuments = new ArrayList(debtAccount.getFinantialDocumentsSet());
+            List<FinantialDocument> pendingDocuments = new ArrayList(debtAccount.getFinantialDocumentsSet().stream()
+                    .filter(d -> d.isDocumentSeriesNumberSet()).collect(Collectors.toSet()));
+            
             if (pendingDocuments.size() > 0) {
                 ERPExportOperation output =
                         ERPExporter.exportFinantialDocumentToIntegration(debtAccount.getFinantialInstitution(), pendingDocuments);

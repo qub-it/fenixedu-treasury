@@ -192,7 +192,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         </a> &nbsp;      
     </c:if>
     <%} %>
-    <c:if test="${not settlementNote.isPreparing()}">
+    <c:if test="${settlementNote.documentSeriesNumberSet}">
 |
             <div class="btn-group">
             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

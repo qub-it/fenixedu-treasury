@@ -142,6 +142,7 @@ public class ERPConfiguration extends ERPConfiguration_Base {
 
             return client;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new TreasuryDomainException("error.ERPConfiguration.invalid.external.service");
         }
     }
@@ -156,6 +157,7 @@ public class ERPConfiguration extends ERPConfiguration_Base {
 
             return client.getAuditFilePreProcessOperator();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new TreasuryDomainException("error.ERPConfiguration.invalid.external.service");
         }
     }

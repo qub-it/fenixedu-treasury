@@ -277,23 +277,7 @@ ${portal.toolkit()}
                         	<joda:format value="${treasuryEvent.treasuryEventDate}" style="S-" />
                         </td>
                     </tr>
-                    <%-- 
-                    <tr>
-                        <th scope="row" class="col-xs-3"><spring:message
-                                code="label.TreasuryEvent.payedAmount" />
-                        </th>
-                        <td><c:out
-                                value='${treasuryEvent.debtAccount.finantialInstitution.currency.getValueFor(treasuryEvent.payedAmount)}' /></td>
-                    </tr>
-                    <tr>
-                        <th scope="row" class="col-xs-3"><spring:message
-                                code="label.TreasuryEvent.remainingAmountToPay" />
-                        </th>
-                        <td><c:out
-                                value='${treasuryEvent.debtAccount.finantialInstitution.currency.getValueFor(treasuryEvent.remainingAmountToPay)}' /></td>
-                    </tr>
-                    --%>
-                </tbody>
+               </tbody>
             </table>
         </form>
     </div>
@@ -303,14 +287,12 @@ ${portal.toolkit()}
     <spring:message code="label.TreasuryEvent.treasuryExemption" />
 </h2>
 
-<div class="well well-sm" style="display: inline-block">
-    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
-    &nbsp; <a class=""
-        href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>/${treasuryEvent.externalId}">
-        <spring:message code="label.event.create" />
-    </a>&nbsp;
-</div>
-
+<p>
+	<a class="btn btn-default" href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>/${treasuryEvent.externalId}">
+		<span class="glyphicon glyphicon-plus-sign" aria-hidden="true">&nbsp;</span>
+		<spring:message code="label.event.create" />
+	</a>
+</p>
 <c:if test="${not empty treasuryEvent.treasuryExemptionsSet}">
 
     <script type="text/javascript">
@@ -423,14 +405,10 @@ ${portal.toolkit()}
             </p>
         </datatables:column>
         <datatables:column cssStyle="width:10%">
-            <div class="well well-sm" style="display: inline-block; margin-bottom:0px">
-                <span class="glyphicon glyphicon-trash"
-                    aria-hidden="true"></span> &nbsp; <a class=""
-                    href="#" data-toggle="modal"
-                    data-target="#deleteModal"
-                    onClick="javascript:processDelete('${exemption.externalId}')"><spring:message
-                        code="label.event.delete" /></a>
-            </div>
+             <a class="btn btn-danger" href="#" data-toggle="modal" data-target="#deleteModal" onclick="processDelete('${exemption.externalId}')">
+                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp; 
+				<spring:message code="label.event.delete" />
+			</a>
         </datatables:column>
     </datatables:table>
 

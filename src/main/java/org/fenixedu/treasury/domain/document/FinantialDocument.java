@@ -383,6 +383,10 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
             return BigDecimal.ZERO;
         }
     }
+    
+    public boolean isDocumentSeriesNumberSet() {
+        return Long.parseLong(getDocumentNumber()) != 0;
+    }
 
     public static FinantialDocument findByUiDocumentNumber(FinantialInstitution finantialInstitution, String docNumber) {
         //parse the Document Number in {DOCUMENT_TYPE} {DOCUMENT_SERIES}/{DOCUMENT_NUMBER}

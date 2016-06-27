@@ -309,7 +309,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 				 </ul>
 			</div>
 <%} %>
-        <c:if test="${not debitNote.isPreparing()}">
+        <c:if test="${debitNote.documentSeriesNumberSet}">
 |
             <div class="btn-group">
                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

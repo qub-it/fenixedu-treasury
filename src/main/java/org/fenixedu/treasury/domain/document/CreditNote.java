@@ -86,6 +86,11 @@ public class CreditNote extends CreditNote_Base {
         if (getDebitNote() != null && !getDebitNote().getDebtAccount().equals(getDebtAccount())) {
             throw new TreasuryDomainException("error.CreditNote.invalid.debtaccount.with.debitnote");
         }
+        
+        if(getDebitNote() != null && !getDebitNote().isClosed()) {
+            throw new TreasuryDomainException("error.CreditNote.debitnote.not.closed");
+        }
+        
         super.checkRules();
     }
 

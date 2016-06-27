@@ -132,6 +132,8 @@ public class ERPExporter {
             List<? extends FinantialDocument> allDocuments, Boolean generateAllCustomers, Boolean generateAllProducts,
             java.util.function.UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
 
+        checkForUnsetDocumentSeriesNumberInDocumentsToExport(allDocuments);
+        
         // Build SAFT-AuditFile
         AuditFile auditFile = new AuditFile();
         // ThreadInformation information = 
@@ -290,6 +292,17 @@ public class ERPExporter {
         paymentsDocuments.setTotalCredit(BigDecimal.ZERO);
         paymentsDocuments.setTotalDebit(BigDecimal.ZERO);
         for (FinantialDocument document : allDocuments) {
+
+            try {
+                if(Long.parseLong(document.getDocumentNumber()) == 0) {
+                    logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
+                    continue;
+                }
+            } catch(final NumberFormatException ex) {
+                logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
+                throw ex;
+            }
+            
             if (document.isSettlementNote() && (document.isClosed() || document.isAnnulled())) {
                 try {
                     Payment paymentDocument = convertToSAFTPaymentDocument((SettlementNote) document, customerMap, productMap);
@@ -305,7 +318,7 @@ public class ERPExporter {
                     }
 //                    i++;
                 } catch (Exception ex) {
-                    // persistenceSupport.flush();
+                    ex.printStackTrace();
                     logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
                     throw ex;
                 }
@@ -1420,16 +1433,15 @@ public class ERPExporter {
     public static String exportFinantialDocumentToXML(FinantialInstitution finantialInstitution, List<FinantialDocument> documents) {
         UnaryOperator<AuditFile> auditFilePreProcess =
                 finantialInstitution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+
         return exportFinantialDocumentToXML(finantialInstitution, documents, auditFilePreProcess);
     }
 
     private static String exportFinantialDocumentToXML(FinantialInstitution finantialInstitution,
             List<FinantialDocument> documents, UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
-//        documents.forEach(x -> {
-//            if (x instanceof Invoice) {
-//                ((Invoice) x).recalculateAmountValues();
-//            }
-//        });
+        
+        checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
+
         ERPExporter saftExporter = new ERPExporter();
         DateTime beginDate =
                 documents.stream().min((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
@@ -1437,6 +1449,14 @@ public class ERPExporter {
                 documents.stream().max((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
         return saftExporter.generateERPFile(finantialInstitution, beginDate, endDate, documents, false, false,
                 preProcessFunctionBeforeSerialize);
+    }
+
+    private static void checkForUnsetDocumentSeriesNumberInDocumentsToExport(List<? extends FinantialDocument> documents) {
+        for(final FinantialDocument finantialDocument : documents) {
+            if(!finantialDocument.isDocumentSeriesNumberSet()) {
+                throw new TreasuryDomainException("error.ERPExporter.document.without.number.series");
+            }
+        }
     }
 
     public static String exportsProductsToXML(FinantialInstitution finantialInstitution) {
@@ -1469,6 +1489,8 @@ public class ERPExporter {
     @Atomic(mode = TxMode.WRITE)
     public static ERPExportOperation exportFinantialDocumentToIntegration(FinantialInstitution institution,
             List<FinantialDocument> documents) {
+
+        checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
 
         //Filter only anulled or closed documents
         documents = documents.stream().filter(x -> x.isAnnulled() || x.isClosed()).collect(Collectors.toList());
