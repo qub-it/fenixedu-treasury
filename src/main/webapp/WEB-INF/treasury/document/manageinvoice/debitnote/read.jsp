@@ -277,7 +277,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 	            </a>
             </li>
 		    
-            <c:if test="${debitNote.openAmount > 0  }">
+            <c:if test="${debitNote.isClosed() && debitNote.openAmount > 0  }">
                     <li>
             
                     <a class="" href="#" data-toggle="modal" data-target="#calculateInterestValueModal"> <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> <spring:message

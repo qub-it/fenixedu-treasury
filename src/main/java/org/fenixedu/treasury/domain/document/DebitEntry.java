@@ -282,7 +282,7 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public boolean isEventAnnuled() {
-        return (getFinantialDocument() != null && getFinantialDocument().isAnnulled()) || getEventAnnuled();
+        return isAnnulled() || getEventAnnuled();
     }
 
     @Override
@@ -346,7 +346,7 @@ public class DebitEntry extends DebitEntry_Base {
         if (product == null) {
             throw new TreasuryDomainException("error.SettlementNote.need.interest.product");
         }
-
+        
         FinantialInstitution finantialInstitution = this.getDebtAccount().getFinantialInstitution();
         Vat vat = Vat.findActiveUnique(product.getVatType(), finantialInstitution, when).orElse(null);
 

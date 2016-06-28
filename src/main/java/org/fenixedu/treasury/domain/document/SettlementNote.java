@@ -383,7 +383,7 @@ public class SettlementNote extends SettlementNote_Base {
     }
 
     @Override
-    public void closeDocument() {
+    public void closeDocument(boolean markDocumentToExport) {
 
         //Validate the settlement entries can be used, since multiple entries to the same settlement Note
         for (SettlementEntry settlementEntry : getSettlemetEntriesSet()) {
@@ -399,7 +399,8 @@ public class SettlementNote extends SettlementNote_Base {
         if (this.getAdvancedPaymentCreditNote() != null) {
             this.getAdvancedPaymentCreditNote().closeDocument();
         }
-        super.closeDocument();
+        
+        super.closeDocument(markDocumentToExport);
     }
 
     public BigDecimal getTotalCreditAmount() {

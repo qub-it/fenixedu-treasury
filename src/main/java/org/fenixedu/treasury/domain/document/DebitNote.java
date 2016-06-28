@@ -222,39 +222,6 @@ public class DebitNote extends DebitNote_Base {
         return interest;
     }
 
-//    @Atomic
-//    private void anullDocument(boolean freeEntries, String reason) {
-//        if (this.hasValidSettlementEntries()) {
-//            throw new TreasuryDomainException("error.DebitNote.cannot.delete.has.settlemententries");
-//        }
-//        if (this.getDocumentNumberSeries().getSeries().getCertificated()) {
-//            this.anullDebitNoteWithCreditNote(reason);
-//        } else {
-//            if (this.isPreparing() || this.isClosed()) {
-//                if (this.getDocumentNumberSeries().getSeries().getCertificated()) {
-//                    throw new TreasuryDomainException("error.FinantialDocument.certificatedseris.cannot.anulled");
-//                }
-//                
-//                setState(FinantialDocumentStateType.ANNULED);
-//                if (Authenticate.getUser() != null) {
-//                    setAnnulledReason(reason + " - [" + Authenticate.getUser().getUsername() + "]"
-//                            + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
-//                } else {
-//                    setAnnulledReason(reason + " - " + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
-//                }
-//                
-//                //If we want to free entries and the document is in "Preparing" state, the Entries will become "free"
-//                if (freeEntries && this.isPreparing()) {
-//                    this.getFinantialDocumentEntriesSet().forEach(x -> this.removeFinantialDocumentEntries(x));
-//                }
-//
-//                this.markDocumentToExport();
-//            }
-//            checkRules();
-//        }
-//    }
-//
-
     @Atomic
     public void anullDebitNoteWithCreditNote(String reason, boolean anullGeneratedInterests) {
 
@@ -431,4 +398,5 @@ public class DebitNote extends DebitNote_Base {
         }
         return interestDebitNote;
     }
+    
 }

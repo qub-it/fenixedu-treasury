@@ -246,7 +246,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     }
 
     @Atomic
-    public void closeDocument() {
+    public final void closeDocument() {
         closeDocument(true);
     }
 
@@ -269,6 +269,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
                     "error.FinantialDocumentState.invalid.state.change.request"));
 
         }
+        
         checkRules();
     }
 
