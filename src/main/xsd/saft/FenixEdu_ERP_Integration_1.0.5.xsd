@@ -615,6 +615,10 @@
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element ref="PaymentRefNo" />
+										
+										<!--  Extension -->
+										<xs:element name="FinantialTransactionReference" type="xs:string" />
+										
 										<xs:element minOccurs="0" ref="Period" />
 										<xs:element minOccurs="0" ref="TransactionID" />
 										<xs:element ref="TransactionDate" />
@@ -622,6 +626,20 @@
 										
 										<!--  Extension -->
                                         <xs:element name="SettlementType" type="SAFTPTSettlementType" />
+										
+										<!--  Extension -->
+										<xs:element name="ReimbursementProcess" minOccurs="0" maxOccurs="1">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ERPId" type="xs:string" minOccurs="0" maxOccurs="1" />
+													<xs:element name="Status" type="ReimbursementStatusType" minOccurs="1" maxOccurs="1" />
+													<xs:element name="StatusId" type="xs:string" minOccurs="0" maxOccurs="1" />
+													<xs:element name="StatusDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+													<xs:element name="StatusRemarks" type="xs:string" minOccurs="0" maxOccurs="1" />
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										
 										<xs:element minOccurs="0" ref="Description" />
 										<xs:element minOccurs="0" ref="SystemID" />
 										<xs:element name="DocumentStatus">
@@ -644,6 +662,8 @@
 										<xs:element ref="SystemEntryDate" />
 										<xs:element ref="CustomerID" />
 										<xs:element minOccurs="0" ref="PayorCustomerID" />
+
+										<!--  Extension -->
 <!--                                    QUB-IT This is used for registering an AdvancedPayment for Credit on this payment -->
                                         <xs:element maxOccurs="1" minOccurs="0" name="AdvancedPaymentCredit">
                                                         <xs:complexType>
@@ -654,6 +674,7 @@
                                                             </xs:sequence>
                                                         </xs:complexType>
                                         </xs:element>
+
 										<xs:element maxOccurs="unbounded" name="Line">
 											<xs:complexType>
 												<xs:sequence>
@@ -768,6 +789,8 @@
 			<xs:element ref="PaymentMechanism" />
 			<xs:element name="PaymentAmount" type="SAFmonetaryType" />
 			<xs:element name="PaymentDate" type="SAFdateType" />
+			<!-- Extension -->
+			<xs:element name="PaymentMethodReference" type="xs:string" />
 		</xs:sequence>
 	</xs:complexType>
 	<!-- Estrutura de Taxa dos recibos -->
@@ -1671,6 +1694,23 @@
 			<xs:pattern
 				value="AD|AE|AF|AG|AI|AL|AM|AO|AQ|AR|AS|AT|AU|AW|AX|AZ|BA|BB|BD|BE|BF|BG|BH|BI|BJ|BL|BM|BN|BO|BQ|BR|BS|BT|BV|BW|BY|BZ|CA|CC|CD|CF|CG|CH|CI|CK|CL|CM|CN|CO|CR|CU|CV|CW|CX|CY|CZ|DE|DJ|DK|DM|DO|DZ|EC|EE|EG|EH|ER|ES|ET|FI|FJ|FK|FM|FO|FR|GA|GB|GD|GE|GF|GG|GH|GI|GL|GM|GN|GP|GQ|GR|GS|GT|GU|GW|GY|HK|HM|HN|HR|HT|HU|ID|IE|IL|IM|IN|IO|IQ|IR|IS|IT|JE|JM|JO|JP|KE|KG|KH|KI|KM|KN|KP|KR|KW|KY|KZ|LA|LB|LC|LI|LK|LR|LS|LT|LU|LV|LY|MA|MC|MD|ME|MF|MG|MH|MK|ML|MM|MN|MO|MP|MQ|MR|MS|MT|MU|MV|MW|MX|MY|MZ|NA|NC|NE|NF|NG|NI|NL|NO|NP|NR|NU|NZ|OM|PA|PE|PF|PG|PH|PK|PL|PM|PN|PR|PS|PT|PW|PY|QA|RE|RO|RS|RU|RW|SA|SB|SC|SD|SE|SG|SH|SI|SJ|SK|SL|SM|SN|SO|SR|SS|ST|SV|SX|SY|SZ|TC|TD|TF|TG|TH|TJ|TK|TL|TM|TN|TO|TR|TT|TV|TW|TZ|UA|UG|UM|US|UY|UZ|VA|VC|VE|VG|VI|VN|VU|WF|WS|XK|YE|YT|ZA|ZM|ZW|Desconhecido|" />
 			<xs:minLength value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<!-- Extension -->
+	<xs:simpleType name="ReimbursementStatusType">
+		<xs:annotation>
+			<xs:documentation>
+				Estado do reembolso representado por um processo de reembolso no ERP:
+				* PENDING : Pendente de aceitação
+				* ANNULED : Anulado ou rejeitado
+				* CONCLUDED: Concluído
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="PENDING" />
+			<xs:enumeration value="ANNULED" />
+			<xs:enumeration value="CONCLUDED" />
 		</xs:restriction>
 	</xs:simpleType>
 </xs:schema>
