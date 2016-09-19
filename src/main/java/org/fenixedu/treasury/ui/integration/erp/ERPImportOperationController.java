@@ -182,11 +182,13 @@ public class ERPImportOperationController extends TreasuryBaseController {
 
     @RequestMapping(value = _CREATE_URI, method = RequestMethod.GET)
     public String create(Model model) {
+        model.addAttribute("finantialInstitutionList", FinantialInstitution.findAll().collect(Collectors.toList()));
         return "treasury/integration/erp/erpimportoperation/create";
     }
 
     @RequestMapping(value = _CREATE_URI, method = RequestMethod.POST)
-    public String create(final FinantialInstitution finantialInstitution,
+    public String create(
+            @RequestParam(value = "finantialinstitution", required = true) final FinantialInstitution finantialInstitution,
             @RequestParam(value = "file", required = true) MultipartFile file, Model model,
             RedirectAttributes redirectAttributes) {
         try {
