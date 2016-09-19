@@ -33,7 +33,7 @@ import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.document.Series;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.administration.managefinantialinstitution.FinantialInstitutionController;
 import org.fenixedu.treasury.util.Constants;
@@ -80,8 +80,7 @@ public class ERPConfigurationController extends TreasuryBaseController {
 
     @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") ERPConfiguration eRPConfiguration, Model model) {
-        model.addAttribute(
-                "ERPConfiguration_paymentsIntegrationSeries_options",
+        model.addAttribute("ERPConfiguration_paymentsIntegrationSeries_options",
                 Series.find(eRPConfiguration.getFinantialInstitution()).stream().filter(x -> x.getExternSeries() == true)
                         .filter(x -> x.getActive()).collect(Collectors.toList()));
         setERPConfiguration(eRPConfiguration, model);
@@ -91,17 +90,18 @@ public class ERPConfigurationController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(
-            @PathVariable("oid") ERPConfiguration eRPConfiguration,
+    public String update(@PathVariable("oid") ERPConfiguration eRPConfiguration,
             @RequestParam(value = "active", required = false) boolean active,
             @RequestParam(value = "exportannulledrelateddocuments", required = false) boolean exportAnnulledRelatedDocuments,
-            @RequestParam(value = "exportonlyrelateddocumentsperexport", required = false) boolean exportOnlyRelatedDocumentsPerExport,
-            @RequestParam(value = "externalurl", required = false) String externalURL, @RequestParam(value = "username",
-                    required = false) String username, @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "paymentsintegrationseries", required = false) Series paymentsIntegrationSeries, @RequestParam(
-                    value = "implementationclassname", required = false) String implementationClassName, @RequestParam(
-                    value = "maxsizebytestoexportonlineModel", required = false) Long maxSizeBytesToExportOnline, Model model,
-            RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "exportonlyrelateddocumentsperexport",
+                    required = false) boolean exportOnlyRelatedDocumentsPerExport,
+            @RequestParam(value = "externalurl", required = false) String externalURL,
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "paymentsintegrationseries", required = false) Series paymentsIntegrationSeries,
+            @RequestParam(value = "implementationclassname", required = false) String implementationClassName,
+            @RequestParam(value = "maxsizebytestoexportonlineModel", required = false) Long maxSizeBytesToExportOnline,
+            Model model, RedirectAttributes redirectAttributes) {
 
         setERPConfiguration(eRPConfiguration, model);
 
@@ -134,7 +134,9 @@ public class ERPConfigurationController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         setERPConfiguration(eRPConfiguration, model);
         try {
-            ERPExporter.testExportToIntegration(eRPConfiguration.getFinantialInstitution());
+            final IERPExporter erpExporter = eRPConfiguration.getERPExternalServiceImplementation().getERPExporter();
+
+            erpExporter.testExportToIntegration(eRPConfiguration.getFinantialInstitution());
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.sucess.erpconfiguration.test"), model);
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);

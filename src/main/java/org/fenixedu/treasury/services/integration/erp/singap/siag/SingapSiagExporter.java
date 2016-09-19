@@ -25,7 +25,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FenixEdu Treasury.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fenixedu.treasury.services.integration.erp;
+package org.fenixedu.treasury.services.integration.erp.singap.siag;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,28 +56,6 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import oecd.standardauditfile_tax.pt_1.AddressStructure;
-import oecd.standardauditfile_tax.pt_1.AddressStructurePT;
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-import oecd.standardauditfile_tax.pt_1.Header;
-import oecd.standardauditfile_tax.pt_1.MovementTax;
-import oecd.standardauditfile_tax.pt_1.OrderReferences;
-import oecd.standardauditfile_tax.pt_1.PaymentMethod;
-import oecd.standardauditfile_tax.pt_1.SAFTPTMovementTaxType;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSettlementType;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSourceBilling;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSourcePayment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.AdvancedPaymentCredit;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.Line.SourceDocumentID;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.AdvancedPayment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
-import oecd.standardauditfile_tax.pt_1.Tax;
-import oecd.standardauditfile_tax.pt_1.TaxTableEntry;
-
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.AdhocCustomer;
 import org.fenixedu.treasury.domain.Customer;
@@ -100,6 +78,32 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.OperationFile;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.AddressStructure;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.AddressStructurePT;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.Header;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.MovementTax;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.OrderReferences;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.PaymentMethod;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTMovementTaxType;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTSettlementType;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTSourceBilling;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTSourcePayment;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments.Payment;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments.Payment.AdvancedPaymentCredit;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.Payments.Payment.Line.SourceDocumentID;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.AdvancedPayment;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.Tax;
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.TaxTableEntry;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
+import org.fenixedu.treasury.services.integration.erp.SaftConfig;
+import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.SIAGExternalService;
+import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.SINGAPWCFExternalService;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationInput;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
@@ -108,12 +112,13 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.Atomic.TxMode;
-
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceClientConfiguration;
+import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceConfiguration;
+
+import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 
 // ******************************************************************************************************************************
 // http://info.portaldasfinancas.gov.pt/NR/rdonlyres/3B4FECDB-2380-45D7-9019-ABCA80A7E99E/0/Comunicacao_Dados_Doc_Transporte.pdf
@@ -124,9 +129,9 @@ import com.google.common.collect.Lists;
 // Versão 1.0.3
 // https://info.portaldasfinancas.gov.pt/NR/rdonlyres/BA9FB096-D482-445D-A5DB-C05B1980F7D7/0/Portaria_274_2013_21_09.pdf
 // ******************************************************************************************************************************
-public class ERPExporter {
+public class SingapSiagExporter implements IERPExporter {
 
-    private static Logger logger = LoggerFactory.getLogger(ERPExporter.class);
+    private static Logger logger = LoggerFactory.getLogger(SingapSiagExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
 
     private String generateERPFile(FinantialInstitution institution, DateTime fromDate, DateTime toDate,
@@ -146,23 +151,23 @@ public class ERPExporter {
         auditFile.setHeader(header);
 
         // Build Master-Files
-        oecd.standardauditfile_tax.pt_1.AuditFile.MasterFiles masterFiles =
-                new oecd.standardauditfile_tax.pt_1.AuditFile.MasterFiles();
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile.MasterFiles masterFiles =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile.MasterFiles();
 
         // SetMasterFiles
         auditFile.setMasterFiles(masterFiles);
 
         // Build SAFT-MovementOfGoods (Customer and Products are built inside)
         // ProductsTable (Chapter 2.4 in AuditFile)
-        List<oecd.standardauditfile_tax.pt_1.Product> productList = masterFiles.getProduct();
-        Map<String, oecd.standardauditfile_tax.pt_1.Product> productMap =
-                new HashMap<String, oecd.standardauditfile_tax.pt_1.Product>();
+        List<org.fenixedu.treasury.generated.sources.saft.singap.siag.Product> productList = masterFiles.getProduct();
+        Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Product> productMap =
+                new HashMap<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Product>();
         Set<String> productCodes = new HashSet<String>();
 
         // ClientsTable (Chapter 2.2 in AuditFile)
-        List<oecd.standardauditfile_tax.pt_1.Customer> customerList = masterFiles.getCustomer();
-        Map<String, oecd.standardauditfile_tax.pt_1.Customer> customerMap =
-                new HashMap<String, oecd.standardauditfile_tax.pt_1.Customer>();
+        List<org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer> customerList = masterFiles.getCustomer();
+        Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer> customerMap =
+                new HashMap<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer>();
 
         // Readd All  Clients if needed
         if (generateAllCustomers) {
@@ -179,14 +184,15 @@ public class ERPExporter {
 
             int i = 0;
             for (Customer customer : allCustomers) {
-                oecd.standardauditfile_tax.pt_1.Customer saftCustomer = this.convertCustomerToSAFTCustomer(customer);
+                org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer saftCustomer =
+                        this.convertCustomerToSAFTCustomer(customer);
                 // information.setCurrentCounter(information.getCurrentCounter()
                 // + 1);
                 customerMap.put(saftCustomer.getCustomerID(), saftCustomer);
                 i++;
                 if (i % 100 == 0) {
-                    logger.info("Processing " + i + "/" + allCustomers.size() + " Customers in Institution "
-                            + institution.getCode());
+                    logger.info(
+                            "Processing " + i + "/" + allCustomers.size() + " Customers in Institution " + institution.getCode());
                 }
             }
         }
@@ -198,15 +204,16 @@ public class ERPExporter {
             int i = 0;
             for (Product product : allProducts) {
                 if (!productCodes.contains(product.getCode())) {
-                    oecd.standardauditfile_tax.pt_1.Product saftProduct = this.convertProductToSAFTProduct(product);
+                    org.fenixedu.treasury.generated.sources.saft.singap.siag.Product saftProduct =
+                            this.convertProductToSAFTProduct(product);
                     productCodes.add(product.getCode());
                     productMap.put(saftProduct.getProductCode(), saftProduct);
                 }
 
                 i++;
                 if (i % 100 == 0) {
-                    logger.info("Processing " + i + "/" + allProducts.size() + " Products in Institution "
-                            + institution.getCode());
+                    logger.info(
+                            "Processing " + i + "/" + allProducts.size() + " Products in Institution " + institution.getCode());
                 }
 
                 // information.setCurrentCounter(information.getCurrentCounter()
@@ -219,7 +226,8 @@ public class ERPExporter {
         }
 
         // TaxTable (Chapter 2.5 in AuditFile)
-        oecd.standardauditfile_tax.pt_1.TaxTable taxTable = new oecd.standardauditfile_tax.pt_1.TaxTable();
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.TaxTable taxTable =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.TaxTable();
         masterFiles.setTaxTable(taxTable);
 
         for (Vat vat : institution.getVatsSet()) {
@@ -229,7 +237,8 @@ public class ERPExporter {
         }
 
         // Set MovementOfGoods in SourceDocuments(AuditFile)
-        oecd.standardauditfile_tax.pt_1.SourceDocuments sourceDocuments = new oecd.standardauditfile_tax.pt_1.SourceDocuments();
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments sourceDocuments =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments();
         auditFile.setSourceDocuments(sourceDocuments);
 
         SourceDocuments.SalesInvoices invoices = new SourceDocuments.SalesInvoices();
@@ -308,7 +317,6 @@ public class ERPExporter {
                         totalDebitOfPaymentsDocuments =
                                 totalDebitOfPaymentsDocuments.add(((SettlementNote) document).getTotalDebitAmount());
                     }
-//                    i++;
                 } catch (Exception ex) {
                     logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
                     throw ex;
@@ -328,12 +336,12 @@ public class ERPExporter {
         sourceDocuments.setPayments(paymentsDocuments);
 
         // Update the Customer Table in SAFT
-        for (oecd.standardauditfile_tax.pt_1.Customer customer : customerMap.values()) {
+        for (org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer customer : customerMap.values()) {
             customerList.add(customer);
         }
 
         // Update the Product Table in SAFT
-        for (oecd.standardauditfile_tax.pt_1.Product product : productMap.values()) {
+        for (org.fenixedu.treasury.generated.sources.saft.singap.siag.Product product : productMap.values()) {
             productList.add(product);
         }
 
@@ -347,12 +355,12 @@ public class ERPExporter {
     }
 
     private Payment convertToSAFTPaymentDocument(SettlementNote document,
-            Map<String, oecd.standardauditfile_tax.pt_1.Customer> baseCustomers,
-            Map<String, oecd.standardauditfile_tax.pt_1.Product> productMap) {
+            Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer> baseCustomers,
+            Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Product> productMap) {
         Payment payment = new Payment();
 
         // Find the Customer in BaseCustomers
-        oecd.standardauditfile_tax.pt_1.Customer customer = null;
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer customer = null;
 
         if (baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
             customer = baseCustomers.get(document.getDebtAccount().getCustomer().getCode());
@@ -421,10 +429,10 @@ public class ERPExporter {
                 for (PaymentEntry paymentEntry : document.getPaymentEntriesSet()) {
                     PaymentMethod method = new PaymentMethod();
                     method.setPaymentAmount(paymentEntry.getPayedAmount().setScale(2, RoundingMode.HALF_EVEN));
-                    
+
                     /* ANIL: 2015/10/20 converted from dateTime to Date */
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
-                    
+
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(paymentEntry.getPaymentMethod()));
                     payment.getPaymentMethod().add(method);
                 }
@@ -435,7 +443,6 @@ public class ERPExporter {
                     PaymentMethod method = new PaymentMethod();
                     method.setPaymentAmount(reimbursmentEntry.getReimbursedAmount().setScale(2, RoundingMode.HALF_EVEN));
 
-                    
                     /* ANIL: 2015/10/20 converted from dateTime to Date */
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
 
@@ -471,8 +478,8 @@ public class ERPExporter {
                 sourceDocument.setOriginatingON(settlementEntry.getInvoiceEntry().getFinantialDocument().getUiDocumentNumber());
 
                 /* ANIL: 2015/10/20 converted from dateTime to Date */
-                sourceDocument.setInvoiceDate(convertToXMLDate(dataTypeFactory, settlementEntry.getInvoiceEntry()
-                        .getFinantialDocument().getDocumentDate()));
+                sourceDocument.setInvoiceDate(convertToXMLDate(dataTypeFactory,
+                        settlementEntry.getInvoiceEntry().getFinantialDocument().getDocumentDate()));
 
                 sourceDocument.setDescription(settlementEntry.getDescription());
                 line.getSourceDocumentID().add(sourceDocument);
@@ -494,8 +501,8 @@ public class ERPExporter {
                         document.getAdvancedPaymentCreditNote().getTotalAmount().setScale(2, RoundingMode.HALF_EVEN));
                 payment.getAdvancedPaymentCredit()
                         .setOriginatingON(document.getAdvancedPaymentCreditNote().getUiDocumentNumber());
-                payment.getAdvancedPaymentCredit().setDescription(
-                        document.getAdvancedPaymentCreditNote().getDocumentObservations());
+                payment.getAdvancedPaymentCredit()
+                        .setDescription(document.getAdvancedPaymentCreditNote().getDocumentObservations());
             }
 
             docTotals.setGrossTotal(document.getTotalAmount().setScale(2, RoundingMode.HALF_EVEN));
@@ -531,10 +538,10 @@ public class ERPExporter {
                 documentDate.getDayOfMonth(), documentDate.getHourOfDay(), documentDate.getMinuteOfHour(),
                 documentDate.getSecondOfMinute(), 0, DatatypeConstants.FIELD_UNDEFINED);
     }
-    
+
     private XMLGregorianCalendar convertToXMLDate(DatatypeFactory dataTypeFactory, DateTime date) {
-        return dataTypeFactory.newXMLGregorianCalendarDate(date.getYear(), date.getMonthOfYear(),
-                date.getDayOfMonth(), DatatypeConstants.FIELD_UNDEFINED);
+        return dataTypeFactory.newXMLGregorianCalendarDate(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(),
+                DatatypeConstants.FIELD_UNDEFINED);
     }
 
     private String convertToSAFTPaymentMechanism(org.fenixedu.treasury.domain.PaymentMethod paymentMethod) {
@@ -548,12 +555,12 @@ public class ERPExporter {
     }
 
     private WorkDocument convertToSAFTWorkDocument(Invoice document,
-            Map<String, oecd.standardauditfile_tax.pt_1.Customer> baseCustomers,
-            Map<String, oecd.standardauditfile_tax.pt_1.Product> baseProducts) {
+            Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer> baseCustomers,
+            Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Product> baseProducts) {
         WorkDocument workDocument = new WorkDocument();
 
         // Find the Customer in BaseCustomers
-        oecd.standardauditfile_tax.pt_1.Customer customer = null;
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer customer = null;
 
         if (baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
             customer = baseCustomers.get(document.getDebtAccount().getCustomer().getCode());
@@ -563,11 +570,12 @@ public class ERPExporter {
             baseCustomers.put(customer.getCustomerID(), customer);
         }
 
-        if (document instanceof AdvancedPaymentCreditNote && ((AdvancedPaymentCreditNote) document).getAdvancedPaymentSettlementNote() != null) {
+        if (document instanceof AdvancedPaymentCreditNote
+                && ((AdvancedPaymentCreditNote) document).getAdvancedPaymentSettlementNote() != null) {
             AdvancedPayment advancedPayment = new AdvancedPayment();
             advancedPayment.setDescription("");
-            advancedPayment.setOriginatingON(((AdvancedPaymentCreditNote) document).getAdvancedPaymentSettlementNote()
-                    .getUiDocumentNumber());
+            advancedPayment.setOriginatingON(
+                    ((AdvancedPaymentCreditNote) document).getAdvancedPaymentSettlementNote().getUiDocumentNumber());
             workDocument.setAdvancedPayment(advancedPayment);
         }
 
@@ -577,7 +585,7 @@ public class ERPExporter {
                 //do nothing
             } else {
                 // If not found, create a new one and add it to baseCustomers
-                oecd.standardauditfile_tax.pt_1.Customer payorCustomer =
+                org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer payorCustomer =
                         convertCustomerToSAFTCustomer(document.getPayorDebtAccount().getCustomer());
                 baseCustomers.put(payorCustomer.getCustomerID(), payorCustomer);
             }
@@ -645,8 +653,8 @@ public class ERPExporter {
                     new SourceDocuments.WorkingDocuments.WorkDocument.DocumentTotals();
             docTotals.setGrossTotal(document.getTotalAmount().setScale(2, RoundingMode.HALF_EVEN));
             docTotals.setNetTotal(document.getTotalNetAmount().setScale(2, RoundingMode.HALF_EVEN));
-            docTotals.setTaxPayable(document.getTotalAmount().subtract(document.getTotalNetAmount())
-                    .setScale(2, RoundingMode.HALF_EVEN));
+            docTotals.setTaxPayable(
+                    document.getTotalAmount().subtract(document.getTotalNetAmount()).setScale(2, RoundingMode.HALF_EVEN));
             workDocument.setDocumentTotals(docTotals);
 
             // WorkType
@@ -678,14 +686,14 @@ public class ERPExporter {
             e.printStackTrace();
         }
 
-        List<oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line> productLines =
+        List<org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line> productLines =
                 workDocument.getLine();
 
         // Process individual
         BigInteger i = BigInteger.ONE;
         for (FinantialDocumentEntry docLine : document.getFinantialDocumentEntriesSet()) {
             InvoiceEntry orderNoteLine = (InvoiceEntry) docLine;
-            oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line line =
+            org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line line =
                     convertToSAFTWorkDocumentLine(orderNoteLine, baseProducts);
 
             // LineNumber
@@ -699,9 +707,9 @@ public class ERPExporter {
         return workDocument;
     }
 
-    private oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line convertToSAFTWorkDocumentLine(
-            InvoiceEntry entry, Map<String, oecd.standardauditfile_tax.pt_1.Product> baseProducts) {
-        oecd.standardauditfile_tax.pt_1.Product currentProduct = null;
+    private org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line convertToSAFTWorkDocumentLine(
+            InvoiceEntry entry, Map<String, org.fenixedu.treasury.generated.sources.saft.singap.siag.Product> baseProducts) {
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.Product currentProduct = null;
 
         Product product = entry.getProduct();
 
@@ -724,8 +732,8 @@ public class ERPExporter {
             e.printStackTrace();
         }
 
-        oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line line =
-                new oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument.Line();
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line line =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.WorkingDocuments.WorkDocument.Line();
 
         if (entry.isCreditNoteEntry()) {
             line.setCreditAmount(entry.getAmount().setScale(2, RoundingMode.HALF_EVEN));
@@ -795,8 +803,8 @@ public class ERPExporter {
         if (Constants.isEqual(line.getTax().getTaxPercentage(), BigDecimal.ZERO)
                 || (line.getTax().getTaxAmount() != null && Constants.isEqual(line.getTax().getTaxAmount(), BigDecimal.ZERO))) {
             if (product.getVatExemptionReason() != null) {
-                line.setTaxExemptionReason(product.getVatExemptionReason().getCode() + "-"
-                        + product.getVatExemptionReason().getName().getContent());
+                line.setTaxExemptionReason(
+                        product.getVatExemptionReason().getCode() + "-" + product.getVatExemptionReason().getName().getContent());
             } else {
                 // HACK : DEFAULT
                 line.setTaxExemptionReason(BundleUtil.getString(Constants.BUNDLE, "warning.ERPExporter.vat.exemption.unknown"));
@@ -813,7 +821,7 @@ public class ERPExporter {
 
     private Tax getSAFTWorkingDocumentsTax(Product product, final InvoiceEntry entry) {
         Vat vat = entry.getVat();
-        
+
         Tax tax = new Tax();
 
         // VatType vat = product.getVatType();
@@ -827,7 +835,7 @@ public class ERPExporter {
 
         // Tax-TaxType
         tax.setTaxType("IVA");
-        
+
         // TODO: Fill with vat amount
         //tax.setTaxAmount(entry.getVatAmount());
 
@@ -874,10 +882,10 @@ public class ERPExporter {
             // CompanyAddress
             AddressStructurePT companyAddress = null;
             //TODOJN Locale por resolver
-            companyAddress =
-                    convertAddressToAddressPT(finantialInstitution.getAddress(), finantialInstitution.getZipCode(),
-                            finantialInstitution.getMunicipality() != null ? finantialInstitution.getMunicipality()
-                                    .getLocalizedName(new Locale("pt")) : "---", finantialInstitution.getAddress());
+            companyAddress = convertAddressToAddressPT(finantialInstitution.getAddress(), finantialInstitution.getZipCode(),
+                    finantialInstitution.getMunicipality() != null ? finantialInstitution.getMunicipality()
+                            .getLocalizedName(new Locale("pt")) : "---",
+                    finantialInstitution.getAddress());
             header.setCompanyAddress(companyAddress);
 
             // CompanyID
@@ -994,7 +1002,8 @@ public class ERPExporter {
         }
     }
 
-    private AddressStructurePT convertAddressToAddressPT(String addressDetail, String zipCode, String zipCodeRegion, String street) {
+    private AddressStructurePT convertAddressToAddressPT(String addressDetail, String zipCode, String zipCodeRegion,
+            String street) {
         AddressStructurePT companyAddress;
         companyAddress = new AddressStructurePT();
         companyAddress.setCountry("PT");
@@ -1035,9 +1044,8 @@ public class ERPExporter {
                 md.update(("SALTING WITH QUB:" + xml).getBytes("Windows-1252"));
                 byte[] output = md.digest();
                 String digestAscii = bytesToHex(output);
-                xml =
-                        xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with Windows-1252 encode): " + digestAscii
-                                + " -->\n";
+                xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with Windows-1252 encode): " + digestAscii
+                        + " -->\n";
             } catch (Exception ex) {
 
             }
@@ -1059,8 +1067,9 @@ public class ERPExporter {
         return buf.toString();
     }
 
-    private oecd.standardauditfile_tax.pt_1.Customer convertCustomerToSAFTCustomer(Customer customer) {
-        oecd.standardauditfile_tax.pt_1.Customer c = new oecd.standardauditfile_tax.pt_1.Customer();
+    private org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer convertCustomerToSAFTCustomer(Customer customer) {
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer c =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.Customer();
 
         // AccountID
         /*
@@ -1088,7 +1097,7 @@ public class ERPExporter {
         // PhysicalAddress addr = new PhysicalAddress();
         c.setBillingAddress(convertAddressToSAFTAddress(customer.getCountryCode(), customer.getAddress(), customer.getZipCode(),
                 customer.getDistrictSubdivision(), customer.getAddress()));
-        // }
+                // }
 
         // CompanyName
         c.setCompanyName(customer.getName());
@@ -1164,8 +1173,9 @@ public class ERPExporter {
         return companyAddress;
     }
 
-    private oecd.standardauditfile_tax.pt_1.Product convertProductToSAFTProduct(Product product) {
-        oecd.standardauditfile_tax.pt_1.Product p = new oecd.standardauditfile_tax.pt_1.Product();
+    private org.fenixedu.treasury.generated.sources.saft.singap.siag.Product convertProductToSAFTProduct(Product product) {
+        org.fenixedu.treasury.generated.sources.saft.singap.siag.Product p =
+                new org.fenixedu.treasury.generated.sources.saft.singap.siag.Product();
 
         // ProductCode
         p.setProductCode(product.getCode());
@@ -1226,17 +1236,17 @@ public class ERPExporter {
         return tax;
     }
 
-    public static ERPExportOperation exportFullToIntegration(FinantialInstitution institution, DateTime fromDate,
-            DateTime toDate, String username, Boolean includeMovements) {
+    // SERVICE
+    public ERPExportOperation exportFullToIntegration(FinantialInstitution institution, DateTime fromDate, DateTime toDate,
+            String username, Boolean includeMovements) {
 
         ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
         try {
-            ERPExporter saftExporter = new ERPExporter();
+            SingapSiagExporter saftExporter = new SingapSiagExporter();
             List<FinantialDocument> documents =
                     new ArrayList<FinantialDocument>(institution.getExportableDocuments(fromDate, toDate));
             logger.info("Collecting " + documents.size() + " documents to export to institution " + institution.getCode());
-            UnaryOperator<AuditFile> auditFilePreProcess =
-                    institution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+            UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(institution);
             String xml = saftExporter.generateERPFile(institution, fromDate, toDate, documents, true, true, auditFilePreProcess);
 
             writeContentToExportOperation(xml, operation);
@@ -1252,7 +1262,8 @@ public class ERPExporter {
         return operation;
     }
 
-    public static void requestPendingDocumentStatus(FinantialInstitution institution) {
+    @Override
+    public void requestPendingDocumentStatus(final FinantialInstitution institution) {
         ERPConfiguration erpIntegrationConfiguration = institution.getErpIntegrationConfiguration();
         if (erpIntegrationConfiguration == null) {
             throw new TreasuryDomainException("error.ERPExporter.invalid.erp.configuration");
@@ -1263,22 +1274,18 @@ public class ERPExporter {
         }
         IERPExternalService service = erpIntegrationConfiguration.getERPExternalServiceImplementation();
 
-        List<String> documentNumbers =
-                institution.getFinantialDocumentsPendingForExportationSet().stream().map(doc -> doc.getUiDocumentNumber())
-                        .collect(Collectors.toList());
+        List<String> documentNumbers = institution.getFinantialDocumentsPendingForExportationSet().stream()
+                .map(doc -> doc.getUiDocumentNumber()).collect(Collectors.toList());
         List<DocumentStatusWS> integrationStatusFor =
                 service.getIntegrationStatusFor(institution.getFiscalNumber(), documentNumbers);
         for (DocumentStatusWS documentStatus : integrationStatusFor) {
             if (documentStatus.isIntegratedWithSuccess()) {
-                String message = BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.sucess.integrating.document", documentStatus.getDocumentNumber());
 //                operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.sucess.integrating.document",
 //                        documentStatus.getDocumentNumber()));
-                FinantialDocument document =
-                        institution.getFinantialDocumentsPendingForExportationSet().stream()
-                                .filter(x -> x.getUiDocumentNumber().equals(documentStatus.getDocumentNumber())).findFirst()
-                                .orElse(null);
+                FinantialDocument document = institution.getFinantialDocumentsPendingForExportationSet().stream()
+                        .filter(x -> x.getUiDocumentNumber().equals(documentStatus.getDocumentNumber())).findFirst().orElse(null);
                 if (document != null) {
-                    document.clearDocumentToExport(message);
+                    document.clearDocumentToExport();
                 } else {
 //                    success = false;
 //                    operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
@@ -1303,7 +1310,7 @@ public class ERPExporter {
 
     }
 
-    private static boolean sendDocumentsInformationToIntegration(FinantialInstitution institution, ERPExportOperation operation)
+    private boolean sendDocumentsInformationToIntegration(FinantialInstitution institution, ERPExportOperation operation)
             throws MalformedURLException {
         boolean success = true;
         ERPConfiguration erpIntegrationConfiguration = institution.getErpIntegrationConfiguration();
@@ -1331,26 +1338,24 @@ public class ERPExporter {
                     FinantialDocument document =
                             FinantialDocument.findByUiDocumentNumber(institution, status.getDocumentNumber());
                     if (document != null) {
-                        final String message = BundleUtil.getString(Constants.BUNDLE,
-                                "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
-                        operation.appendInfoLog(message);
-                        document.clearDocumentToExport(message);
+                        operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
+                                "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber()));
+                        document.clearDocumentToExport();
                     } else {
                         success = false;
-                        operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
-                                "info.ERPExporter.error.integrating.document", status.getDocumentNumber(),
-                                status.getErrorDescription()));
-                        operation.appendErrorLog(BundleUtil.getString(Constants.BUNDLE,
-                                "info.ERPExporter.error.integrating.document", status.getDocumentNumber(),
-                                status.getErrorDescription()));
+                        operation.appendInfoLog(
+                                BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
+                                        status.getDocumentNumber(), status.getErrorDescription()));
+                        operation.appendErrorLog(
+                                BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
+                                        status.getDocumentNumber(), status.getErrorDescription()));
                     }
                 } else {
                     success = false;
                     operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
                             status.getDocumentNumber(), status.getErrorDescription()));
-                    operation.appendErrorLog(BundleUtil.getString(Constants.BUNDLE,
-                            "info.ERPExporter.error.integrating.document", status.getDocumentNumber(),
-                            status.getErrorDescription()));
+                    operation.appendErrorLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
+                            status.getDocumentNumber(), status.getErrorDescription()));
 
                 }
 //                }
@@ -1363,9 +1368,8 @@ public class ERPExporter {
             try {
                 String sharedURI = "";
                 if (institution.getErpIntegrationConfiguration().getExternalURL().startsWith("file://")) {
-                    sharedURI =
-                            institution.getErpIntegrationConfiguration().getExternalURL() + "\\"
-                                    + operation.getFile().getFilename();
+                    sharedURI = institution.getErpIntegrationConfiguration().getExternalURL() + "\\"
+                            + operation.getFile().getFilename();
                     institution.getErpIntegrationConfiguration().getExternalURL();
                     File destFile = new File(sharedURI);
 
@@ -1389,7 +1393,7 @@ public class ERPExporter {
         return success;
     }
 
-    private static void writeError(ERPExportOperation operation, Throwable t) {
+    private void writeError(ERPExportOperation operation, Throwable t) {
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
         t.printStackTrace(writer);
@@ -1397,25 +1401,26 @@ public class ERPExporter {
         operation.appendErrorLog(out.toString());
     }
 
+    // SERVICE
     @Atomic(mode = TxMode.WRITE)
-    private static ERPExportOperation createSaftExportOperation(byte[] data, FinantialInstitution institution, DateTime when) {
+    private ERPExportOperation createSaftExportOperation(byte[] data, FinantialInstitution institution, DateTime when) {
         String filename = institution.getFiscalNumber() + "_" + when.toString() + ".xml";
         ERPExportOperation operation =
                 ERPExportOperation.create(data, filename, institution, when, false, false, false, null, "", "");
         return operation;
     }
 
+    // SERVICE
     @Atomic
-    private static void writeContentToExportOperation(String content, ERPExportOperation operation) {
+    private void writeContentToExportOperation(String content, ERPExportOperation operation) {
         byte[] bytes = null;
         try {
             bytes = content.getBytes("Windows-1252");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String fileName =
-                operation.getFinantialInstitution().getFiscalNumber() + "_"
-                        + operation.getExecutionDate().toString("ddMMyyyy_hhmm") + ".xml";
+        String fileName = operation.getFinantialInstitution().getFiscalNumber() + "_"
+                + operation.getExecutionDate().toString("ddMMyyyy_hhmm") + ".xml";
         OperationFile binaryStream = new OperationFile(fileName, bytes);
         if (operation.getFile() != null) {
             operation.getFile().delete();
@@ -1423,19 +1428,19 @@ public class ERPExporter {
         operation.setFile(binaryStream);
     }
 
-    public static String exportFinantialDocumentToXML(FinantialInstitution finantialInstitution, List<FinantialDocument> documents) {
-        UnaryOperator<AuditFile> auditFilePreProcess =
-                finantialInstitution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
-
+    // SERVICE
+    @Override
+    public String exportFinantialDocumentToXML(final FinantialInstitution finantialInstitution, final List<FinantialDocument> documents) {
+        UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(finantialInstitution);
         return exportFinantialDocumentToXML(finantialInstitution, documents, auditFilePreProcess);
     }
 
-    private static String exportFinantialDocumentToXML(FinantialInstitution finantialInstitution,
-            List<FinantialDocument> documents, UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
+    private String exportFinantialDocumentToXML(FinantialInstitution finantialInstitution, List<FinantialDocument> documents,
+            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
         
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
-
-        ERPExporter saftExporter = new ERPExporter();
+        
+        SingapSiagExporter saftExporter = new SingapSiagExporter();
         DateTime beginDate =
                 documents.stream().min((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
         DateTime endDate =
@@ -1452,54 +1457,54 @@ public class ERPExporter {
         }
     }
 
-    public static String exportsProductsToXML(FinantialInstitution finantialInstitution) {
-        UnaryOperator<AuditFile> auditFilePreProcess =
-                finantialInstitution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+    @Override
+    public String exportsProductsToXML(final FinantialInstitution finantialInstitution) {
+        UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(finantialInstitution);
         return exportsProductsToXML(finantialInstitution, auditFilePreProcess);
     }
 
-    protected static String exportsProductsToXML(FinantialInstitution finantialInstitution,
+    protected String exportsProductsToXML(FinantialInstitution finantialInstitution,
             UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
-        ERPExporter saftExporter = new ERPExporter();
+        SingapSiagExporter saftExporter = new SingapSiagExporter();
         return saftExporter.generateERPFile(finantialInstitution, new DateTime(), new DateTime(),
                 new ArrayList<FinantialDocument>(), false, true, preProcessFunctionBeforeSerialize);
     }
 
-    public static String exportsCustomersToXML(FinantialInstitution finantialInstitution) {
-        UnaryOperator<AuditFile> auditFilePreProcess =
-                finantialInstitution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+    @Override
+    public String exportsCustomersToXML(FinantialInstitution finantialInstitution) {
+        UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(finantialInstitution);
         return exportCustomersToXML(finantialInstitution, auditFilePreProcess);
     }
 
-    protected static String exportCustomersToXML(FinantialInstitution finantialInstitution,
+    protected String exportCustomersToXML(FinantialInstitution finantialInstitution,
             UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
-        ERPExporter saftExporter = new ERPExporter();
+        SingapSiagExporter saftExporter = new SingapSiagExporter();
         return saftExporter.generateERPFile(finantialInstitution, new DateTime(), new DateTime(),
                 new ArrayList<FinantialDocument>(), true, false, preProcessFunctionBeforeSerialize);
 
     }
 
     @Atomic(mode = TxMode.WRITE)
-    public static ERPExportOperation exportFinantialDocumentToIntegration(FinantialInstitution institution,
+    @Override
+    public ERPExportOperation exportFinantialDocumentToIntegration(final FinantialInstitution institution,
             List<FinantialDocument> documents) {
 
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
-
+        
         //Filter only anulled or closed documents
         documents = documents.stream().filter(x -> x.isAnnulled() || x.isClosed()).collect(Collectors.toList());
 
-        if(!institution.getErpIntegrationConfiguration().isIntegratedDocumentsExportationEnabled()) {
+        if (!institution.getErpIntegrationConfiguration().isIntegratedDocumentsExportationEnabled()) {
             // Filter documents already exported
             documents = documents.stream().filter(x -> x.isDocumentToExport()).collect(Collectors.toList());
         }
-        
+
         ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
         documents.forEach(document -> operation.addFinantialDocuments(document));
         try {
-            operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
-                    "label.ERPExporter.starting.finantialdocuments.integration"));
-            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize =
-                    institution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+            operation.appendInfoLog(
+                    BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.starting.finantialdocuments.integration"));
+            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize = getAuditFilePreProcessOperator(institution);
 
             String xml = exportFinantialDocumentToXML(institution, documents, preProcessFunctionBeforeSerialize);
             operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.erp.xml.content.generated"));
@@ -1509,8 +1514,8 @@ public class ERPExporter {
             boolean success = sendDocumentsInformationToIntegration(institution, operation);
             operation.getFinantialDocumentsSet().addAll(documents);
             operation.setSuccess(success);
-            operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
-                    "label.ERPExporter.finished.finantialdocuments.integration"));
+            operation.appendInfoLog(
+                    BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.finished.finantialdocuments.integration"));
 
         } catch (Exception ex) {
             writeError(operation, ex);
@@ -1519,14 +1524,14 @@ public class ERPExporter {
     }
 
     @Atomic(mode = TxMode.WRITE)
-    public static ERPExportOperation exportCustomersToIntegration(FinantialInstitution institution) {
+    @Override
+    public ERPExportOperation exportCustomersToIntegration(FinantialInstitution institution) {
 
         ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
         try {
             operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.starting.customers.integration"));
 
-            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize =
-                    institution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize = getAuditFilePreProcessOperator(institution);
             String xml = exportCustomersToXML(institution, preProcessFunctionBeforeSerialize);
             operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.erp.xml.content.generated"));
 
@@ -1543,12 +1548,12 @@ public class ERPExporter {
     }
 
     @Atomic(mode = TxMode.WRITE)
-    public static ERPExportOperation exportProductsToIntegration(FinantialInstitution institution) {
+    @Override
+    public ERPExportOperation exportProductsToIntegration(FinantialInstitution institution) {
 
         ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
         try {
-            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize =
-                    institution.getErpIntegrationConfiguration().getAuditFilePreProcessOperator();
+            UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize = getAuditFilePreProcessOperator(institution);
             operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.starting.products.integration"));
 
             String xml = exportsProductsToXML(institution, preProcessFunctionBeforeSerialize);
@@ -1567,21 +1572,21 @@ public class ERPExporter {
     }
 
     @Atomic
-    public static ERPExportOperation retryExportToIntegration(ERPExportOperation eRPExportOperation) {
+    @Override
+    public ERPExportOperation retryExportToIntegration(final ERPExportOperation eRPExportOperation) {
         if (eRPExportOperation.getFinantialDocumentsSet().isEmpty()) {
-            ERPExportOperation operation =
-                    createSaftExportOperation(eRPExportOperation.getFile().getContent(),
-                            eRPExportOperation.getFinantialInstitution(), new DateTime());
+            ERPExportOperation operation = createSaftExportOperation(eRPExportOperation.getFile().getContent(),
+                    eRPExportOperation.getFinantialInstitution(), new DateTime());
             try {
                 operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.starting.retry.integration"));
                 for (FinantialDocument document : eRPExportOperation.getFinantialDocumentsSet()) {
-                    if(eRPExportOperation.getFinantialInstitution().getErpIntegrationConfiguration().isIntegratedDocumentsExportationEnabled() || 
-                            document.isDocumentToExport()) {
+                    if (eRPExportOperation.getFinantialInstitution().getErpIntegrationConfiguration()
+                            .isIntegratedDocumentsExportationEnabled() || document.isDocumentToExport()) {
                         // Filter documents already exported
                         operation.addFinantialDocuments(document);
                     }
                 }
-                
+
                 boolean success = sendDocumentsInformationToIntegration(eRPExportOperation.getFinantialInstitution(), operation);
                 operation.setSuccess(success);
             } catch (Exception ex) {
@@ -1593,13 +1598,14 @@ public class ERPExporter {
         } else {
             List<FinantialDocument> allDocuments = new ArrayList(eRPExportOperation.getFinantialDocumentsSet());
             ERPExportOperation operation =
-                    ERPExporter.exportFinantialDocumentToIntegration(eRPExportOperation.getFinantialInstitution(), allDocuments);
+                    exportFinantialDocumentToIntegration(eRPExportOperation.getFinantialInstitution(), allDocuments);
             operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "label.ERPExporter.finished.retry.integration"));
             return operation;
         }
     }
 
-    public static void testExportToIntegration(FinantialInstitution institution) {
+    @Override
+    public void testExportToIntegration(final FinantialInstitution institution) {
         ERPConfiguration erpIntegrationConfiguration = institution.getErpIntegrationConfiguration();
         if (erpIntegrationConfiguration == null) {
             throw new TreasuryDomainException("error.ERPExporter.invalid.erp.configuration");
@@ -1607,7 +1613,8 @@ public class ERPExporter {
         IERPExternalService service = erpIntegrationConfiguration.getERPExternalServiceImplementation();
     }
 
-    public static void checkIntegrationDocumentStatus(FinantialDocument document) {
+    @Override
+    public void checkIntegrationDocumentStatus(final FinantialDocument document) {
         ERPConfiguration erpIntegrationConfiguration =
                 document.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration();
         if (erpIntegrationConfiguration == null) {
@@ -1620,18 +1627,36 @@ public class ERPExporter {
         IERPExternalService service = erpIntegrationConfiguration.getERPExternalServiceImplementation();
         List<String> documentsList = new ArrayList<String>();
         documentsList.add(document.getUiDocumentNumber());
-        List<DocumentStatusWS> integrationStatusFor =
-                service.getIntegrationStatusFor(document.getDebtAccount().getFinantialInstitution().getFiscalNumber(),
-                        documentsList);
+        List<DocumentStatusWS> integrationStatusFor = service
+                .getIntegrationStatusFor(document.getDebtAccount().getFinantialInstitution().getFiscalNumber(), documentsList);
         for (DocumentStatusWS documentStatus : integrationStatusFor) {
             if (documentStatus.getDocumentNumber().equals(document.getUiDocumentNumber())
                     && documentStatus.isIntegratedWithSuccess()) {
-                final String message = BundleUtil.getString(Constants.BUNDLE,
-                        "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
-                
-                document.clearDocumentToExport(message);
+                document.clearDocumentToExport();
             } else {
             }
         }
     }
+
+    private UnaryOperator<AuditFile> getAuditFilePreProcessOperator(final FinantialInstitution finantialInstitution) {
+
+        String className = finantialInstitution.getErpIntegrationConfiguration().getImplementationClassName();
+        try {
+
+            WebServiceClientConfiguration clientConfiguration = WebServiceConfiguration.readByImplementationClass(className);
+
+            IERPExternalService client = clientConfiguration.getClient();
+
+            if (client instanceof SINGAPWCFExternalService) {
+                return ((SINGAPWCFExternalService) client).getAuditFilePreProcessOperator();
+            } else if (client instanceof SIAGExternalService) {
+                return ((SIAGExternalService) client).getAuditFilePreProcessOperator();
+            }
+
+            throw new RuntimeException("error");
+        } catch (Exception e) {
+            throw new TreasuryDomainException("error.ERPConfiguration.invalid.external.service");
+        }
+    }
+
 }
