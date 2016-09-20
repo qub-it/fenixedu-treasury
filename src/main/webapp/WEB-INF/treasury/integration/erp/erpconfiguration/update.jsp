@@ -193,6 +193,16 @@ ${portal.toolkit()}
                 </div>
             </div>
 
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.ERPConfiguration.erpIdProcess" />
+                </div>
+
+                <div class="col-sm-10">
+                    <input id="eRPConfiguration_erpIdProcess" class="form-control" type="text" name="erpidprocess"
+                        value='<c:out value='${not empty param.erpidprocess ? param.erpidprocess : eRPConfiguration.erpIdProcess }'/>' />
+                </div>
+            </div>
 
         </div>
         <div class="panel-footer">

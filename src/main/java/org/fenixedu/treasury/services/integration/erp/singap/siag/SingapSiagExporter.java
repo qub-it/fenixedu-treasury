@@ -114,6 +114,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceClientConfiguration;
 import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceConfiguration;
 
@@ -1280,12 +1281,13 @@ public class SingapSiagExporter implements IERPExporter {
                 service.getIntegrationStatusFor(institution.getFiscalNumber(), documentNumbers);
         for (DocumentStatusWS documentStatus : integrationStatusFor) {
             if (documentStatus.isIntegratedWithSuccess()) {
+                String message = BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.sucess.integrating.document", documentStatus.getDocumentNumber());
 //                operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.sucess.integrating.document",
 //                        documentStatus.getDocumentNumber()));
                 FinantialDocument document = institution.getFinantialDocumentsPendingForExportationSet().stream()
                         .filter(x -> x.getUiDocumentNumber().equals(documentStatus.getDocumentNumber())).findFirst().orElse(null);
                 if (document != null) {
-                    document.clearDocumentToExport();
+                    document.clearDocumentToExport(message);
                 } else {
 //                    success = false;
 //                    operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPExporter.error.integrating.document",
@@ -1338,9 +1340,10 @@ public class SingapSiagExporter implements IERPExporter {
                     FinantialDocument document =
                             FinantialDocument.findByUiDocumentNumber(institution, status.getDocumentNumber());
                     if (document != null) {
-                        operation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
-                                "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber()));
-                        document.clearDocumentToExport();
+                        final String message = BundleUtil.getString(Constants.BUNDLE,
+                                "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
+                        operation.appendInfoLog(message);
+                        document.clearDocumentToExport(message);
                     } else {
                         success = false;
                         operation.appendInfoLog(
@@ -1632,7 +1635,10 @@ public class SingapSiagExporter implements IERPExporter {
         for (DocumentStatusWS documentStatus : integrationStatusFor) {
             if (documentStatus.getDocumentNumber().equals(document.getUiDocumentNumber())
                     && documentStatus.isIntegratedWithSuccess()) {
-                document.clearDocumentToExport();
+                final String message = BundleUtil.getString(Constants.BUNDLE,
+                        "info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
+                
+                document.clearDocumentToExport(message);
             } else {
             }
         }
