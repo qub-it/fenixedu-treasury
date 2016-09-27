@@ -133,6 +133,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
+    private static final String SAFT_PT_ENCODING = "UTF-8";
     private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
 
@@ -456,6 +457,8 @@ public class SAPExporter implements IERPExporter {
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
 
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(reimbursmentEntry.getPaymentMethod()));
+                    method.setPaymentMethodReference(!Strings.isNullOrEmpty(reimbursmentEntry.getReimbursementMethodId()) ? reimbursmentEntry.getReimbursementMethodId() : "");
+
                     payment.getPaymentMethod().add(method);
                     payment.setSettlementType(SAFTPTSettlementType.NR);
                 }
@@ -474,6 +477,8 @@ public class SAPExporter implements IERPExporter {
                 voidMethod.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
 
                 voidMethod.setPaymentMechanism("OU");
+                voidMethod.setPaymentMethodReference("");
+
                 payment.getPaymentMethod().add(voidMethod);
                 payment.setSettlementType(SAFTPTSettlementType.NN);
             }
@@ -775,6 +780,8 @@ public class SAPExporter implements IERPExporter {
                 OrderReferences reference = new OrderReferences();
                 reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
                 reference.setOrderDate(documentDateCalendar);
+                reference.setLineNumber(BigInteger.ONE);
+                
                 orderReferences.add(reference);
             }
 
@@ -1048,12 +1055,12 @@ public class SAPExporter implements IERPExporter {
             StringWriter writer = new StringWriter();
 
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, "Windows-1252");
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, SAFT_PT_ENCODING);
             marshaller.marshal(auditFile, writer);
 
-            Charset charset = Charset.forName("Windows-1252");
+            Charset charset = Charset.forName(SAFT_PT_ENCODING);
 
-            String xml = new String(charset.encode(writer.toString()).array(), "Windows-1252");
+            String xml = new String(charset.encode(writer.toString()).array(), SAFT_PT_ENCODING);
             xml = xml.replace(cleanXMLAnotations, "");
             xml = xml.replace(cleanXMLAnotations2, "");
             xml = xml.replace(cleanDateTimeMiliseconds, "<");
@@ -1061,10 +1068,10 @@ public class SAPExporter implements IERPExporter {
 
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA1");
-                md.update(("SALTING WITH QUB:" + xml).getBytes("Windows-1252"));
+                md.update(("SALTING WITH QUB:" + xml).getBytes(SAFT_PT_ENCODING));
                 byte[] output = md.digest();
                 String digestAscii = bytesToHex(output);
-                xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with Windows-1252 encode): " + digestAscii
+                xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with UTF-8 encode): " + digestAscii
                         + " -->\n";
             } catch (Exception ex) {
 
@@ -1125,7 +1132,7 @@ public class SAPExporter implements IERPExporter {
         c.setCompanyName(customer.getName());
 
         // Contact
-        c.setContact(customer.getName());
+        c.setContact(Splitter.fixedLength(50).splitToList(customer.getName()).get(0));
 
         // CustomerID
         c.setCustomerID(customer.getCode());
@@ -1443,7 +1450,7 @@ public class SAPExporter implements IERPExporter {
     private void writeContentToExportOperation(String content, ERPExportOperation operation) {
         byte[] bytes = null;
         try {
-            bytes = content.getBytes("Windows-1252");
+            bytes = content.getBytes(SAFT_PT_ENCODING);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

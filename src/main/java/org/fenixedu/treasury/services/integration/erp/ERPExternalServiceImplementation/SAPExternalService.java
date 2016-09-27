@@ -16,22 +16,22 @@ import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationIn
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
 import org.fenixedu.treasury.services.integration.erp.sap.SAPExporter;
 import org.fenixedu.treasury.services.integration.erp.sap.SAPImporter;
-import org.fenixedu.treasury.services.integration.erp.sap.ZWSFATURACAOCLIENTES;
+import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES;
+import org.fenixedu.treasury.services.integration.erp.sap.ZulwsFaturacaoclientes;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsdocumentStatusWs1;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesIn;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesOut;
-import org.fenixedu.treasury.services.integration.erp.sap.ZwsFaturacaoclientes;
 
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
 import com.sun.xml.ws.client.BindingProviderProperties;
 
-public class SAPExternalService extends BennuWebServiceClient<ZwsFaturacaoclientes> implements IERPExternalService {
+public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIENTES> implements IERPExternalService {
 
     @Override
     public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         output.setDocumentStatus(new ArrayList<DocumentStatusWS>());
-        final ZwsFaturacaoclientes client = getClient();
+        final ZULWSFATURACAOCLIENTES client = getClient();
 
         final SOAPLoggingHandler loggingHandler = SOAPLoggingHandler.createLoggingHandler((BindingProvider) client);
 
@@ -91,7 +91,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZwsFaturacaoclient
 
     @Override
     protected BindingProvider getService() {
-        BindingProvider prov = (BindingProvider) new ZWSFATURACAOCLIENTES().getZWSFATURACAOCLIENTESSoap12();
+        BindingProvider prov = (BindingProvider) new ZulwsFaturacaoclientes().getZULWSFATURACAOCLIENTESSoap12();;
         return prov;
     }
 
