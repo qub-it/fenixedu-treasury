@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.jws.WebMethod;
+import javax.jws.WebParam;
 import javax.jws.WebService;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
@@ -45,6 +46,8 @@ import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentEntry;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
@@ -60,10 +63,12 @@ import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-import pt.ist.fenixframework.Atomic;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.qubit.solution.fenixedu.bennu.webservices.services.server.BennuWebService;
+
+import pt.ist.fenixframework.Atomic;
 
 @WebService
 public class ERPIntegrationService extends BennuWebService {
@@ -94,7 +99,8 @@ public class ERPIntegrationService extends BennuWebService {
         ERPImportOperation operation = ERPImportOperation.create(filename, documentsInformation.getData(), finantialInstitution,
                 now, false, false, false, null);
 
-        final IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
+        final IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration()
+                .getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
         final DocumentsInformationOutput result = erpImporter.processAuditFile(operation);
         return result;
     }
@@ -125,8 +131,9 @@ public class ERPIntegrationService extends BennuWebService {
             File externalFile = new File(documentsInformation.getDataURI());
             byte[] bytes = Files.toByteArray(externalFile);
             operation = ERPImportOperation.create(filename, bytes, finantialInstitution, now, false, false, false, null);
-            
-            IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
+
+            IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation()
+                    .getERPImporter(operation.getFile().getStream());
             erpImporter.processAuditFile(operation);
             return operation.getExternalId();
         } catch (Exception e) {
@@ -227,7 +234,7 @@ public class ERPIntegrationService extends BennuWebService {
         }
 
         if (!Constants.isEqual(amountInDebt, interestRequest.getAmount())) {
-            throw new RuntimeException(Constants.bundle("error.ERPIntegrationService.debit.entry.amount.is.not.equal", 
+            throw new RuntimeException(Constants.bundle("error.ERPIntegrationService.debit.entry.amount.is.not.equal",
                     interestRequest.getAmount() != null ? interestRequest.getAmount().toString() : "null",
                     String.valueOf(finantialDocumentEntry.getEntryOrder()),
                     String.valueOf(finantialDocumentEntry.getFinantialDocument().getUiDocumentNumber()),
@@ -260,7 +267,8 @@ public class ERPIntegrationService extends BennuWebService {
                 .filter(l -> l.isProcessedInClosedDebitNote()).map(l -> l.getFinantialDocument()).collect(Collectors.toList());
 
         if (interestFinantialDocumentsSet.size() > 0) {
-            final IERPExporter erpExporter = debitEntry.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+            final IERPExporter erpExporter = debitEntry.getDebtAccount().getFinantialInstitution()
+                    .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
             final String saftResult = erpExporter.exportFinantialDocumentToXML(
                     debitEntry.getDebtAccount().getFinantialInstitution(), interestFinantialDocumentsSet);
 
@@ -272,6 +280,104 @@ public class ERPIntegrationService extends BennuWebService {
         }
 
         return bean;
+    }
+
+    @WebMethod(operationName="reimbursementStateChange")
+    public IntegrationStatusOutput processReimbursementStateChange(
+                @WebParam(name="finantialInstitution") final String finantialInstitutionFiscalNumber, 
+                @WebParam(name="finantialDocument") final String finantialDocumentNumber,
+                @WebParam(name="erpProcessId") final String erpProcessId, 
+                @WebParam(name="exerciseYear") final String exerciseYear, 
+                @WebParam(name="reimbursementStatus") final String reimbursementStatusCode,
+                @WebParam(name="reimbursementStatusDate") final java.util.Calendar reimbursementStatusDate) {
+        
+        if(Strings.isNullOrEmpty(finantialInstitutionFiscalNumber)) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.fiscalInstitution");
+        }
+        
+        if(Strings.isNullOrEmpty(finantialDocumentNumber)) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.fiscalInstitution");
+        }
+        
+        if(Strings.isNullOrEmpty(erpProcessId)) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.erpDocumentCode");
+        }
+        
+        if(Strings.isNullOrEmpty(exerciseYear)) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.yearExercise");
+        }
+        
+        try {
+            Integer.valueOf(exerciseYear);
+        } catch(final NumberFormatException e) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.yearExercise");
+        }
+        
+        if(Strings.isNullOrEmpty(reimbursementStatusCode) || !ReimbursementProcessStatusType.findUniqueByCode(reimbursementStatusCode).isPresent()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementStatus");
+        }
+        
+        if(reimbursementStatusDate == null) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.stateDate");
+        }
+        
+        if(!FinantialInstitution.findUniqueByFiscalCode(finantialInstitutionFiscalNumber).isPresent()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.fiscalInstitution");
+        }
+        
+        final FinantialInstitution finantialInstitution = FinantialInstitution.findUniqueByFiscalCode(finantialInstitutionFiscalNumber).get();
+
+        if(!FinantialDocument.findUniqueByDocumentNumber(finantialDocumentNumber).isPresent()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.settlementNote");
+        }
+        
+        final FinantialDocument finantialDocument = FinantialDocument.findUniqueByDocumentNumber(finantialDocumentNumber).get();
+        
+        if(!finantialDocument.isSettlementNote()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.settlementNote");
+        }
+        
+        final SettlementNote settlementNote = (SettlementNote) finantialDocument;
+        
+        if(!settlementNote.isReimbursement()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.settlementNote");
+        }
+        
+        if(settlementNote.getDebtAccount().getFinantialInstitution() != finantialInstitution) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.settlementNote.not.of.finantialInstitution");
+        }
+        
+        if(!settlementNote.isClosed()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.state");
+        }
+        
+        if(settlementNote.getCurrentReimbursementProcessStatus() == null) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
+        }
+        
+        if(settlementNote.getCurrentReimbursementProcessStatus().isFinalStatus()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.is.final");
+        }
+        
+        final ReimbursementProcessStatusType reimbursementStatus = ReimbursementProcessStatusType.findUniqueByCode(reimbursementStatusCode).get();
+        
+        if(!reimbursementStatus.isAfter(settlementNote.getCurrentReimbursementProcessStatus())) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.next.status.invalid");
+        }
+        
+        settlementNote.processReimbursementStateChange(reimbursementStatus, erpProcessId, exerciseYear, new DateTime(reimbursementStatusDate));
+        
+        final DocumentStatusWS documentStatusWs = new DocumentStatusWS();
+        documentStatusWs.setDocumentNumber(finantialDocumentNumber);
+        documentStatusWs.setErrorDescription("");
+        documentStatusWs.setIntegrationStatus(StatusType.SUCCESS);
+
+        final IntegrationStatusOutput output = new IntegrationStatusOutput();
+        
+        output.setRequestId("");
+        output.setDocumentStatus(Lists.newArrayList(documentStatusWs));
+        
+        return output;
     }
 
     @Atomic
