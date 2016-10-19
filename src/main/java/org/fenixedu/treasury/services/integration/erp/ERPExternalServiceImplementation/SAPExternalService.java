@@ -17,11 +17,12 @@ import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOu
 import org.fenixedu.treasury.services.integration.erp.sap.SAPExporter;
 import org.fenixedu.treasury.services.integration.erp.sap.SAPImporter;
 import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES;
-import org.fenixedu.treasury.services.integration.erp.sap.ZulwsFaturacaoclientes;
+import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES_Service;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsdocumentStatusWs1;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesIn;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesOut;
 
+import com.google.common.base.Strings;
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
 import com.sun.xml.ws.client.BindingProviderProperties;
 
@@ -51,7 +52,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
             DocumentStatusWS status = new DocumentStatusWS();
             status.setDocumentNumber(item.getDocumentNumber());
             status.setErrorDescription(String.format("[STATUS: %s] - %s", item.getIntegrationStatus(), item.getErrorDescription()));
-            status.setIntegrationStatus(covertToStatusType(item.getIntegrationStatus()));
+            status.setIntegrationStatus(covertToStatusType(item.getIntegrationStatus(), item.getSapDocumentNumber()));
             output.getDocumentStatus().add(status);
         }
         
@@ -61,12 +62,12 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         return output;
     }
 
-    private StatusType covertToStatusType(String status) {
-        if ("OK".equals(status)) {
+    private StatusType covertToStatusType(final String status, final String sapDocumentNumber) {
+        if(!Strings.isNullOrEmpty(sapDocumentNumber) && "S".equals(status)) {
             return StatusType.SUCCESS;
-        } else {
-            return StatusType.ERROR;
         }
+        
+        return StatusType.ERROR;
     }
     
     @Override
@@ -91,7 +92,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
     @Override
     protected BindingProvider getService() {
-        BindingProvider prov = (BindingProvider) new ZulwsFaturacaoclientes().getZULWSFATURACAOCLIENTESSoap12();;
+        BindingProvider prov = (BindingProvider) new ZULWSFATURACAOCLIENTES_Service().getZULWSFATURACAOCLIENTESSoap12();
         return prov;
     }
 

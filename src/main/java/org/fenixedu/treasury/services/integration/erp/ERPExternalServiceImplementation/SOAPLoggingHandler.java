@@ -1,6 +1,8 @@
 package org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +13,8 @@ import javax.xml.ws.handler.Handler;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
+
+import org.apache.commons.io.FileUtils;
 
 public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
     
@@ -34,6 +38,7 @@ public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
         boolean direction = ((Boolean) messageContext.get(SOAPMessageContext.MESSAGE_OUTBOUND_PROPERTY)).booleanValue();
         if (direction) {
             outboundMessage = dumpMsg(messageContext);
+            // FileUtils.writeByteArrayToFile(new File("/home/anilmamede/Downloads/a/c.txt"), outboundMessage.getBytes("UTF-8"));
         } else {
             inboundMessage = dumpMsg(messageContext);
         }

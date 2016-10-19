@@ -119,6 +119,7 @@ import com.google.common.collect.Lists;
 import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceClientConfiguration;
 import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceConfiguration;
 
+import fr.opensagres.xdocreport.core.io.internal.ByteArrayOutputStream;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
 
@@ -1046,13 +1047,14 @@ public class SAPExporter implements IERPExporter {
         try {
             final String cleanXMLAnotations = "xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"";
             final String cleanXMLAnotations2 = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
+            final String cleanXMLAnotations3 = "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\"";
             final String cleanDateTimeMiliseconds = ".000<";
             final String cleanStandaloneAnnotation = "standalone=\"yes\"";
 
             final JAXBContext jaxbContext = JAXBContext.newInstance(AuditFile.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
 
-            StringWriter writer = new StringWriter();
+            ByteArrayOutputStream writer = new ByteArrayOutputStream();
 
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, SAFT_PT_ENCODING);
@@ -1060,9 +1062,10 @@ public class SAPExporter implements IERPExporter {
 
             Charset charset = Charset.forName(SAFT_PT_ENCODING);
 
-            String xml = new String(charset.encode(writer.toString()).array(), SAFT_PT_ENCODING);
+            String xml = new String(writer.toByteArray(), SAFT_PT_ENCODING);
             xml = xml.replace(cleanXMLAnotations, "");
             xml = xml.replace(cleanXMLAnotations2, "");
+            xml = xml.replace(cleanXMLAnotations3, "");
             xml = xml.replace(cleanDateTimeMiliseconds, "<");
             xml = xml.replace(cleanStandaloneAnnotation, "");
 
