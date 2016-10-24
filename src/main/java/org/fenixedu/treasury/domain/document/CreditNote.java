@@ -91,6 +91,10 @@ public class CreditNote extends CreditNote_Base {
             throw new TreasuryDomainException("error.CreditNote.debitnote.not.closed");
         }
         
+        if(!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
+            throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
+        }
+        
         super.checkRules();
     }
 

@@ -344,23 +344,25 @@ public class CreditNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = _CREATE_URI, method = RequestMethod.POST)
-    public String create(@RequestParam(value = "debitnote", required = false) DebitNote debitNote, @RequestParam(
-            value = "debtaccount", required = false) DebtAccount debtAccount,
-            @RequestParam(value = "documentnumberseries") DocumentNumberSeries documentNumberSeries, @RequestParam(
-                    value = "documentdate") @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime documentDate, @RequestParam(
-                    value = "origindocumentnumber", required = false) String originDocumentNumber, @RequestParam(
-                    value = "documentobservations", required = false) String documentObservations, Model model,
-            RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public String create(
+                @RequestParam(value = "debitnote", required = false) DebitNote debitNote, 
+                @RequestParam(value = "debtaccount", required = false) DebtAccount debtAccount,
+                @RequestParam(value = "documentnumberseries") DocumentNumberSeries documentNumberSeries, 
+                @RequestParam(value = "documentdate") @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime documentDate, 
+                @RequestParam(value = "origindocumentnumber", required = false) String originDocumentNumber, 
+                @RequestParam(value = "documentobservations", required = false) String documentObservations, 
+                Model model, RedirectAttributes redirectAttributes, HttpServletRequest request) {
 
         if (debtAccount == null && debitNote == null) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE,
                     "label.error.document.manageinvoice.finantialinstitution.mismatch.debtaccount.series"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
         }
-        if (debtAccount == null) {
+        
+        if(debtAccount == null) {
             debtAccount = debitNote.getDebtAccount();
         }
-
+        
         if (documentNumberSeries != null && debtAccount != null) {
             if (!documentNumberSeries.getSeries().getFinantialInstitution().equals(debtAccount.getFinantialInstitution())) {
                 addErrorMessage(BundleUtil.getString(Constants.BUNDLE,
@@ -370,40 +372,18 @@ public class CreditNoteController extends TreasuryBaseController {
         }
 
         try {
-
             assertUserIsAllowToModifyInvoices(documentNumberSeries.getSeries().getFinantialInstitution(), model);
 
-            CreditNote creditNote =
-                    createCreditNote(debtAccount, debitNote, documentNumberSeries, documentDate, originDocumentNumber,
-                            documentObservations);
+            debitNote.createEquivalentCreditNote(documentNumberSeries, documentDate, documentObservations, false);
 
-            setCreditNote(creditNote, model);
-            return redirect(READ_URL + getCreditNote(model).getExternalId(), model, redirectAttributes);
+            return redirect(DebtAccountController.READ_URL + debtAccount.getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
         }
+        
         return create(debtAccount, debitNote, model, redirectAttributes);
-    }
-
-    @Atomic
-    public CreditNote createCreditNote(DebtAccount debtAccount, DebitNote debitNote, DocumentNumberSeries documentNumberSeries,
-            DateTime documentDate, String originDocumentNumber, String documentObservations) {
-
-        if (debitNote != null) {
-
-            CreditNote creditNote =
-                    debitNote.createEquivalentCreditNote(documentNumberSeries, documentDate, documentObservations, false);
-            creditNote.setDocumentObservations(documentObservations);
-            return creditNote;
-        } else {
-            CreditNote creditNote =
-                    CreditNote.create(debtAccount, documentNumberSeries, documentDate, debitNote, originDocumentNumber);
-            creditNote.setDocumentObservations(documentObservations);
-            return creditNote;
-        }
-
     }
 
     @RequestMapping(value = "/read/{oid}/exportintegrationfile", produces = "text/xml;charset=Windows-1252")
