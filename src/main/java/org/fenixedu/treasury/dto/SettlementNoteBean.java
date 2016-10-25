@@ -189,7 +189,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         }
         for (CreditEntryBean creditEntryBean : getCreditEntries()) {
             if (creditEntryBean.isIncluded()) {
-                sum = sum.subtract(creditEntryBean.getCreditEntry().getOpenAmount());
+                sum = sum.subtract(creditEntryBean.getCreditAmountWithVat());
             }
         }
         return sum;
@@ -392,11 +392,18 @@ public class SettlementNoteBean implements IBean, Serializable {
 
         private boolean isIncluded;
 
+        private boolean isNotValid;
+
+        private BigDecimal creditAmount;
+
         public CreditEntryBean() {
         }
 
         public CreditEntryBean(CreditEntry creditEntry) {
             this.creditEntry = creditEntry;
+            this.isIncluded = false;
+            this.isNotValid = false;
+            this.creditAmount = creditEntry.getOpenAmount();
         }
 
         public CreditEntry getCreditEntry() {
@@ -422,6 +429,26 @@ public class SettlementNoteBean implements IBean, Serializable {
 
         public void setIncluded(boolean isIncluded) {
             this.isIncluded = isIncluded;
+        }
+        
+        public boolean isNotValid() {
+            return isNotValid;
+        }
+        
+        public void setNotValid(boolean isNotValid) {
+            this.isNotValid = isNotValid;
+        }
+        
+        public BigDecimal getCreditAmount() {
+            return creditEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(creditAmount);
+        }
+        
+        public BigDecimal getCreditAmountWithVat() {
+            return creditEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(creditAmount);
+        }
+
+        public void setCreditAmount(BigDecimal creditAmount) {
+            this.creditAmount = creditAmount;
         }
     }
 

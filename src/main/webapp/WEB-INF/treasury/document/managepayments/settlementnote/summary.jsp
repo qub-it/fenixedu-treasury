@@ -317,7 +317,7 @@ ${portal.angularToolkit()}
                                     value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueWithScale( creditEntryBean.creditEntry.vat.taxRate ) }" />
                             </td>
                             <td>- <c:out
-                                    value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( creditEntryBean.creditEntry.openAmount ) }" />
+                                    value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( creditEntryBean.creditAmountWithVat ) }" />
                             </td>
                         </tr>
                     </c:if>

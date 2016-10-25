@@ -116,8 +116,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceClientConfiguration;
-import com.qubit.solution.fenixedu.bennu.webservices.domain.webservice.WebServiceConfiguration;
 
 import fr.opensagres.xdocreport.core.io.internal.ByteArrayOutputStream;
 import pt.ist.fenixframework.Atomic;
@@ -261,7 +259,6 @@ public class SAPExporter implements IERPExporter {
         invoices.setTotalCredit(BigDecimal.ZERO);
         invoices.setTotalDebit(BigDecimal.ZERO);
 
-//        int i = 0;
         for (FinantialDocument document : allDocuments) {
             if ((document.isCreditNote() || document.isDebitNote()) && (document.isClosed() || document.isAnnulled())) {
                 try {
@@ -280,8 +277,6 @@ public class SAPExporter implements IERPExporter {
                         }
                     }
 
-//                    i++;
-
                 } catch (Exception ex) {
                     logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
                     throw ex;
@@ -291,7 +286,6 @@ public class SAPExporter implements IERPExporter {
                     logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
                 }
             }
-
         }
         // Update Totals of Workingdocuments
         workingDocuments.setNumberOfEntries(numberOfWorkingDocuments);
@@ -1280,6 +1274,8 @@ public class SAPExporter implements IERPExporter {
             SAPExporter saftExporter = new SAPExporter();
             List<FinantialDocument> documents =
                     new ArrayList<FinantialDocument>(institution.getExportableDocuments(fromDate, toDate));
+            documents = processCreditNoteSettlementsInclusion(documents);
+
             logger.info("Collecting " + documents.size() + " documents to export to institution " + institution.getCode());
             UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(institution);
             String xml = saftExporter.generateERPFile(institution, fromDate, toDate, documents, true, true, auditFilePreProcess);
@@ -1479,6 +1475,8 @@ public class SAPExporter implements IERPExporter {
 
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
 
+        documents = processCreditNoteSettlementsInclusion(documents);
+        
         SAPExporter saftExporter = new SAPExporter();
         DateTime beginDate =
                 documents.stream().min((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
@@ -1486,6 +1484,29 @@ public class SAPExporter implements IERPExporter {
                 documents.stream().max((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
         return saftExporter.generateERPFile(finantialInstitution, beginDate, endDate, documents, false, false,
                 preProcessFunctionBeforeSerialize);
+    }
+
+    
+    private List<FinantialDocument> processCreditNoteSettlementsInclusion(List<FinantialDocument> documents) {
+        final List<FinantialDocument> result = Lists.newArrayList(documents);
+        
+        // Ensure settlement entries of credit entries include credits notes to export
+        
+        for(final FinantialDocument finantialDocument : documents) {
+            if(finantialDocument.isSettlementNote()) {
+                final SettlementNote settlementNote = (SettlementNote) finantialDocument;
+                
+                for (final SettlementEntry settlementEntry : settlementNote.getSettlemetEntriesSet()) {
+                    if(settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
+                        if(!result.contains(settlementEntry.getInvoiceEntry().getFinantialDocument())) {
+                            result.add(settlementEntry.getInvoiceEntry().getFinantialDocument());
+                        }
+                    }
+                }
+            }
+        }
+        
+        return result;
     }
 
     private static void checkForUnsetDocumentSeriesNumberInDocumentsToExport(List<? extends FinantialDocument> documents) {

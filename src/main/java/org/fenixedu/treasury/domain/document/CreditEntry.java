@@ -212,6 +212,10 @@ public class CreditEntry extends CreditEntry_Base {
         if (!Constants.isLessThan(remainingAmount, getOpenAmount())) {
             throw new TreasuryDomainException("error.CreditEntry.splitCreditEntry.remainingAmount.less.than.open.amount");
         }
+        
+        if(!getFinantialDocument().isPreparing()) {
+            throw new TreasuryDomainException("error.CreditEntry.splitCreditEntry.finantialDocument.not.preparing");
+        }
 
         final Currency currency = getDebtAccount().getFinantialInstitution().getCurrency();
 

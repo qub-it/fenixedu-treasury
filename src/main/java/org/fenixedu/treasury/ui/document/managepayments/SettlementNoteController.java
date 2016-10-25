@@ -184,9 +184,24 @@ public class SettlementNoteController extends TreasuryBaseController {
                 debitEntryBean.setNotValid(false);
             }
         }
-        for (CreditEntryBean creditEntryBean : bean.getCreditEntries()) {
+        for (int i = 0; i < bean.getCreditEntries().size(); i++) {
+            CreditEntryBean creditEntryBean = bean.getCreditEntries().get(i);
             if (creditEntryBean.isIncluded()) {
-                creditSum = creditSum.add(creditEntryBean.getCreditEntry().getOpenAmount());
+                if (creditEntryBean.getCreditAmountWithVat().compareTo(BigDecimal.ZERO) == 0) {
+                    creditEntryBean.setNotValid(true);
+                    error = true;
+                    addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.CreditEntry.creditAmount.equal.zero",
+                            Integer.toString(i + 1)), model);
+                } else if (creditEntryBean.getCreditAmountWithVat()
+                        .compareTo(creditEntryBean.getCreditEntry().getOpenAmount()) > 0) {
+                    creditEntryBean.setNotValid(true);
+                    error = true;
+                    addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.CreditEntry.exceeded.openAmount",
+                            Integer.toString(i + 1)), model);
+                } else {
+                    creditEntryBean.setNotValid(false);
+                }
+                creditSum = creditSum.add(creditEntryBean.getCreditAmountWithVat());
             }
         }
         if (bean.isReimbursementNote() && creditSum.compareTo(debitSum) < 0) {
@@ -472,7 +487,7 @@ public class SettlementNoteController extends TreasuryBaseController {
     public String processReadToAnullSettlementNote(@PathVariable("oid") SettlementNote settlementNote,
             @RequestParam("anullReason") String anullReason, Model model, RedirectAttributes redirectAttributes) {
         setSettlementNote(settlementNote, model);
-        
+
         try {
             assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
             anullReason = anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
@@ -695,8 +710,8 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
 
             try {
-                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                        .getERPExternalServiceImplementation().getERPExporter();
+                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution()
+                        .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
                 //Force a check status first of the document 
                 erpExporter.checkIntegrationDocumentStatus(settlementNote);
             } catch (Exception ex) {
@@ -705,8 +720,8 @@ public class SettlementNoteController extends TreasuryBaseController {
 
             List<FinantialDocument> documentsToExport = Collections.singletonList(settlementNote);
 
-            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                    .getERPExternalServiceImplementation().getERPExporter();
+            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution()
+                    .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
 
             ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
                     settlementNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
@@ -724,17 +739,17 @@ public class SettlementNoteController extends TreasuryBaseController {
             @RequestParam(value = "reason", required = false) final String reason, final Model model,
             final RedirectAttributes redirectAttributes) {
         try {
-            
-            if(!settlementNote.isDocumentToExport()) {
+
+            if (!settlementNote.isDocumentToExport()) {
                 addErrorMessage(Constants.bundle("error.FinantialDocument.document.not.marked.to.export"), model);
                 return redirect(READ_URL + settlementNote.getExternalId(), model, redirectAttributes);
             }
-            
-            if(Strings.isNullOrEmpty(reason)) {
+
+            if (Strings.isNullOrEmpty(reason)) {
                 addErrorMessage(Constants.bundle("error.FinantialDocument.clear.document.to.export.requires.reason"), model);
                 return redirect(READ_URL + settlementNote.getExternalId(), model, redirectAttributes);
             }
-            
+
             assertUserIsBackOfficeMember(model);
 
             settlementNote.clearDocumentToExport(reason);
@@ -745,5 +760,5 @@ public class SettlementNoteController extends TreasuryBaseController {
             return redirect(READ_URL + settlementNote.getExternalId(), model, redirectAttributes);
         }
     }
-    
+
 }
