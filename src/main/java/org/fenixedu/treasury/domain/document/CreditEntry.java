@@ -235,6 +235,7 @@ public class CreditEntry extends CreditEntry_Base {
 
         final CreditEntry newCreditEntry = CreditEntry.create(newCreditNote, getDescription(), getProduct(), getVat(),
                 remainingAmountWithoutVatDividedByQuantity, getEntryDateTime(), getDebitEntry(), BigDecimal.ONE);
+        newCreditEntry.setFromExemption(isFromExemption());
         
         return newCreditEntry;
     }
