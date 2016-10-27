@@ -169,7 +169,7 @@ public class ForwardPayment extends ForwardPayment_Base {
         final DocumentNumberSeries settlementSeries =
                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForSettlementNote(), finantialInstitution).get();
         this.setSettlementNote(SettlementNote.create(getDebtAccount(), settlementSeries, new DateTime(), transactionDate,
-                String.valueOf(getOrderNumber())));
+                String.valueOf(getOrderNumber()), null));
 
         final DocumentNumberSeries debitNoteSeries =
                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(), finantialInstitution).get();

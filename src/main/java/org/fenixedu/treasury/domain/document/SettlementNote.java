@@ -61,13 +61,14 @@ public class SettlementNote extends SettlementNote_Base {
     }
 
     protected SettlementNote(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber) {
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
         this();
-        init(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber);
+        init(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber, finantialTransactionReference);
     }
 
     protected void init(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber) {
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
+        setFinantialTransactionReference(finantialTransactionReference);
         setOriginDocumentNumber(originDocumentNumber);
         if (paymentDate == null) {
             setPaymentDate(documentDate);
@@ -217,7 +218,7 @@ public class SettlementNote extends SettlementNote_Base {
 
     private void processReimbursementEntries(SettlementNoteBean bean) {
         for (PaymentEntryBean paymentEntryBean : bean.getPaymentEntries()) {
-            ReimbursementEntry.create(this, paymentEntryBean.getPaymentMethod(), paymentEntryBean.getPaymentAmount());
+            ReimbursementEntry.create(this, paymentEntryBean.getPaymentMethod(), paymentEntryBean.getPaymentAmount(), paymentEntryBean.getPaymentMethodId());
         }
     }
 
@@ -298,9 +299,9 @@ public class SettlementNote extends SettlementNote_Base {
 
     @Atomic
     public static SettlementNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber) {
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
         SettlementNote settlementNote =
-                new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber);
+                new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber, finantialTransactionReference);
 
         return settlementNote;
     }

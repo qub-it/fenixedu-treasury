@@ -323,7 +323,7 @@ public class CreditNoteController extends TreasuryBaseController {
                         .filter(x -> x.getSeries().getActive() == true).collect(Collectors.toList());
 
         availableSeries =
-                DocumentNumberSeries.applyActiveAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList());
+                DocumentNumberSeries.applyActiveSelectableAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList());
         if (availableSeries.size() > 0) {
             model.addAttribute("CreditNote_documentNumberSeries_options", availableSeries);
         } else {

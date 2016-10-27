@@ -163,6 +163,15 @@ ${portal.angularToolkit()}
                     <input class="form-control" type="text" ng-model="object.originDocumentNumber" />
                 </div>
             </div>
+            
+            <div class="form-group row">
+            	<div class="col-sm-2 control-label">
+            		<spring:message code="label.SettlementNote.finantialTransactionReference" />
+            	</div>
+            	<div class="col-sm-4">
+            		<input class="form-control" type="text" ng-model="object.finantialTransactionReference" />
+            	</div>
+            </div>
         </div>
     </div>
 

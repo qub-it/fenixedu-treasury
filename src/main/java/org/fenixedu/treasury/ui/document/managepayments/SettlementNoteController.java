@@ -336,7 +336,7 @@ public class SettlementNoteController extends TreasuryBaseController {
             documentDate = bean.getDate().toDateTimeAtStartOfDay();
         }
         SettlementNote settlementNote = SettlementNote.create(bean.getDebtAccount(), bean.getDocNumSeries(), documentDate,
-                bean.getDate().toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber());
+                bean.getDate().toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber(), bean.getFinantialTransactionReference());
         settlementNote.processSettlementNoteCreation(bean);
         settlementNote.closeDocument();
         return settlementNote;

@@ -160,9 +160,9 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
         return this.getFinantialDocumentsSet().stream().filter(x -> x.isClosed()).count();
     }
 
-    public static Stream<DocumentNumberSeries> applyActiveAndDefaultSorting(Stream<DocumentNumberSeries> stream) {
+    public static Stream<DocumentNumberSeries> applyActiveSelectableAndDefaultSorting(Stream<DocumentNumberSeries> stream) {
 
-        return stream.filter(x -> x.getSeries().getActive()).sorted(COMPARE_BY_DEFAULT.thenComparing(COMPARE_BY_NAME));
+        return stream.filter(x -> x.getSeries().getActive()).filter(d -> d.getSeries().isSelectable()).sorted(COMPARE_BY_DEFAULT.thenComparing(COMPARE_BY_NAME));
     }
 
 }

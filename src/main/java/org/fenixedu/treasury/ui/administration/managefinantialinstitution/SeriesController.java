@@ -135,11 +135,13 @@ public class SeriesController extends TreasuryBaseController {
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "name", required = false) LocalizedString name, @RequestParam(value = "externseries",
                     required = false) boolean externSeries,
-            @RequestParam(value = "certificated", required = false) boolean certificated, @RequestParam(value = "legacy",
-                    required = false) boolean legacy, Model model, RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "certificated", required = false) boolean certificated, 
+            @RequestParam(value = "legacy", required = false) boolean legacy,
+            @RequestParam(value = "selectable", required = false) final boolean selectable,
+            final Model model, final RedirectAttributes redirectAttributes) {
         try {
             super.assertUserIsBackOfficeMember(finantialInstitution, model);
-            Series series = createSeries(finantialInstitution, code, name, externSeries, certificated, legacy);
+            Series series = createSeries(finantialInstitution, code, name, externSeries, certificated, legacy, selectable);
             model.addAttribute("series", series);
             return redirect(READ_URL + getSeries(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
@@ -152,11 +154,10 @@ public class SeriesController extends TreasuryBaseController {
 
     @Atomic
     public Series createSeries(FinantialInstitution finantialInstitution, String code, LocalizedString name,
-            boolean externSeries, boolean certificated, boolean legacy) {
+            boolean externSeries, boolean certificated, boolean legacy, final boolean selectableForPayments) {
         //When creating the first series, it is the default series.
         boolean defaultSeries = finantialInstitution.getSeriesSet().size() == 0;
-        Series series = Series.create(finantialInstitution, code, name, externSeries, certificated, legacy, defaultSeries);
-        return series;
+        return Series.create(finantialInstitution, code, name, externSeries, certificated, legacy, defaultSeries, selectableForPayments);
     }
 
     @RequestMapping(value = "/search/edit/{oid}")
@@ -186,16 +187,20 @@ public class SeriesController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(@PathVariable("oid") Series series, @RequestParam(value = "code", required = true) String code,
-            @RequestParam(value = "name", required = true) LocalizedString name, @RequestParam(value = "externseries",
-                    required = true) boolean externSeries,
-            @RequestParam(value = "certificated", required = false) boolean certificated, @RequestParam(value = "legacy",
-                    required = true) boolean legacy, @RequestParam(value = "active", required = true) boolean active,
+    public String update(
+                @PathVariable("oid") final Series series, 
+                @RequestParam(value = "code", required = true) final String code,
+                @RequestParam(value = "name", required = true) final LocalizedString name, 
+                @RequestParam(value = "externseries", required = true) final boolean externSeries,
+                @RequestParam(value = "certificated", required = false) final boolean certificated, 
+                @RequestParam(value = "legacy", required = true) final boolean legacy, 
+                @RequestParam(value = "active", required = true) final boolean active,
+                @RequestParam(value = "selectable", required = false) final boolean selectable,
             Model model, RedirectAttributes redirectAttributes) {
         setSeries(series, model);
         try {
             super.assertUserIsBackOfficeMember(series.getFinantialInstitution(), model);
-            updateSeries(code, name, externSeries, certificated, legacy, active, model);
+            updateSeries(code, name, externSeries, certificated, legacy, active, selectable, model);
             return redirect(READ_URL + getSeries(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tde.getLocalizedMessage(), model);
@@ -205,9 +210,9 @@ public class SeriesController extends TreasuryBaseController {
         return update(series, model, redirectAttributes);
     }
 
-    public void updateSeries(String code, LocalizedString name, boolean externSeries, boolean certificated, boolean legacy,
-            boolean active, Model model) {
-        getSeries(model).edit(code, name, externSeries, certificated, legacy, active);
+    public void updateSeries(final String code, final LocalizedString name, final boolean externSeries, final boolean certificated, final boolean legacy,
+            final boolean active, final boolean selectable, final Model model) {
+        getSeries(model).edit(code, name, externSeries, certificated, legacy, active, selectable);
     }
 
     public void setSeriesDefault(Model model) {
