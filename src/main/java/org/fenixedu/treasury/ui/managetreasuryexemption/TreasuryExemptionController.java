@@ -122,7 +122,7 @@ public class TreasuryExemptionController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(model);
 
             TreasuryExemption.create(bean.getTreasuryExemptionType(), bean.getTreasuryEvent(), bean.getReason(),
-                    bean.getValuetoexempt(), bean.getDebitEntry(), true);
+                    bean.getValuetoexempt(), bean.getDebitEntry());
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
 
