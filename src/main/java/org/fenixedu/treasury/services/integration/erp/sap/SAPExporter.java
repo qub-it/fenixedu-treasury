@@ -132,6 +132,13 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
+    private static final String MORADA_DESCONHECIDO = "Desconhecido";
+    private static final int MAX_ADDRESS_DETAIL = 100;
+    private static final int MAX_CITY = 50;
+    private static final int MAX_ZIPCODE = 20;
+    private static final int MAX_REGION = 50;
+    private static final int MAX_STREE_NAME = 90;
+    
     private static final String SAFT_PT_ENCODING = "UTF-8";
     private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
@@ -1024,16 +1031,35 @@ public class SAPExporter implements IERPExporter {
         }
     }
 
-    private AddressStructurePT convertAddressToAddressPT(String addressDetail, String zipCode, String zipCodeRegion,
-            String street) {
-        AddressStructurePT companyAddress;
-        companyAddress = new AddressStructurePT();
+    private AddressStructurePT convertAddressToAddressPT(final String addressDetail, final String zipCode, final String zipCodeRegion,
+            final String street) {
+        final AddressStructurePT companyAddress = new AddressStructurePT();
+
         companyAddress.setCountry("PT");
-        companyAddress.setAddressDetail(Splitter.fixedLength(60).splitToList(addressDetail).get(0));
-        companyAddress.setCity(Splitter.fixedLength(49).splitToList(zipCodeRegion).get(0));
-        companyAddress.setPostalCode(zipCode);
-        companyAddress.setRegion(zipCodeRegion);
-        companyAddress.setStreetName(Splitter.fixedLength(49).splitToList(street).get(0));
+        
+        if(addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
+            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed", String.valueOf(MAX_ADDRESS_DETAIL));
+        }
+        companyAddress.setAddressDetail(!Strings.isNullOrEmpty(addressDetail) ? addressDetail : MORADA_DESCONHECIDO);
+
+        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
+            throw new TreasuryDomainException("error.SAPExporter.city.more.than.allowed", String.valueOf(MAX_CITY));
+        }
+        companyAddress.setCity(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+        
+        if(zipCode != null && zipCode.length() > MAX_ZIPCODE) {
+            throw new TreasuryDomainException("error.SAPExporter.zipCode.more.than.allowed", String.valueOf(MAX_ZIPCODE));
+        }
+        
+        companyAddress.setPostalCode(!Strings.isNullOrEmpty(zipCode) ? zipCode : MORADA_DESCONHECIDO);
+
+        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
+            throw new TreasuryDomainException("error.SAPExporter.region.more.than.allowed", String.valueOf(MAX_REGION));
+        }
+        companyAddress.setRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+
+        companyAddress.setStreetName(Splitter.fixedLength(MAX_STREE_NAME).splitToList(street).get(0));
+
         return companyAddress;
     }
 
@@ -1104,14 +1130,10 @@ public class SAPExporter implements IERPExporter {
          * ser preenchido com a designa??o ?Desconhecido?.
          */
 
-        if (customer.getCustomerType() != null) {
-            c.setAccountID(customer.getCustomerType().getCode());
+        if (customer instanceof AdhocCustomer) {
+            c.setAccountID("ADHOC");
         } else {
-            if (customer instanceof AdhocCustomer) {
-                c.setAccountID("ADHOC");
-            } else {
-                c.setAccountID("STUDENT");
-            }
+            c.setAccountID("STUDENT");
         }
 
         // BillingAddress
@@ -1121,6 +1143,19 @@ public class SAPExporter implements IERPExporter {
         // c.setBillingAddress(convertToSAFTAddressStructure(addresses.get(0)));
         // } else {
         // PhysicalAddress addr = new PhysicalAddress();
+        
+        // Ensure address is filled to avoid errors in invoices
+        
+        if(Strings.isNullOrEmpty(customer.getCountryCode())) {
+            throw new TreasuryDomainException("error.SapExporter.address.countryCode.not.filled");
+        } else if(Strings.isNullOrEmpty(customer.getAddress())) {
+            throw new TreasuryDomainException("error.SapExporter.address.address.not.filled");
+        } else if(Strings.isNullOrEmpty(customer.getZipCode())) {
+            throw new TreasuryDomainException("error.SapExporter.address.zipCode.not.filled");
+        } else if(Strings.isNullOrEmpty(customer.getDistrictSubdivision())) {
+            throw new TreasuryDomainException("error.SapExporter.address.districtSubdivision.not.filled");
+        }
+        
         c.setBillingAddress(convertAddressToSAFTAddress(customer.getCountryCode(), customer.getAddress(), customer.getZipCode(),
                 customer.getDistrictSubdivision(), customer.getAddress()));
                 // }
@@ -1167,38 +1202,34 @@ public class SAPExporter implements IERPExporter {
 
     private AddressStructure convertAddressToSAFTAddress(String country, String addressDetail, String zipCode,
             String zipCodeRegion, String street) {
-        AddressStructure companyAddress;
-        companyAddress = new AddressStructure();
-        if (Strings.isNullOrEmpty(country)) {
-            companyAddress.setCountry("PT");
-        } else {
-            companyAddress.setCountry(country);
+        final AddressStructure companyAddress = new AddressStructure();
+
+        companyAddress.setCountry(!Strings.isNullOrEmpty(country) ? country : MORADA_DESCONHECIDO);
+        
+        if(addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
+            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed", String.valueOf(MAX_ADDRESS_DETAIL));
         }
-        if (!Strings.isNullOrEmpty(addressDetail)) {
-            companyAddress.setAddressDetail(Splitter.fixedLength(60).splitToList(addressDetail).get(0));
-        } else {
-            companyAddress.setAddressDetail(".");
+        
+        companyAddress.setAddressDetail(!Strings.isNullOrEmpty(addressDetail) ? addressDetail : MORADA_DESCONHECIDO);
+
+        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
+            throw new TreasuryDomainException("error.SAPExporter.city.more.than.allowed", String.valueOf(MAX_CITY));
         }
-        if (!Strings.isNullOrEmpty(zipCodeRegion)) {
-            companyAddress.setCity(Splitter.fixedLength(49).splitToList(zipCodeRegion).get(0));
-        } else {
-            companyAddress.setCity(".");
+        companyAddress.setCity(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+
+
+        if(zipCode != null && zipCode.length() > MAX_ZIPCODE) {
+            throw new TreasuryDomainException("error.SAPExporter.zipCode.more.than.allowed", String.valueOf(MAX_ZIPCODE));
         }
-        if (!Strings.isNullOrEmpty(zipCode)) {
-            companyAddress.setPostalCode(zipCode);
-        } else {
-            companyAddress.setPostalCode(".");
+        
+        companyAddress.setPostalCode(!Strings.isNullOrEmpty(zipCode) ? zipCode : MORADA_DESCONHECIDO);
+
+        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
+            throw new TreasuryDomainException("error.SAPExporter.region.more.than.allowed", String.valueOf(MAX_REGION));
         }
-        if (!Strings.isNullOrEmpty(zipCodeRegion)) {
-            companyAddress.setRegion(zipCodeRegion);
-        } else {
-            companyAddress.setRegion(".");
-        }
-        if (!Strings.isNullOrEmpty(street)) {
-            companyAddress.setStreetName(Splitter.fixedLength(49).splitToList(street).get(0));
-        } else {
-            companyAddress.setStreetName(".");
-        }
+        companyAddress.setRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+
+        companyAddress.setStreetName(Splitter.fixedLength(MAX_STREE_NAME).splitToList(street).get(0));
         return companyAddress;
     }
 

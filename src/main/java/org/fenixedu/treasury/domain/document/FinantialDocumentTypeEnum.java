@@ -38,4 +38,20 @@ public enum FinantialDocumentTypeEnum {
     public LocalizedString getDescriptionI18N() {
         return BundleUtil.getLocalizedString(Constants.BUNDLE, getClass().getSimpleName() + "." + name());
     }
+    
+    public boolean isDebitNote() {
+        return this == DEBIT_NOTE;
+    }
+    
+    public boolean isCreditNote() {
+        return this == CREDIT_NOTE;
+    }
+    
+    public boolean isSettlementNote() {
+        return this == SETTLEMENT_NOTE;
+    }
+    
+    public boolean isReimbursementNote() {
+        return this == REIMBURSEMENT_NOTE;
+    }
 }
