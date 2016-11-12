@@ -255,5 +255,48 @@ public class CreditNote extends CreditNote_Base {
         
         checkRules();
     }
+
+    @Override
+    public ERPCustomerFieldsBean saveCustomerDataBeforeExportation() {
+        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromCreditNote(this);
+        
+        setCustomerBusinessId(bean.getCustomerBusinessId());
+        setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setCustomerNationality(bean.getCustomerNationality());
+        setCustomerId(bean.getCustomerId());
+        setCustomerAccountId(bean.getCustomerAccountId());
+        setCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setCustomerName(bean.getCustomerName());
+        setCustomerContact(bean.getCustomerContact());
+        setCustomerStreetName(bean.getCustomerStreetName());
+        setCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setCustomerCity(bean.getCustomerCity());
+        setCustomerZipCode(bean.getCustomerZipCode());
+        setCustomerRegion(bean.getCustomerRegion());
+        setCustomerCountry(bean.getCustomerCountry());
+        
+        return bean;
+    }
     
+    @Override
+    public ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation() {
+        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillPayorFromCreditNote(this);
+        
+        setCustomerBusinessId(bean.getCustomerBusinessId());
+        setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setCustomerNationality(bean.getCustomerNationality());
+        setCustomerId(bean.getCustomerId());
+        setCustomerAccountId(bean.getCustomerAccountId());
+        setCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setCustomerName(bean.getCustomerName());
+        setCustomerContact(bean.getCustomerContact());
+        setCustomerStreetName(bean.getCustomerStreetName());
+        setCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setCustomerCity(bean.getCustomerCity());
+        setCustomerZipCode(bean.getCustomerZipCode());
+        setCustomerRegion(bean.getCustomerRegion());
+        setCustomerCountry(bean.getCustomerCountry());
+        
+        return bean;
+    }
 }

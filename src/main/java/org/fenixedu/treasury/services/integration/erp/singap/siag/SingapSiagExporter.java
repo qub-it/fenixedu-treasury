@@ -1409,7 +1409,7 @@ public class SingapSiagExporter implements IERPExporter {
     private ERPExportOperation createSaftExportOperation(byte[] data, FinantialInstitution institution, DateTime when) {
         String filename = institution.getFiscalNumber() + "_" + when.toString() + ".xml";
         ERPExportOperation operation =
-                ERPExportOperation.create(data, filename, institution, when, false, false, false, null, "", "");
+                ERPExportOperation.create(data, filename, institution, null, when, false, false, false, null, "", "");
         return operation;
     }
 

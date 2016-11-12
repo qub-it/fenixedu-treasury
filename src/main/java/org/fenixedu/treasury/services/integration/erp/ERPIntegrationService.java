@@ -97,7 +97,7 @@ public class ERPIntegrationService extends BennuWebService {
         DateTime now = new DateTime();
         String filename = finantialInstitution.getFiscalNumber() + "_" + now.toString() + ".xml";
         ERPImportOperation operation = ERPImportOperation.create(filename, documentsInformation.getData(), finantialInstitution,
-                now, false, false, false, null);
+                null, now, false, false, false, null);
 
         final IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration()
                 .getERPExternalServiceImplementation().getERPImporter(operation.getFile().getStream());
@@ -130,7 +130,7 @@ public class ERPIntegrationService extends BennuWebService {
         try {
             File externalFile = new File(documentsInformation.getDataURI());
             byte[] bytes = Files.toByteArray(externalFile);
-            operation = ERPImportOperation.create(filename, bytes, finantialInstitution, now, false, false, false, null);
+            operation = ERPImportOperation.create(filename, bytes, finantialInstitution, null, now, false, false, false, null);
 
             IERPImporter erpImporter = finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation()
                     .getERPImporter(operation.getFile().getStream());

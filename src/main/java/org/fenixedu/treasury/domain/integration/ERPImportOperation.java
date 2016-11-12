@@ -20,10 +20,11 @@ public class ERPImportOperation extends ERPImportOperation_Base {
         super();
     }
 
-    protected void init(final OperationFile file, final FinantialInstitution finantialInstitution, final DateTime executionDate,
+    protected void init(final OperationFile file, final FinantialInstitution finantialInstitution, final String erpOperationId, final DateTime executionDate,
             final boolean processed, final boolean success, final boolean corrected, final String errorLog) {
         setFile(file);
         setFinantialInstitution(finantialInstitution);
+        setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);
         setSuccess(success);
@@ -78,11 +79,11 @@ public class ERPImportOperation extends ERPImportOperation_Base {
 
     @Atomic
     public static ERPImportOperation create(String filename, final byte[] bytes, final FinantialInstitution finantialInstitution,
-            final DateTime executionDate, final boolean processed, final boolean success, final boolean corrected,
+            final String erpOperationId, final DateTime executionDate, final boolean processed, final boolean success, final boolean corrected,
             final String errorLog) {
         ERPImportOperation eRPImportOperation = new ERPImportOperation();
         OperationFile file = OperationFile.create(filename, bytes, eRPImportOperation);
-        eRPImportOperation.init(file, finantialInstitution, executionDate, processed, success, corrected, errorLog);
+        eRPImportOperation.init(file, finantialInstitution, erpOperationId, executionDate, processed, success, corrected, errorLog);
         return eRPImportOperation;
     }
 

@@ -20,9 +20,9 @@ public class ERPExportOperation extends ERPExportOperation_Base {
         super();
     }
 
-    protected void init(final OperationFile file, final FinantialInstitution finantialInstitution, final DateTime executionDate,
-            final boolean processed, final boolean success, final boolean corrected, final String errorLog, 
-            final String soapInboundMessage, final String soapOutboundMessage) {
+    protected void init(final OperationFile file, final FinantialInstitution finantialInstitution, final String erpOperationId, 
+            final DateTime executionDate, final boolean processed, final boolean success, final boolean corrected, 
+            final String errorLog, final String soapInboundMessage, final String soapOutboundMessage) {
         setFile(file);
         setFinantialInstitution(finantialInstitution);
         setExecutionDate(executionDate);
@@ -47,10 +47,12 @@ public class ERPExportOperation extends ERPExportOperation_Base {
     }
 
     @Atomic
-    public void edit(final OperationFile file, final FinantialInstitution finantialInstitution, final DateTime executionDate,
-            final boolean processed, final boolean success, final boolean corrected, final String errorLog) {
+    public void edit(final OperationFile file, final FinantialInstitution finantialInstitution, final String erpOperationId, 
+            final DateTime executionDate, final boolean processed, final boolean success, 
+            final boolean corrected, final String errorLog) {
         setFile(file);
         setFinantialInstitution(finantialInstitution);
+        setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);
         setSuccess(success);
@@ -83,7 +85,7 @@ public class ERPExportOperation extends ERPExportOperation_Base {
 
     @Atomic
     public static ERPExportOperation create(final byte[] data, final String filename,
-            final FinantialInstitution finantialInstitution, final DateTime executionDate, final boolean processed,
+            final FinantialInstitution finantialInstitution, final String erpOperationId, final DateTime executionDate, final boolean processed,
             final boolean success, final boolean corrected, final String errorLog, 
             final String soapInboundMessage, final String soapOutboundMessage) {
         ERPExportOperation eRPExportOperation = new ERPExportOperation();
@@ -93,7 +95,7 @@ public class ERPExportOperation extends ERPExportOperation_Base {
         } else {
             file = OperationFile.create(filename, data, eRPExportOperation);
         }
-        eRPExportOperation.init(file, finantialInstitution, executionDate, processed, success, corrected, errorLog, soapInboundMessage, soapOutboundMessage);
+        eRPExportOperation.init(file, finantialInstitution, erpOperationId, executionDate, processed, success, corrected, errorLog, soapInboundMessage, soapOutboundMessage);
 
         return eRPExportOperation;
     }

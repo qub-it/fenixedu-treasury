@@ -152,16 +152,16 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
             final FinantialDocument previousFinantialDocument =
                     stream.sorted(COMPARE_BY_DOCUMENT_NUMBER).findFirst().orElse(null);
 
-            if (previousFinantialDocument != null
-                    && !(previousFinantialDocument.getDocumentDate().toLocalDate().compareTo(getDocumentDate().toLocalDate()) <= 0)) {
+            if (previousFinantialDocument != null && !(previousFinantialDocument.getDocumentDate().toLocalDate()
+                    .compareTo(getDocumentDate().toLocalDate()) <= 0)) {
                 throw new TreasuryDomainException("error.FinantialDocument.documentDate.is.not.after.than.previous.document");
             }
         }
-        
-        if(getDocumentDate().isAfterNow()) {
+
+        if (getDocumentDate().isAfterNow()) {
             throw new TreasuryDomainException("error.FinantialDocument.documentDate.cannot.be.after.now");
         }
-        
+
         //If document is closed, all entries must be after of DocumentDate - RSP, this rule is invalid. I can create a debit entry today, and add it to a Document in a month
 //        if (isClosed()) {
 //            LocalDate documentDate = this.getDocumentDate().toLocalDate();
@@ -170,11 +170,12 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
 //                throw new TreasuryDomainException("error.FinantialDocument.documentDate.is.after.entries.date");
 //            }
 //        }
-        
-        if(!Strings.isNullOrEmpty(getOriginDocumentNumber()) && !Constants.isOriginDocumentNumberValid(getOriginDocumentNumber())) {
+
+        if (!Strings.isNullOrEmpty(getOriginDocumentNumber())
+                && !Constants.isOriginDocumentNumberValid(getOriginDocumentNumber())) {
             throw new TreasuryDomainException("error.FinantialDocument.originDocumentNumber.invalid");
         }
-        
+
     }
 
     protected boolean isDocumentEmpty() {
@@ -182,9 +183,9 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     }
 
     public String getUiDocumentNumber() {
-        return String.format("%s %s/%s", this.getDocumentNumberSeries().getFinantialDocumentType()
-                .getDocumentNumberSeriesPrefix(), this.getDocumentNumberSeries().getSeries().getCode(),
-                Strings.padStart(this.getDocumentNumber(), 7, '0'));
+        return String.format("%s %s/%s",
+                this.getDocumentNumberSeries().getFinantialDocumentType().getDocumentNumberSeriesPrefix(),
+                this.getDocumentNumberSeries().getSeries().getCode(), Strings.padStart(this.getDocumentNumber(), 7, '0'));
     }
 
     public BigDecimal getTotalAmount() {
@@ -265,11 +266,11 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
                 this.markDocumentToExport();
             }
         } else {
-            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE,
-                    "error.FinantialDocumentState.invalid.state.change.request"));
+            throw new TreasuryDomainException(
+                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
 
         }
-        
+
         checkRules();
     }
 
@@ -385,7 +386,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
             return BigDecimal.ZERO;
         }
     }
-    
+
     public boolean isDocumentSeriesNumberSet() {
         return Long.parseLong(getDocumentNumber()) != 0;
     }

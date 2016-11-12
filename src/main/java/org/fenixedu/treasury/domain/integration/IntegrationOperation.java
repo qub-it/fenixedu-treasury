@@ -38,9 +38,9 @@ import org.apache.commons.io.IOUtils;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
 
-import pt.ist.fenixframework.Atomic;
-
 import com.google.common.base.Strings;
+
+import pt.ist.fenixframework.Atomic;
 
 public abstract class IntegrationOperation extends IntegrationOperation_Base {
 
@@ -48,8 +48,9 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
         super();
     }
 
-    protected void init(final org.joda.time.DateTime executionDate, final boolean processed, final boolean success,
+    protected void init(final String erpOperationId, final DateTime executionDate, final boolean processed, final boolean success,
             final java.lang.String errorLog) {
+        setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);
         setSuccess(success);
@@ -90,8 +91,9 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
     }
 
     @Atomic
-    public void edit(final org.joda.time.DateTime executionDate, final boolean processed, final boolean success,
+    public void edit(final String erpOperationId, final org.joda.time.DateTime executionDate, final boolean processed, final boolean success,
             final java.lang.String errorLog) {
+        setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);
         setSuccess(success);

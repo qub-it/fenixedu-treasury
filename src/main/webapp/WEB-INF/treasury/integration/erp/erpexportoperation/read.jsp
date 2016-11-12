@@ -190,22 +190,21 @@ ${portal.toolkit()}
                                 </span>
                             </c:if></td>
                     </tr>
-                    <!--                     <tr> -->
-                    <%--                         <th scope="row" class="col-xs-3"><spring:message code="label.ERPExportOperation.corrected" /></th> --%>
-                    <%--                         <td><c:if test="${eRPExportOperation.corrected}"> --%>
-                    <%--                                 <span class="label label-primary"> <spring:message code="label.true" /> --%>
-                    <!--                                 </span> -->
-                    <%--                             </c:if> <c:if test="${not eRPExportOperation.corrected}"> --%>
-                    <%--                                 <span class="label label-danger"> <spring:message code="label.false" /> --%>
-                    <!--                                 </span> -->
-                    <%--                             </c:if></td> --%>
-                    <!--                     </tr> -->
+
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message
                                 code="label.ERPExportOperation.size" /></th>
                         <td><pre><c:out
                                 value='${eRPExportOperation.file.size} Bytes' /></pre></td>
                     </tr>
+
+					<c:if test="${eRPExportOperation.erpOperationId != null}">
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ERPExportOperation.erpOperationId" /></th>
+                        <td><c:out value='${eRPExportOperation.erpOperationId}' /></td>
+                    </tr>
+                    </c:if>
+
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message
                                 code="label.ERPExportOperation.errorLog" /></th>
