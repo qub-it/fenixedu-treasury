@@ -16,8 +16,9 @@ public class ERPCustomerFieldsBean {
     private static final int MAX_REGION = 50;
 
     private static final int MAX_FISCAL_NUM = 20;
-    
     private static final int MAX_CONTACT = 50;
+    private static final int MAX_NAME = 100;
+    private static final int MAX_STREET_NAME = 90;
 
     private String customerId;
 
@@ -79,6 +80,10 @@ public class ERPCustomerFieldsBean {
                 customer.getDistrictSubdivision(), customer.getAddress());
 
         // CompanyName
+        if(customer.getName().length() > MAX_NAME) {
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.customerName.more.than.allowed", String.valueOf(MAX_NAME));
+        }
+        
         bean.setCustomerName(customer.getName());
 
         // Contact
@@ -89,7 +94,7 @@ public class ERPCustomerFieldsBean {
         bean.setCustomerBusinessId(customer.getBusinessIdentification());
 
         if (!Strings.isNullOrEmpty(customer.getFiscalNumber()) && customer.getFiscalNumber().length() > MAX_FISCAL_NUM) {
-            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.fiscalNumber.more.than.allowed");
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.fiscalNumber.more.than.allowed", String.valueOf(MAX_FISCAL_NUM));
         }
 
         // CustomerTaxID
@@ -125,8 +130,17 @@ public class ERPCustomerFieldsBean {
         bean.setCustomerFiscalCountry(debitNote.getCustomerFiscalCountry());
         bean.setCustomerNationality(debitNote.getCustomerNationality());
         bean.setCustomerAccountId(debitNote.getCustomerAccountId());
+
+        if (!Strings.isNullOrEmpty(debitNote.getCustomerFiscalNumber()) && debitNote.getCustomerFiscalNumber().length() > MAX_FISCAL_NUM) {
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.fiscalNumber.more.than.allowed", String.valueOf(MAX_FISCAL_NUM));
+        }
         bean.setCustomerFiscalNumber(debitNote.getCustomerFiscalNumber());
+        
+        if(debitNote.getCustomerName().length() > MAX_NAME) {
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.customerName.more.than.allowed", String.valueOf(MAX_NAME));
+        }
         bean.setCustomerName(debitNote.getCustomerName());
+
         bean.setCustomerContact(debitNote.getCustomerContact());
         bean.setCustomerStreetName(debitNote.getCustomerStreetName());
         bean.setCustomerAddressDetail(debitNote.getCustomerAddressDetail());
@@ -154,8 +168,17 @@ public class ERPCustomerFieldsBean {
         bean.setCustomerFiscalCountry(debitNote.getPayorCustomerFiscalCountry());
         bean.setCustomerNationality(debitNote.getPayorCustomerNationality());
         bean.setCustomerAccountId(debitNote.getPayorCustomerAccountId());
+
+        if (!Strings.isNullOrEmpty(debitNote.getPayorCustomerFiscalNumber()) && debitNote.getPayorCustomerFiscalNumber().length() > MAX_FISCAL_NUM) {
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.payorFiscalNumber.more.than.allowed", String.valueOf(MAX_FISCAL_NUM));
+        }
         bean.setCustomerFiscalNumber(debitNote.getPayorCustomerFiscalNumber());
+
+        if(debitNote.getPayorCustomerName().length() > MAX_NAME) {
+            throw new TreasuryDomainException("error.ERPCustomerFieldsBean.payorCustomerName.more.than.allowed", String.valueOf(MAX_NAME));
+        }
         bean.setCustomerName(debitNote.getPayorCustomerName());
+
         bean.setCustomerContact(debitNote.getPayorCustomerContact());
         bean.setCustomerStreetName(debitNote.getPayorCustomerStreetName());
         bean.setCustomerAddressDetail(debitNote.getPayorCustomerAddressDetail());
@@ -196,6 +219,8 @@ public class ERPCustomerFieldsBean {
             throw new TreasuryDomainException("error.ERPCustomerFieldsBean.region.more.than.allowed", String.valueOf(MAX_REGION));
         }
         bean.setCustomerRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+        
+        bean.setCustomerStreetName(Splitter.fixedLength(MAX_STREET_NAME).splitToList(street).get(0));
     }
 
     // @formatter:off
