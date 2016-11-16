@@ -40,9 +40,9 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         //Set Timeout for the client
         Map<String, Object> requestContext = ((BindingProvider) client).getRequestContext();
-        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 15000); // Timeout in millis
-        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 2000); // Timeout in millis
-
+        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
+        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
+        
         ZulwsfaturacaoClientesIn auditFile = new ZulwsfaturacaoClientesIn();
         auditFile.setFinantialInstitution(documentsInformation.getFinantialInstitution());
         auditFile.setData(documentsInformation.getData());
