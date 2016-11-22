@@ -33,8 +33,6 @@ public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
     @Override
     public boolean handleMessage(SOAPMessageContext messageContext) {
-        System.out.println("SOAPLoggingHandler::handleMessage DUMP");
-        
         boolean direction = ((Boolean) messageContext.get(SOAPMessageContext.MESSAGE_OUTBOUND_PROPERTY)).booleanValue();
         if (direction) {
             outboundMessage = dumpMsg(messageContext);

@@ -233,13 +233,11 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 		&nbsp;
 		</c:if>
         <c:if test="${creditNote.isPreparing()}">
-            |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;<a class="" href="#" data-toggle="modal" data-target="#deleteModal"><spring:message
-                    code="label.event.delete" /></a>  &nbsp;|&nbsp; 
-			<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-            <a class="" href="#" data-toggle="modal" data-target="#closeModal"> <spring:message code="label.event.document.manageInvoice.closeCreditNote" />
-            </a> &nbsp; 
+            |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;
+            <a class="" href="#" data-toggle="modal" data-target="#deleteModal">
+            	<spring:message code="label.event.delete" />
+            </a>
 		</c:if>
-
 <%}%>
         <c:if test="${creditNote.documentSeriesNumberSet}">
 |

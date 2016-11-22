@@ -15,28 +15,31 @@ public class ERPExportPendingDocumentsTask extends CronTask {
     @Override
     public void runTask() throws Exception {
 
-        FinantialInstitution.findAll().forEach(
-                x -> {
-                    taskLog("Start Exporting Pending Documents for : " + x.getName());
-                    try {
-                        List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution =
-                                ERPExporterManager.exportPendingDocumentsForFinantialInstitution(x);
-                        for (ERPExportOperation exportOperation : exportPendingDocumentsForFinantialInstitution) {
-                            for (FinantialDocument doc : exportOperation.getFinantialDocumentsSet()) {
-                                taskLog("Exported document: " + doc.getUiDocumentNumber() + "=>"
-                                        + (exportOperation.getSuccess() ? "OK" : "NOK"));
-                            }
-                        }
-                        int documentsCount =
-                                exportPendingDocumentsForFinantialInstitution.stream()
-                                        .mapToInt(oper -> oper.getFinantialDocumentsSet().size()).sum();
-                        taskLog("Finished Exporting " + documentsCount + " Pending Documents for : " + x.getName());
-                    } catch (Exception ex) {
-                        taskLog("Error exporting pending documents: " + ex.getMessage());
-                        for (StackTraceElement el : ex.getStackTrace()) {
-                            taskLog(el.toString());
-                        }
+        FinantialInstitution.findAll().forEach(x -> {
+
+            taskLog("Start Exporting Pending Documents for : " + x.getName());
+            try {
+                List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution =
+                        ERPExporterManager.exportPendingDocumentsForFinantialInstitution(x);
+
+                for (ERPExportOperation exportOperation : exportPendingDocumentsForFinantialInstitution) {
+                    for (FinantialDocument doc : exportOperation.getFinantialDocumentsSet()) {
+                        taskLog(String.format("Exported document: %s => %s", doc.getUiDocumentNumber(),
+                                (exportOperation.getSuccess() ? "OK" : "NOK")));
                     }
-                });
+                }
+
+                int documentsCount = exportPendingDocumentsForFinantialInstitution.stream()
+                        .mapToInt(oper -> oper.getFinantialDocumentsSet().size()).sum();
+
+                taskLog("Finished Exporting %d Pending Documents for : %s", documentsCount, x.getName());
+
+            } catch (Exception ex) {
+                taskLog("Error exporting pending documents: " + ex.getMessage());
+                for (StackTraceElement el : ex.getStackTrace()) {
+                    taskLog(el.toString());
+                }
+            }
+        });
     }
 }
