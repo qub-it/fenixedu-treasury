@@ -9,6 +9,7 @@ import org.fenixedu.bennu.scheduler.TaskRunner;
 import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
 
@@ -113,5 +114,18 @@ public class ERPExporterManager {
         ERPExportOperation retryExportOperation = erpExporter.retryExportToIntegration(eRPExportOperation);
         
         return retryExportOperation;
+    }
+    
+    public static byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
+        final FinantialInstitution finantialInstitution = finantialDocument.getDebtAccount().getFinantialInstitution();
+        
+        final IERPExporter erpExporter =
+                finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+
+        if (!finantialInstitution.getErpIntegrationConfiguration().getActive()) {
+            throw new TreasuryDomainException("error.ERPExporterManager.downloadCertifiedDocumentPrint.integration.not.active");
+        }
+        
+        return erpExporter.downloadCertifiedDocumentPrint(finantialDocument);
     }
 }

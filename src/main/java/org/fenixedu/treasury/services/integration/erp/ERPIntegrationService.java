@@ -286,7 +286,6 @@ public class ERPIntegrationService extends BennuWebService {
     public IntegrationStatusOutput processReimbursementStateChange(
                 @WebParam(name="finantialInstitution") final String finantialInstitutionFiscalNumber, 
                 @WebParam(name="finantialDocument") final String finantialDocumentNumber,
-                @WebParam(name="erpProcessId") final String erpProcessId, 
                 @WebParam(name="exerciseYear") final String exerciseYear, 
                 @WebParam(name="reimbursementStatus") final String reimbursementStatusCode,
                 @WebParam(name="reimbursementStatusDate") final java.util.Calendar reimbursementStatusDate) {
@@ -297,10 +296,6 @@ public class ERPIntegrationService extends BennuWebService {
         
         if(Strings.isNullOrEmpty(finantialDocumentNumber)) {
             throw new TreasuryDomainException("error.integration.erp.invalid.fiscalInstitution");
-        }
-        
-        if(Strings.isNullOrEmpty(erpProcessId)) {
-            throw new TreasuryDomainException("error.integration.erp.invalid.erpDocumentCode");
         }
         
         if(Strings.isNullOrEmpty(exerciseYear)) {
@@ -365,7 +360,7 @@ public class ERPIntegrationService extends BennuWebService {
             throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.next.status.invalid");
         }
         
-        settlementNote.processReimbursementStateChange(reimbursementStatus, erpProcessId, exerciseYear, new DateTime(reimbursementStatusDate));
+        //settlementNote.processReimbursementStateChange(reimbursementStatus, erpProcessId, exerciseYear, new DateTime(reimbursementStatusDate));
         
         final DocumentStatusWS documentStatusWs = new DocumentStatusWS();
         documentStatusWs.setDocumentNumber(finantialDocumentNumber);

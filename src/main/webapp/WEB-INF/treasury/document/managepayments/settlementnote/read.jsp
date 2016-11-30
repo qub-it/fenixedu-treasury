@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.ui.document.managepayments.SettlementNoteController"%>
 <%@page import="org.fenixedu.bennu.core.security.Authenticate"%>
 <%@page import="org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl"%>
 <%@page import="org.fenixedu.treasury.domain.FinantialInstitution"%>
@@ -284,7 +285,16 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
     |&nbsp; <span class="glyphicon glyphicon-print" aria-hidden="true"></span> &nbsp; <a class="" id="printLabel2" target="_blank" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/printdocument">
         <spring:message
             code="label.print" />
-    </a> &nbsp;
+    </a>
+    
+	<c:if test="${settlementNote.isClosed()}">
+       	&nbsp;|&nbsp;
+        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+        <a href="${pageContext.request.contextPath}<%= SettlementNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${settlementNote.externalId}">
+        	<spring:message code="label.FinantialDocument.download.settlement.note" />
+        </a>
+	</c:if>
+    
 </div>
 
 <c:if test="${not empty infoMessages}">

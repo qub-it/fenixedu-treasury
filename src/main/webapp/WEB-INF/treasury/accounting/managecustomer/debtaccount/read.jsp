@@ -259,13 +259,21 @@ ${portal.angularToolkit()}
 			<% if(ForwardPaymentConfiguration.isActive(debtAccount.getFinantialInstitution())) { %>
             <li>
             	<a id="exportintegrationline"
-            		class=""
             		href="${pageContext.request.contextPath}<%= ManageForwardPaymentsController.SEARCH_URL %>?customerBusinessId=${debtAccount.customer.businessIdentification}">
             		<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true" target="_blank"></span>&nbsp;
             		<spring:message code="label.ManageForwardPayments.search" />
                	</a>
             </li>
-			<% } %>            
+			<% } %>
+			
+			<% if(TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) { %>
+            <li>
+            	<a href="${pageContext.request.contextPath}/academictreasury/erptuitioninfo/create/${debtAccount.customer.externalId}">
+            		<span class="glyphicon glyphicon-upload" aria-hidden="true" target="_blank"></span>&nbsp;
+            		<spring:message code="label.ERPTuitionInfo.create" />
+               	</a>
+            </li>
+			<% } %>
         </ul>
     </div>
     <%

@@ -1665,4 +1665,9 @@ public class SingapSiagExporter implements IERPExporter {
         }
     }
 
+    @Override
+    public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
+        throw new RuntimeException("not implemented");
+    }
+
 }

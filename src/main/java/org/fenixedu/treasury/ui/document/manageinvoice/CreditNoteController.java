@@ -51,6 +51,7 @@ import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
+import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
@@ -483,6 +484,34 @@ public class CreditNoteController extends TreasuryBaseController {
         } catch (final DomainException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
             return redirect(READ_URL + creditNote.getExternalId(), model, redirectAttributes);
+        }
+    }
+    
+    private static final String _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI = "/downloadcertifieddocumentprint";
+    public static final String DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL = CONTROLLER_URL + _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI;
+
+    @RequestMapping(value = _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI + "/{oid}", method = RequestMethod.GET)
+    public String downloadcertifieddocumentprint(@PathVariable("oid") final CreditNote creditNote, final Model model,
+            final RedirectAttributes redirectAttributes, final HttpServletResponse response) {
+
+        try {
+            
+            final byte[] contents = ERPExporterManager.downloadCertifiedDocumentPrint(creditNote);
+            
+            response.setContentType("application/pdf");
+            String filename = URLEncoder.encode(StringNormalizer
+                    .normalizePreservingCapitalizedLetters((creditNote.getDebtAccount().getFinantialInstitution().getFiscalNumber()
+                            + "_" + creditNote.getUiDocumentNumber() + ".pdf").replaceAll("/", "_").replaceAll("\\s", "_")
+                                    .replaceAll(" ", "_")),
+                    "Windows-1252");
+            
+            response.setHeader("Content-disposition", "attachment; filename=" + filename);
+            response.getOutputStream().write(contents);
+            
+            return null;
+        } catch (final TreasuryDomainException | IOException e) {
+            addErrorMessage(e.getLocalizedMessage(), model);
+            return redirect(READ_URL + "/" + creditNote.getExternalId(), model, redirectAttributes);
         }
     }
     

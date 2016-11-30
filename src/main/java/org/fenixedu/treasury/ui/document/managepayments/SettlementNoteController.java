@@ -64,6 +64,7 @@ import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
+import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
@@ -761,4 +762,33 @@ public class SettlementNoteController extends TreasuryBaseController {
         }
     }
 
+    private static final String _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI = "/downloadcertifieddocumentprint";
+    public static final String DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL = CONTROLLER_URL + _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI;
+
+    @RequestMapping(value = _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI + "/{oid}", method = RequestMethod.GET)
+    public String downloadcertifieddocumentprint(@PathVariable("oid") final SettlementNote settlementNote, final Model model,
+            final RedirectAttributes redirectAttributes, final HttpServletResponse response) {
+
+        try {
+            
+            final byte[] contents = ERPExporterManager.downloadCertifiedDocumentPrint(settlementNote);
+            
+            response.setContentType("application/pdf");
+            String filename = URLEncoder.encode(StringNormalizer
+                    .normalizePreservingCapitalizedLetters((settlementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber()
+                            + "_" + settlementNote.getUiDocumentNumber() + ".pdf").replaceAll("/", "_").replaceAll("\\s", "_")
+                                    .replaceAll(" ", "_")),
+                    "Windows-1252");
+            
+            response.setHeader("Content-disposition", "attachment; filename=" + filename);
+            response.getOutputStream().write(contents);
+            
+            return null;
+        } catch (final TreasuryDomainException | IOException e) {
+            addErrorMessage(e.getLocalizedMessage(), model);
+            
+            return redirect(READ_URL + "/" + settlementNote.getExternalId(), model, redirectAttributes);
+        }
+    }
+    
 }

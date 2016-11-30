@@ -133,5 +133,11 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
     public IERPImporter getERPImporter(final InputStream inputStream) {
         return new SingapSiagImporter(inputStream);
     }
-    
+
+    @Override
+    public byte[] downloadCertifiedDocumentPrint(final String finantialInstitution, final String finantialDocumentNumber,
+            final String erpIdProcess) {
+        throw new RuntimeException("not implemented");
+    }
+
 }

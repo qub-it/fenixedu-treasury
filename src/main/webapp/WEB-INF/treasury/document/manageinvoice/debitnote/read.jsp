@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.ui.document.manageinvoice.DebitNoteController"%>
 <%@page import="org.fenixedu.treasury.ui.document.manageinvoice.CreditNoteController"%>
 <%@page import="org.fenixedu.bennu.core.security.Authenticate"%>
 <%@page import="org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl"%>
@@ -419,7 +420,14 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
         <a class="" id="printLabel2" href="#"
             onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';"> <spring:message
                 code="label.print" />
-        </a> 
+        </a>
+	<c:if test="${debitNote.isClosed()}">
+       	&nbsp;|&nbsp;
+        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+        <a href="${pageContext.request.contextPath}<%= DebitNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${debitNote.externalId}">
+        	<spring:message code="label.FinantialDocument.download.invoice" />
+        </a>
+	</c:if>
     </div>
 </form>
 
