@@ -36,7 +36,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.MalformedURLException;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
-import org.fenixedu.treasury.domain.AdhocCustomer;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.Product;
@@ -135,13 +133,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 public class SAPExporter implements IERPExporter {
 
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
-    private static final int MAX_ADDRESS_DETAIL = 100;
-    private static final int MAX_CITY = 50;
-    private static final int MAX_ZIPCODE = 20;
-    private static final int MAX_REGION = 50;
     private static final int MAX_STREET_NAME = 90;
-
-    private static final int MAX_FISCAL_NUM = 20;
 
     private static final String SAFT_PT_ENCODING = "UTF-8";
     private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
@@ -371,8 +363,22 @@ public class SAPExporter implements IERPExporter {
     private Payment convertToSAFTPaymentDocument(final SettlementNote document,
             final Map<String, ERPCustomerFieldsBean> baseCustomers,
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> productMap) {
+        final ERPCustomerFieldsBean customerBean = ERPCustomerFieldsBean.fillFromCustomer(document.getDebtAccount().getCustomer());
+
         Payment payment = new Payment();
 
+        // Find the Customer in BaseCustomers
+        if (baseCustomers.containsKey(customerBean.getCustomerId())) {
+            ERPCustomerFieldsBean customer = baseCustomers.get(customerBean.getCustomerId());
+
+            if (!customer.getCustomerFiscalNumber().equals(customerBean.getCustomerFiscalNumber())) {
+                throw new TreasuryDomainException("error.SAPExporter.customer.registered.with.different.fiscalNumber");
+            }
+        } else {
+            // If not found, create a new one and add it to baseCustomers
+            baseCustomers.put(customerBean.getCustomerId(), customerBean);
+        }
+        
         // Find the Customer in BaseCustomers
         if (!baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
             throw new TreasuryDomainException("error.SAPExporter.convertToSAFTPaymentDocument.customer.not.processed");
@@ -602,7 +608,7 @@ public class SAPExporter implements IERPExporter {
         }
 
         //check the PayorDebtAccount
-        if (document.getPayorDebtAccount() != null) {
+        if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
             final ERPCustomerFieldsBean payorCustomerBean = document.savePayorCustomerDataBeforeExportation();
 
             if (baseCustomers.containsKey(payorCustomerBean.getCustomerId())) {
@@ -641,7 +647,7 @@ public class SAPExporter implements IERPExporter {
             workDocument.setCustomerID(document.getDebtAccount().getCustomer().getCode());
 
             //PayorID
-            if (document.getPayorDebtAccount() != null) {
+            if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
                 workDocument.setPayorCustomerID(document.getPayorDebtAccount().getCustomer().getCode());
             }
 
@@ -1061,8 +1067,6 @@ public class SAPExporter implements IERPExporter {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, SAFT_PT_ENCODING);
             marshaller.marshal(auditFile, writer);
-
-            Charset charset = Charset.forName(SAFT_PT_ENCODING);
 
             String xml = new String(writer.toByteArray(), SAFT_PT_ENCODING);
             xml = xml.replace(cleanXMLAnotations, "");
