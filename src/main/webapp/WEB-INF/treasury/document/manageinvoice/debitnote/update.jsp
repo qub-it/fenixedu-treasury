@@ -176,21 +176,6 @@ ${portal.toolkit()}
                 
                 </c:if>
             </div>
-
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message code="label.DebitNote.payorDebtAccount" />
-                </div>
-
-                <div class="col-sm-4">
-                    <%-- Relation to side 1 drop down rendered in input --%>
-                    <select id="debitNote_payorDebtAccount" class="js-example-basic-single" name="payordebtaccount">
-                        <option value="">&nbsp;</option>
-                        <%-- empty option remove it if you don't want to have it or give it a label CHANGE_ME --%>
-                    </select>
-                </div>
-            </div>
-
         </div>
         <div class="panel-footer">
             <input type="submit" class="btn btn-default" role="button" value="<spring:message code="label.submit" />" />
