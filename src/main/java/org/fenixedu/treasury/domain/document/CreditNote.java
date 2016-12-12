@@ -62,20 +62,7 @@ public class CreditNote extends CreditNote_Base {
         super.init(debtAccount, documentNumberSeries, documentDate);
 
         this.setDebitNote(debitNote);
-
-    }
-
-    protected CreditNote(final DebtAccount debtAccount, final DebtAccount payorDebtAccount,
-            final DocumentNumberSeries documentNumberSeries, final DateTime documentDate) {
-        super();
-
-        init(debtAccount, payorDebtAccount, documentNumberSeries, documentDate);
-        checkRules();
-    }
-
-    @Override
-    public boolean isCreditNote() {
-        return true;
+        this.setPayorDebtAccount(debitNote.getPayorDebtAccount());
     }
 
     @Override
@@ -97,6 +84,11 @@ public class CreditNote extends CreditNote_Base {
         }
         
         super.checkRules();
+    }
+
+    @Override
+    public boolean isCreditNote() {
+        return true;
     }
 
     @Override
@@ -142,19 +134,6 @@ public class CreditNote extends CreditNote_Base {
 
     public BigDecimal getCreditAmount() {
         return this.getTotalAmount();
-    }
-
-    public static Stream<? extends CreditNote> findAll() {
-        return Invoice.findAll().filter(i -> i instanceof CreditNote).map(CreditNote.class::cast);
-    }
-
-    @Atomic
-    public static CreditNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, DebitNote debitNote, String originNumber) {
-        CreditNote note = new CreditNote(debtAccount, documentNumberSeries, documentDate, debitNote);
-        note.setOriginDocumentNumber(originNumber);
-        note.checkRules();
-        return note;
     }
 
     @Atomic
@@ -328,5 +307,27 @@ public class CreditNote extends CreditNote_Base {
 
         return bean;
     }
+
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+    
+    
+    public static Stream<? extends CreditNote> findAll() {
+        return Invoice.findAll().filter(i -> i instanceof CreditNote).map(CreditNote.class::cast);
+    }
+
+    @Atomic
+    public static CreditNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
+            final DateTime documentDate, DebitNote debitNote, String originNumber) {
+        CreditNote note = new CreditNote(debtAccount, documentNumberSeries, documentDate, debitNote);
+        note.setOriginDocumentNumber(originNumber);
+        note.checkRules();
+        return note;
+    }
+
     
 }

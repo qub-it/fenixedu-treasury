@@ -107,7 +107,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) debitEntry.ge
                         <spring:message code="label.close" />
                     </button>
                     <button id="deleteButton" class="btn btn-danger" type="submit">
-                        <spring:message code="label.delete" />
+                        <spring:message code="label.event.delete" />
                     </button>
                 </div>
             </form>

@@ -343,6 +343,14 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                         <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.customer" /></th>
                         <td><c:out value='${creditNote.debtAccount.customer.businessIdentification} - ${creditNote.debtAccount.customer.name}' /></td>
                     </tr>
+                    <c:if test='${not empty creditNote.payorDebtAccount}'>
+                        <c:if test='${not creditNote.payorDebtAccount.equals(creditNote.debtAccount)}'>
+                            <tr>
+                                <th scope="row" class="col-xs-3"><spring:message code="label.CreditNote.payorDebtAccount" /></th>
+                                <td><c:out value='${creditNote.payorDebtAccount.customer.businessIdentification} - ${creditNote.payorDebtAccount.customer.name}' /></td>
+                            </tr>
+                        </c:if>
+                    </c:if>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.CreditNote.documentNumber" /></th>
                         <td><c:out value='${creditNote.uiDocumentNumber}' /></td>
