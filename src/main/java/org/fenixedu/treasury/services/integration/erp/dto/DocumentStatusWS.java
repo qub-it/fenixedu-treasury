@@ -6,10 +6,8 @@ import org.fenixedu.treasury.util.Constants;
 
 public class DocumentStatusWS {
     private String documentNumber;
-/* SAP Integration 
     private String certifiedDocumentURL;
     private String sapDocumentNumber;
-*/
     private StatusType integrationStatus;
     private String errorDescription;
 
@@ -29,7 +27,6 @@ public class DocumentStatusWS {
         this.documentNumber = documentNumber;
     }
     
-/* SAP Integration 
     public String getCertifiedDocumentURL() {
         return certifiedDocumentURL;
     }
@@ -45,7 +42,6 @@ public class DocumentStatusWS {
     public void setSapDocumentNumber(String sapDocumentNumber) {
         this.sapDocumentNumber = sapDocumentNumber;
     }
-*/
     
     public String getErrorDescription() {
         return errorDescription;

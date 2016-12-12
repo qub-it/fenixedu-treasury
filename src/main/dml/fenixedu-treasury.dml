@@ -1562,6 +1562,8 @@ class document.reimbursement.ReimbursementProcessStatusType {
 	String description;
 	boolean initialStatus;
 	boolean finalStatus;
+	int orderNumber;
+	boolean annuledStatus;
 }
 
 	relation ReimbursementProcessStatusTypeBennu {
