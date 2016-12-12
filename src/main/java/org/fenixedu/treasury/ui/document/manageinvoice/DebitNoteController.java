@@ -42,6 +42,7 @@ import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.commons.StringNormalizer;
 import org.fenixedu.treasury.domain.Currency;
+import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
@@ -353,11 +354,6 @@ public class DebitNoteController extends TreasuryBaseController {
     public String update(@PathVariable("oid") DebitNote debitNote, Model model, RedirectAttributes redirectAttributes) {
         try {
             assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            model.addAttribute("DebitNote_payorDebtAccount_options",
-                    DebtAccount.find(debitNote.getDebtAccount().getFinantialInstitution())
-                            .filter(x -> x.getCustomer().isAdhocCustomer())
-                            .sorted((x, y) -> x.getCustomer().getName().compareToIgnoreCase(y.getCustomer().getName()))
-                            .collect(Collectors.toSet())); //
 
             model.addAttribute("stateValues", org.fenixedu.treasury.domain.document.FinantialDocumentStateType.values());
             setDebitNote(debitNote, model);
@@ -394,13 +390,14 @@ public class DebitNoteController extends TreasuryBaseController {
     }
 
     @Atomic
-    public void updateDebitNote(LocalDate documentDate, LocalDate documentDueDate,
-            String originDocumentNumber, String documentObservations, Model model) {
+    public void updateDebitNote(LocalDate documentDate, LocalDate documentDueDate, String originDocumentNumber,
+            String documentObservations, Model model) {
         DebitNote note = getDebitNote(model);
         if (note.isPreparing()) {
             note.edit(note.getPayorDebtAccount(), documentDate, documentDueDate, originDocumentNumber);
         } else {
-            note.edit(note.getPayorDebtAccount(), note.getDocumentDate().toLocalDate(), note.getDocumentDueDate(), originDocumentNumber);
+            note.edit(note.getPayorDebtAccount(), note.getDocumentDate().toLocalDate(), note.getDocumentDueDate(),
+                    originDocumentNumber);
         }
         note.setDocumentObservations(documentObservations);
     }
@@ -685,19 +682,16 @@ public class DebitNoteController extends TreasuryBaseController {
             final RedirectAttributes redirectAttributes) {
         try {
             assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            
-            if(!debitNote.isPreparing() && !debitNote.isClosed()) {
+
+            if (!debitNote.isPreparing() && !debitNote.isClosed()) {
                 addErrorMessage(Constants.bundle("error.DebitNote.updatePayorDebtAccount.not.preparing.nor.closed"), model);
                 return redirect(READ_URL + debitNote.getExternalId(), model, redirectAttributes);
             }
-            
+
             setDebitNote(debitNote, model);
-            
+
             model.addAttribute("DebitNote_payorDebtAccount_options",
-                    DebtAccount.find(debitNote.getDebtAccount().getFinantialInstitution())
-                            .filter(x -> x.getCustomer().isAdhocCustomer())
-                            .sorted((x, y) -> x.getCustomer().getName().compareToIgnoreCase(y.getCustomer().getName()))
-                            .collect(Collectors.toSet())); //
+                    DebtAccount.findAdhocDebtAccountsSortedByCustomerName(debitNote.getDebtAccount().getFinantialInstitution()));
 
             model.addAttribute("stateValues", org.fenixedu.treasury.domain.document.FinantialDocumentStateType.values());
 
@@ -715,10 +709,10 @@ public class DebitNoteController extends TreasuryBaseController {
             final RedirectAttributes redirectAttributes) {
         try {
             final DebtAccount oldPayorDebtAccount = debitNote.getPayorDebtAccount();
-            
+
             final DebitNote newDebitNote = debitNote.updatePayorDebtAccount(payorDebtAccount);
-            
-            if(oldPayorDebtAccount != newDebitNote.getPayorDebtAccount()) {
+
+            if (oldPayorDebtAccount != newDebitNote.getPayorDebtAccount()) {
                 addInfoMessage(Constants.bundle("label.DebitNote.update.payorDebtAccount.success"), model);
                 return redirect(READ_URL + newDebitNote.getExternalId(), model, redirectAttributes);
             } else {
@@ -727,7 +721,7 @@ public class DebitNoteController extends TreasuryBaseController {
         } catch (final DomainException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
-        
+
         return updatepayordebtaccount(debitNote, model, redirectAttributes);
     }
 }

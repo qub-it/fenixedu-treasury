@@ -287,7 +287,7 @@ public class DebitNote extends DebitNote_Base {
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
                 }
-                
+
                 // Remove treasury exemption
                 if (debitEntry.getTreasuryExemption() != null) {
                     debitEntry.getTreasuryExemption().delete();
@@ -376,16 +376,20 @@ public class DebitNote extends DebitNote_Base {
         for (final FinantialDocumentEntry finantialDocumentEntry : getFinantialDocumentEntriesSet()) {
             final DebitEntry debitEntry = (DebitEntry) finantialDocumentEntry;
 
-            DebitEntry newDebitEntry = DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(),
-                    debitEntry.getTreasuryEvent(), debitEntry.getVat(), debitEntry.getAmount().add(debitEntry.getExemptedAmount()), debitEntry.getDueDate(),
-                    debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(), debitEntry.getQuantity(),
-                    debitEntry.getInterestRate(), new DateTime());
+            DebitEntry newDebitEntry =
+                    DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(), debitEntry.getTreasuryEvent(),
+                            debitEntry.getVat(), debitEntry.getAmount().add(debitEntry.getExemptedAmount()),
+                            debitEntry.getDueDate(), debitEntry.getPropertiesMap(), debitEntry.getProduct(),
+                            debitEntry.getDescription(), debitEntry.getQuantity(), debitEntry.getInterestRate(), new DateTime());
 
             if (debitEntry.getTreasuryExemption() != null) {
                 final TreasuryExemption treasuryExemption = debitEntry.getTreasuryExemption();
                 TreasuryExemption.create(treasuryExemption.getTreasuryExemptionType(), debitEntry.getTreasuryEvent(),
                         treasuryExemption.getReason(), treasuryExemption.getValueToExempt(), newDebitEntry);
             }
+
+            newDebitEntry.edit(newDebitEntry.getDescription(), newDebitEntry.getTreasuryEvent(), newDebitEntry.getDueDate(),
+                    debitEntry.isAcademicalActBlockingSuspension(), debitEntry.isBlockAcademicActsOnDebt());
         }
 
         anullDebitNoteWithCreditNote(reason, false);

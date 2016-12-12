@@ -28,8 +28,10 @@
 package org.fenixedu.treasury.domain.debt;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,10 +45,20 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.collect.Sets;
+
 import pt.ist.fenixframework.Atomic;
 
 public class DebtAccount extends DebtAccount_Base {
 
+    public static final Comparator<DebtAccount> COMPARATOR_BY_CUSTOMER_NAME_IGNORE_CASE = new Comparator<DebtAccount>() {
+
+        @Override
+        public int compare(final DebtAccount o1, final DebtAccount o2) {
+            return Customer.COMPARE_BY_NAME_IGNORE_CASE.compare(o1.getCustomer(), o2.getCustomer());
+        }
+    };
+    
     public DebtAccount() {
         super();
         setBennu(Bennu.getInstance());
@@ -86,17 +98,28 @@ public class DebtAccount extends DebtAccount_Base {
     public static Stream<DebtAccount> findAll() {
         return Bennu.getInstance().getDebtAccountsSet().stream();
     }
-
+    
     public static Stream<DebtAccount> find(final FinantialInstitution finantialInstitution) {
         return findAll().filter(d -> d.getFinantialInstitution() == finantialInstitution);
     }
 
+    public static Stream<DebtAccount> findAdhoc(final FinantialInstitution finantialInstitution) {
+        return find(finantialInstitution).filter(x -> x.getCustomer().isAdhocCustomer());
+    }
+    
     public static Stream<DebtAccount> find(final Customer customer) {
         return findAll().filter(d -> d.getCustomer() == customer);
     }
 
     public static Optional<DebtAccount> findUnique(final FinantialInstitution finantialInstitution, final Customer customer) {
         return find(finantialInstitution).filter(d -> d.getCustomer() == customer).findFirst();
+    }
+    
+    public static SortedSet<DebtAccount> findAdhocDebtAccountsSortedByCustomerName(final FinantialInstitution finantialInstitution) {
+        final SortedSet<DebtAccount> result = Sets.newTreeSet(COMPARATOR_BY_CUSTOMER_NAME_IGNORE_CASE);
+        result.addAll(DebtAccount.findAdhoc(finantialInstitution).collect(Collectors.toSet()));
+        
+        return result;
     }
 
     @Atomic
