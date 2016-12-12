@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,6 +40,8 @@ import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
+import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStateLog;
+import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
@@ -72,12 +75,17 @@ public class SettlementNote extends SettlementNote_Base {
             setPaymentDate(paymentDate);
         }
         super.init(debtAccount, documentNumberSeries, documentDate);
+
         checkRules();
     }
 
     @Override
     public boolean isSettlementNote() {
         return true;
+    }
+
+    public boolean isReimbursement() {
+        return getDocumentNumberSeries().getFinantialDocumentType() == FinantialDocumentType.findForReimbursementNote();
     }
 
     protected BigDecimal checkDiferenceInAmount() {
@@ -106,6 +114,10 @@ public class SettlementNote extends SettlementNote_Base {
                 && !getDocumentNumberSeries().getFinantialDocumentType().getType()
                         .equals(FinantialDocumentTypeEnum.REIMBURSEMENT_NOTE)) {
             throw new TreasuryDomainException("error.FinantialDocument.finantialDocumentType.invalid");
+        }
+        
+        if(isClosed() && isReimbursement() && getCurrentReimbursementProcessStatus() == null) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
         }
     }
 
@@ -433,7 +445,57 @@ public class SettlementNote extends SettlementNote_Base {
             this.getAdvancedPaymentCreditNote().closeDocument();
         }
 
+        if (isReimbursement()) {
+            processReimbursementStateChange(ReimbursementProcessStatusType.findUniqueByInitialStatus().get(), "",
+                    String.valueOf(getDocumentDate().getYear()), new DateTime());
+        }
+        
         super.closeDocument(markDocumentToExport);
+
+        checkRules();
+    }
+
+    @Atomic
+    public void processReimbursementStateChange(final ReimbursementProcessStatusType reimbursementStatus,
+            final String erpProcessId, final String exerciseYear, final DateTime reimbursementStatusDate) {
+
+        if (reimbursementStatus == null) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementStatus");
+        }
+
+        if (!isReimbursement()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.settlementNote");
+        }
+
+        if (!isClosed() && !reimbursementStatus.isInitialStatus()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.state");
+        }
+
+        if (!reimbursementStatus.isInitialStatus() && getCurrentReimbursementProcessStatus() == null) {
+            throw new TreasuryDomainException("error.SettlementNote.currentReimbursementProcessStatus.invalid");
+        }
+
+        if (getCurrentReimbursementProcessStatus() != null && !reimbursementStatus.isAfter(getCurrentReimbursementProcessStatus())) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
+        }
+
+        if (getCurrentReimbursementProcessStatus() != null && getCurrentReimbursementProcessStatus().isFinalStatus()) {
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.is.final");
+        }
+
+        setCurrentReimbursementProcessStatus(reimbursementStatus);
+
+        ReimbursementProcessStateLog.create(this, reimbursementStatus, erpProcessId, UUID.randomUUID().toString(),
+                reimbursementStatusDate, exerciseYear);
+
+        if (getCurrentReimbursementProcessStatus() == null) {
+            throw new TreasuryDomainException("error.SettlementNote.currentReimbursementProcessStatus.invalid");
+        }
+
+        if (getCurrentReimbursementProcessStatus().isAnnuledStatus() && isClosed()) {
+            anullDocument(Constants.bundle("label.ReimbursementProcessStatusType.annuled.reimbursement.by.annuled.process"),
+                    false);
+        }
     }
 
     public BigDecimal getTotalCreditAmount() {
