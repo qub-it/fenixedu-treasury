@@ -395,6 +395,33 @@
 							</vmArgs>
 						</configuration>
 					</execution>
+					<execution>
+						<id>SAP</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+						<configuration>
+							<packageName>org.fenixedu.treasury.services.integration.erp.sap</packageName>
+
+							<!-- <wsdlDirectory> -->
+							<!-- src/main/webapp/wsdl -->
+							<!-- </wsdlDirectory> -->
+							<wsdlFiles>
+								<wsdlFile>
+									${basedir}/src/main/resources/wsdl/zws_faturacaoclientes_2016_06_01.wsdl
+								</wsdlFile>
+							</wsdlFiles>
+							<wsdlLocation>
+								/wsdl/zws_faturacaoclientes_2016_06_01.wsdl
+							</wsdlLocation>
+							<extension>true</extension>
+							<protocol>Xsoap1.2</protocol>
+							<vmArgs>
+								<vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+							</vmArgs>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>

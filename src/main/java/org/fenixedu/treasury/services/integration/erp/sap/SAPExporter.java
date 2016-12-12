@@ -1652,4 +1652,10 @@ public class SAPExporter implements IERPExporter {
         }
     }
 
+//    private UnaryOperator<AuditFile> getAuditFilePreProcessOperator(final FinantialInstitution finantialInstitution) {
+//        return (AuditFile x) -> {
+//            return x;
+//        };
+//    }
+    
 }
