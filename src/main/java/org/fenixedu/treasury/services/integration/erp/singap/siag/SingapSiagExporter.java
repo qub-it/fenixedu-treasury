@@ -27,8 +27,6 @@
  */
 package org.fenixedu.treasury.services.integration.erp.singap.siag;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -1255,7 +1253,7 @@ public class SingapSiagExporter implements IERPExporter {
 
             OperationFile operationFile = writeContentToExportOperation(xml, operation);
 
-            boolean success = sendDocumentsInformationToIntegration(institution, operation, logBean);
+            boolean success = sendDocumentsInformationToIntegration(institution, operationFile, logBean);
 
             operation.getFinantialDocumentsSet().addAll(documents);
             operation.setSuccess(success);
@@ -1379,12 +1377,14 @@ public class SingapSiagExporter implements IERPExporter {
         return operation;
     }
 
+    private static final String SAFT_PT_ENCODING = "Windows-1252";
+    
     // SERVICE
     @Atomic
-    private void writeContentToExportOperation(String content, ERPExportOperation operation) {
+    private OperationFile writeContentToExportOperation(String content, ERPExportOperation operation) {
         byte[] bytes = null;
         try {
-            bytes = content.getBytes("Windows-1252");
+            bytes = content.getBytes(SAFT_PT_ENCODING);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -1395,6 +1395,8 @@ public class SingapSiagExporter implements IERPExporter {
             operation.getFile().delete();
         }
         operation.setFile(binaryStream);
+
+        return binaryStream;
     }
 
     // SERVICE
@@ -1510,7 +1512,7 @@ public class SingapSiagExporter implements IERPExporter {
 
             final OperationFile operationFile = writeContentToExportOperation(xml, operation);
 
-            boolean success = sendDocumentsInformationToIntegration(institution, operation, logBean);
+            boolean success = sendDocumentsInformationToIntegration(institution, operationFile, logBean);
             logBean.appendIntegrationLog(Constants.bundle("label.ERPExporter.finished.customers.integration"));
 
             operation.setSuccess(success);

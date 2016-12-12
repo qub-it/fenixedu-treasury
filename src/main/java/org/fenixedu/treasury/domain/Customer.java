@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.util.Constants;
 import org.fenixedu.treasury.util.FiscalCodeValidation;
 import org.fenixedu.treasury.util.LocalizedStringUtil;
 
