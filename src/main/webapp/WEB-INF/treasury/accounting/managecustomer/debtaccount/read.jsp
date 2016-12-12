@@ -167,28 +167,34 @@ ${portal.angularToolkit()}
                         <li><a href="${pageContext.request.contextPath}/academictreasury/othertuitiondebtcreation/tuitiondebtcreationbean/createregistration/${debtAccount.externalId}"> <span
                                 class="glyphicon glyphicon-bookmark" aria-hidden="true"></span> <spring:message code="label.TuitionDebtCreationBean.create.tuition.debts" />
                         </a></li>
+
                         <li><a
                             href="${pageContext.request.contextPath}/academictreasury/othertuitiondebtcreation/tuitiondebtcreationbean/createstandalone/${debtAccount.externalId}">
-                                <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>&nbsp; <spring:message
-                                    code="label.TuitionDebtCreationBean.create.standalonetuition.debts" />
+                                <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>
+                                &nbsp;<spring:message code="label.TuitionDebtCreationBean.create.standalonetuition.debts" />
                         </a></li>
+
                         <li><a
                             href="${pageContext.request.contextPath}/academictreasury/othertuitiondebtcreation/tuitiondebtcreationbean/createextracurricular/${debtAccount.externalId}">
-                                <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>&nbsp; <spring:message
-                                    code="label.TuitionDebtCreationBean.create.extracurriculartuition.debts" />
+                                <span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>
+                                &nbsp;<spring:message code="label.TuitionDebtCreationBean.create.extracurriculartuition.debts" />
                         </a></li>
+
                         <li><a href="${pageContext.request.contextPath}/academictreasury/academictaxdebtcreation/academictaxdebtcreationbean/create/${debtAccount.externalId}">
-                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>&nbsp; <spring:message
-                                    code="label.AcademicTaxDebtCreationBean.create.academictax.debts" />
+                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                &nbsp;<spring:message code="label.AcademicTaxDebtCreationBean.create.academictax.debts" />
                         </a></li>
+
                         <li><a
                             href="${pageContext.request.contextPath}/academictreasury/academicservicerequestdebtcreation/academicservicerequestdebtcreationbean/create/${debtAccount.externalId}">
-                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>&nbsp; <spring:message
-                                    code="label.AcademicServiceRequestDebtCreationBean.create.academicservicerequest.debts" />
+                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                &nbsp;<spring:message code="label.AcademicServiceRequestDebtCreationBean.create.academicservicerequest.debts" />
                         </a></li>
+                        
                         <li><a
                             href="${pageContext.request.contextPath}/academictreasury/academicdebtgenerationregistration/academicdebtgenerationregistration/create/${debtAccount.externalId}">
-                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>&nbsp; <spring:message code="label.AcademicDebtGenerationRegistration.run.rules" />
+                                <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                &nbsp;<spring:message code="label.AcademicDebtGenerationRegistration.run.rules" />
                         </a></li>
                         
                         
