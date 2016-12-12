@@ -297,13 +297,19 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                     </spring:message>
                     <span class="caret"></span>
                 </button>
+                
 <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
         <c:if test="${debitNote.isPreparing() || debitNote.isClosed()}">
-<li>            
-            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/update/${debitNote.externalId}"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> <spring:message
-                    code="label.event.update" />
-            </a></li>
-    		
+			<li>            
+	            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/update/${debitNote.externalId}">
+	            	<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.update" />
+	            </a>
+            </li>
+            <li>
+	            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/updatepayordebtaccount/${debitNote.externalId}">
+	            	<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;<spring:message code="label.DebitNote.event.updatePayorDebtAccount" />
+	            </a>
+            </li>
 		</c:if>
 
         <c:if test="${debitNote.isPreparing()}">
@@ -341,7 +347,8 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 </li>
             </c:if>
         </c:if>
-        </ul>
+</ul>
+
         </div>
 <%} else { %>
             <div class="btn-group">

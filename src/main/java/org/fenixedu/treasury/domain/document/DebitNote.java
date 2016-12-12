@@ -39,6 +39,7 @@ import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
 import org.fenixedu.treasury.domain.paymentcodes.MultipleEntriesPaymentCode;
 import org.fenixedu.treasury.dto.InterestRateBean;
 import org.fenixedu.treasury.util.Constants;
@@ -255,16 +256,16 @@ public class DebitNote extends DebitNote_Base {
 
                 debitEntry.clearInterestRate();
 
-                // Remove treasury exemption
-                if(debitEntry.getTreasuryExemption() != null) {
-                    debitEntry.getTreasuryExemption().delete();
-                }
-                
                 // Also remove from treasury event
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
                 }
-                
+
+                // Remove treasury exemption
+                if (debitEntry.getTreasuryExemption() != null) {
+                    debitEntry.getTreasuryExemption().delete();
+                }
+
                 for (final CreditEntry creditEntry : debitEntry.getCreditEntriesSet()) {
                     debitEntry.closeCreditEntryIfPossible(reason, now, creditEntry);
                 }
@@ -285,6 +286,11 @@ public class DebitNote extends DebitNote_Base {
                 // Also remove from treasury event
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
+                }
+                
+                // Remove treasury exemption
+                if (debitEntry.getTreasuryExemption() != null) {
+                    debitEntry.getTreasuryExemption().delete();
                 }
 
                 for (final MultipleEntriesPaymentCode paymentCode : debitEntry.getPaymentCodesSet()) {
@@ -339,6 +345,52 @@ public class DebitNote extends DebitNote_Base {
             result.addAll(debit.getCreditEntriesSet());
         }
         return result;
+    }
+
+    @Atomic
+    public DebitNote updatePayorDebtAccount(final DebtAccount payorDebtAccount) {
+        if (!isPreparing() && !isClosed()) {
+            throw new TreasuryDomainException("error.DebitNote.updatePayorDebtAccount.not.preparing.nor.closed");
+        }
+
+        if (getPayorDebtAccount() == payorDebtAccount) {
+            throw new TreasuryDomainException("error.DebitNote.updatePayorDebtAccount.payor.not.changed");
+        }
+
+        final DebitNote updatingDebitNote = isPreparing() ? this : anullAndCopyDebitNote(
+                Constants.bundle("label.DebitNote.updatePayorDebtAccount.anull.reason"));
+
+        updatingDebitNote.edit(payorDebtAccount, getDocumentDueDate(), getDocumentDueDate(), getOriginDocumentNumber());
+
+        return updatingDebitNote;
+    }
+
+    private DebitNote anullAndCopyDebitNote(final String reason) {
+        if (!isClosed()) {
+            throw new TreasuryDomainException("error.DebitNote.anullAndCopyDebitNote.copy.only.on.closed.debit.note");
+        }
+
+        final DebitNote newDebitNote = DebitNote.create(getDebtAccount(), getDocumentNumberSeries(), new DateTime());
+
+        newDebitNote.setOriginDocumentNumber(getOriginDocumentNumber());
+        for (final FinantialDocumentEntry finantialDocumentEntry : getFinantialDocumentEntriesSet()) {
+            final DebitEntry debitEntry = (DebitEntry) finantialDocumentEntry;
+
+            DebitEntry newDebitEntry = DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(),
+                    debitEntry.getTreasuryEvent(), debitEntry.getVat(), debitEntry.getAmount().add(debitEntry.getExemptedAmount()), debitEntry.getDueDate(),
+                    debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(), debitEntry.getQuantity(),
+                    debitEntry.getInterestRate(), new DateTime());
+
+            if (debitEntry.getTreasuryExemption() != null) {
+                final TreasuryExemption treasuryExemption = debitEntry.getTreasuryExemption();
+                TreasuryExemption.create(treasuryExemption.getTreasuryExemptionType(), debitEntry.getTreasuryEvent(),
+                        treasuryExemption.getReason(), treasuryExemption.getValueToExempt(), newDebitEntry);
+            }
+        }
+
+        anullDebitNoteWithCreditNote(reason, false);
+
+        return newDebitNote;
     }
 
     public static DebitNote createInterestDebitNoteForDebitNote(DebitNote debitNote, DocumentNumberSeries documentNumberSeries,

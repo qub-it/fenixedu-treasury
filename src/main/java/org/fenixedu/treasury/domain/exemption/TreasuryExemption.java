@@ -24,7 +24,7 @@ public class TreasuryExemption extends TreasuryExemption_Base {
     }
 
     protected TreasuryExemption(final TreasuryExemptionType treasuryExemptionType, final TreasuryEvent treasuryEvent,
-            final String reason, final BigDecimal valueToExempt, final DebitEntry debitEntry, final boolean creditIfNecessary) {
+            final String reason, final BigDecimal valueToExempt, final DebitEntry debitEntry) {
         this();
 
         if (debitEntry.getTreasuryExemption() != null) {
@@ -52,7 +52,7 @@ public class TreasuryExemption extends TreasuryExemption_Base {
 
         checkRules();
 
-        exemptEventIfWithDebtEntries(creditIfNecessary);
+        exemptEventIfWithDebtEntries();
     }
 
     private void checkRules() {
@@ -105,11 +105,7 @@ public class TreasuryExemption extends TreasuryExemption_Base {
         return getValueToExempt();
     }
 
-    private void exemptEventIfWithDebtEntries(boolean creditIfNecessary) {
-        if (!creditIfNecessary) {
-            return;
-        }
-
+    private void exemptEventIfWithDebtEntries() {
         // We're in conditions to create credit entries. But first
         // calculate the amount to exempt
         final BigDecimal amountToExempt = getValueToExempt().subtract(getTreasuryEvent().getExemptedAmount(getDebitEntry()));
@@ -196,8 +192,8 @@ public class TreasuryExemption extends TreasuryExemption_Base {
 
     @Atomic
     public static TreasuryExemption create(final TreasuryExemptionType treasuryExemptionType, final TreasuryEvent treasuryEvent,
-            final String reason, final BigDecimal valueToExempt, final DebitEntry debitEntry, final boolean creditIfNecessary) {
-        return new TreasuryExemption(treasuryExemptionType, treasuryEvent, reason, valueToExempt, debitEntry, creditIfNecessary);
+            final String reason, final BigDecimal valueToExempt, final DebitEntry debitEntry) {
+        return new TreasuryExemption(treasuryExemptionType, treasuryEvent, reason, valueToExempt, debitEntry);
     }
 
 }
