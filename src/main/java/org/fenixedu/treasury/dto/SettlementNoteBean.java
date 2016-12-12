@@ -52,6 +52,8 @@ public class SettlementNoteBean implements IBean, Serializable {
     private List<String> settlementNoteStateUrls;
 
     private Stack<Integer> previousStates;
+    
+    private String finantialTransactionReference;
 
     private boolean advancePayment;
 
@@ -101,8 +103,8 @@ public class SettlementNoteBean implements IBean, Serializable {
         List<DocumentNumberSeries> availableSeries = DocumentNumberSeries
                 .find(finantialDocumentType, debtAccount.getFinantialInstitution()).collect(Collectors.toList());
 
-        this.setDocumentNumberSeries(
-                DocumentNumberSeries.applyActiveAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList()));
+        this.setDocumentNumberSeries(DocumentNumberSeries.applyActiveSelectableAndDefaultSorting(availableSeries.stream())
+                .collect(Collectors.toList()));
     }
 
     public DebtAccount getDebtAccount() {
@@ -328,6 +330,14 @@ public class SettlementNoteBean implements IBean, Serializable {
         return debitEntries.stream().anyMatch(deb -> deb.isIncluded() && deb.getDebitEntry().getFinantialDocument() == null)
                 || interestEntries.stream().anyMatch(deb -> deb.isIncluded());
     }
+    
+    public String getFinantialTransactionReference() {
+        return finantialTransactionReference;
+    }
+    
+    public void setFinantialTransactionReference(String finantialTransactionReference) {
+        this.finantialTransactionReference = finantialTransactionReference;
+    }
 
     public class DebitEntryBean implements IBean, Serializable {
 
@@ -541,7 +551,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         private PaymentMethod paymentMethod;
 
         private String paymentMethodId;
-
+        
         public PaymentEntryBean() {
             this.paymentAmount = BigDecimal.ZERO;
         }
@@ -574,6 +584,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         public void setPaymentMethodId(String paymentMethodId) {
             this.paymentMethodId = paymentMethodId;
         }
+        
     }
 
     public class VatAmountBean implements IBean, Serializable {

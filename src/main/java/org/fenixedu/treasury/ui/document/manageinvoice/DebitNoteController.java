@@ -284,7 +284,7 @@ public class DebitNoteController extends TreasuryBaseController {
 
                 if (availableSeries.size() > 0) {
                     model.addAttribute("DebitNote_documentNumberSeries_options", DocumentNumberSeries
-                            .applyActiveAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList()));
+                            .applyActiveSelectableAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList()));
                 } else {
                     addErrorMessage(BundleUtil.getString(Constants.BUNDLE,
                             "label.error.document.manageinvoice.finantialinstitution.no.available.series.found"), model);
@@ -547,7 +547,7 @@ public class DebitNoteController extends TreasuryBaseController {
                     .filter(x -> x.getSeries().getActive() == true).collect(Collectors.toList());
 
             availableSeries =
-                    DocumentNumberSeries.applyActiveAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList());
+                    DocumentNumberSeries.applyActiveSelectableAndDefaultSorting(availableSeries.stream()).collect(Collectors.toList());
             if (availableSeries.size() > 0) {
                 model.addAttribute("DebitNote_documentNumberSeries_options", availableSeries);
             } else {

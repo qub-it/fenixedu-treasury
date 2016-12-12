@@ -269,6 +269,17 @@ ${portal.toolkit()}
                                 <spring:message code="label.false" />
                             </c:if></td>
                     </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Series.selectable" /></th>
+                        <td>
+                        	<c:if test="${series.selectable}">
+                                <spring:message code="label.true" />
+                            </c:if>
+                            <c:if test="${not series.selectable}">
+                                <spring:message code="label.false" />
+                            </c:if>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </form>
@@ -279,9 +290,7 @@ ${portal.toolkit()}
 </h3>
 
 <%
-    if (TreasuryAccessControl.getInstance().isBackOfficeMember(
-					finantialInstitution)
-					 ) {
+    if (TreasuryAccessControl.getInstance().isBackOfficeMember(finantialInstitution)) {
 %>
 
 <div class="well well-sm" style="display: inline-block">

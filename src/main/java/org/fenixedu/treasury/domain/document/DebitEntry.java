@@ -488,7 +488,7 @@ public class DebitEntry extends DebitEntry_Base {
         creditEntry.getFinantialDocument().closeDocument();
 
         final SettlementNote settlementNote =
-                SettlementNote.create(this.getDebtAccount(), documentNumberSeriesSettlementNote, now, now, "");
+                SettlementNote.create(this.getDebtAccount(), documentNumberSeriesSettlementNote, now, now, "", null);
         settlementNote.setDocumentObservations(
                 reason + " - [" + Authenticate.getUser().getUsername() + "] " + new DateTime().toString("YYYY-MM-dd HH:mm"));
 

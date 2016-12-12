@@ -288,7 +288,8 @@ public class SAPImporter implements IERPImporter {
                         }
                         //Create a new SettlementNote
                         settlementNote = SettlementNote.create(customerDebtAccount, seriesToIntegratePayments, documentDate,
-                                paymentDate, externalNumber);
+                                paymentDate, externalNumber, null);
+
                         newSettlementNoteCreated = true;
                     }
                 }
@@ -349,7 +350,7 @@ public class SAPImporter implements IERPImporter {
                 //Continue processing the Reimbursment Methods (New or Updating??!?!)
                 for (PaymentMethod paymentMethod : payment.getPaymentMethod()) {
                     ReimbursementEntry reimbursmentEntry = ReimbursementEntry.create(settlementNote,
-                            convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()), paymentMethod.getPaymentAmount());
+                            convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()), paymentMethod.getPaymentAmount(), null);
                 }
             } else {
                 //Continue processing the Payment Methods (New or Updating??!?!)
@@ -413,5 +414,5 @@ public class SAPImporter implements IERPImporter {
         final AuditFile auditFile = readAuditFileFromXML();
         return auditFile.getHeader().getTaxRegistrationNumber() + "";
     }
-    
+
 }
