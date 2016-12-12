@@ -54,7 +54,7 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.dto.InterestRateBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController;
@@ -485,14 +485,18 @@ public class DebitNoteController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
             assertUserIsFrontOfficeMember(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
+            final IERPExporter erpExporter = debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
             String output =
-                    ERPExporter
-                            .exportFinantialDocumentToXML(debitNote.getDebtAccount().getFinantialInstitution(),
-                                    debitNote
-                                            .findRelatedDocuments(new HashSet<FinantialDocument>(),
-                                                    debitNote.getDebtAccount().getFinantialInstitution()
-                                                            .getErpIntegrationConfiguration().getExportAnnulledRelatedDocuments())
-                                            .stream().collect(Collectors.toList()));
+                    erpExporter.exportFinantialDocumentToXML(
+                            debitNote.getDebtAccount().getFinantialInstitution(),
+                            debitNote
+                                    .findRelatedDocuments(
+                                            new HashSet<FinantialDocument>(),
+                                            debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                                                    .getExportAnnulledRelatedDocuments()).stream().collect(Collectors.toList()));
+
             response.setContentType("text/xml");
             response.setCharacterEncoding("Windows-1252");
             String filename = URLEncoder.encode(StringNormalizer
@@ -622,15 +626,22 @@ public class DebitNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
 
             try {
+                final IERPExporter erpExporter = debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                        .getERPExternalServiceImplementation().getERPExporter();
+
                 //Force a check status first of the document 
-                ERPExporter.checkIntegrationDocumentStatus(debitNote);
+                erpExporter.checkIntegrationDocumentStatus(debitNote);
             } catch (Exception ex) {
 
             }
 
             List<FinantialDocument> documentsToExport = Collections.singletonList(debitNote);
-            ERPExportOperation output = ERPExporter.exportFinantialDocumentToIntegration(
-                    debitNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
+            final IERPExporter erpExporter = debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            ERPExportOperation output =
+                    erpExporter.exportFinantialDocumentToIntegration(debitNote.getDebtAccount().getFinantialInstitution(),
+                            documentsToExport);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {

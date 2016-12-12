@@ -1,5 +1,6 @@
 package org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -7,13 +8,16 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-
+import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
+import org.fenixedu.treasury.services.integration.erp.IERPImporter;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS.StatusType;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationInput;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
+import org.fenixedu.treasury.services.integration.erp.singap.siag.SingapSiagExporter;
+import org.fenixedu.treasury.services.integration.erp.singap.siag.SingapSiagImporter;
 import org.fenixedu.treasury.services.integration.erp.singapWCF.ArrayOfResposta;
 import org.fenixedu.treasury.services.integration.erp.singapWCF.Authentication;
 import org.fenixedu.treasury.services.integration.erp.singapWCF.IWCFServiceWSF;
@@ -21,10 +25,10 @@ import org.fenixedu.treasury.services.integration.erp.singapWCF.Response;
 import org.fenixedu.treasury.services.integration.erp.singapWCF.Resposta;
 import org.fenixedu.treasury.services.integration.erp.singapWCF.WCFServiceWSF;
 
-import pt.ist.fenixframework.Atomic;
-
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
 import com.sun.xml.ws.client.BindingProviderProperties;
+
+import pt.ist.fenixframework.Atomic;
 
 public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceWSF> implements IERPExternalService {
 
@@ -118,11 +122,21 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
         return prov;
     }
 
-    @Override
     public UnaryOperator<AuditFile> getAuditFilePreProcessOperator() {
 
         return (AuditFile x) -> {
             return x;
         };
     }
+
+    @Override
+    public IERPExporter getERPExporter() {
+        return new SingapSiagExporter();
+    }
+
+    @Override
+    public IERPImporter getERPImporter(final InputStream inputStream) {
+        return new SingapSiagImporter(inputStream);
+    }
+    
 }

@@ -47,7 +47,7 @@ import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.paymentcodes.SibsConfiguration;
 import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
 import org.fenixedu.treasury.dto.FinantialInstitutionBean;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.ui.administration.payments.sibs.managesibsconfiguration.SibsConfigurationController;
@@ -300,7 +300,10 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             assertUserIsBackOfficeMember(finantialInstitution, model);
-            String output = ERPExporter.exportsProductsToXML(finantialInstitution);
+            final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            String output = erpExporter.exportsProductsToXML(finantialInstitution);
             response.setContentType("text/xml");
             response.setCharacterEncoding("Windows-1252");
             String filename =
@@ -328,7 +331,10 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             assertUserIsBackOfficeMember(finantialInstitution, model);
-            String output = ERPExporter.exportsCustomersToXML(finantialInstitution);
+            final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            String output = erpExporter.exportsCustomersToXML(finantialInstitution);
             response.setContentType("text/xml");
             response.setCharacterEncoding("Windows-1252");
             String filename =
@@ -356,7 +362,10 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             assertUserIsBackOfficeMember(finantialInstitution, model);
-            ERPExportOperation output = ERPExporter.exportProductsToIntegration(finantialInstitution);
+            final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            ERPExportOperation output = erpExporter.exportProductsToIntegration(finantialInstitution);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
@@ -375,7 +384,10 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             assertUserIsBackOfficeMember(finantialInstitution, model);
-            ERPExportOperation output = ERPExporter.exportCustomersToIntegration(finantialInstitution);
+            final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            ERPExportOperation output = erpExporter.exportCustomersToIntegration(finantialInstitution);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {

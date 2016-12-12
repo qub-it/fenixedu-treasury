@@ -64,7 +64,7 @@ import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
@@ -512,9 +512,11 @@ public class SettlementNoteController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
+            IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
 
             String output =
-                    ERPExporter.exportFinantialDocumentToXML(settlementNote.getDebtAccount().getFinantialInstitution(),
+                    erpExporter.exportFinantialDocumentToXML(settlementNote.getDebtAccount().getFinantialInstitution(),
                             settlementNote
                                     .findRelatedDocuments(new HashSet<FinantialDocument>(),
                                             settlementNote.getDebtAccount().getFinantialInstitution()
@@ -714,14 +716,20 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
 
             try {
+                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                        .getERPExternalServiceImplementation().getERPExporter();
                 //Force a check status first of the document 
-                ERPExporter.checkIntegrationDocumentStatus(settlementNote);
+                erpExporter.checkIntegrationDocumentStatus(settlementNote);
             } catch (Exception ex) {
 
             }
 
             List<FinantialDocument> documentsToExport = Collections.singletonList(settlementNote);
-            ERPExportOperation output = ERPExporter.exportFinantialDocumentToIntegration(
+
+            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
+                    .getERPExternalServiceImplementation().getERPExporter();
+
+            ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
                     settlementNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);

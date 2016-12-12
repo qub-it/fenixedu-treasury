@@ -18,7 +18,7 @@
 	</parent>
 
 	<groupId>org.fenixedu</groupId>
-	<artifactId>fenixedu-treasury</artifactId>
+	<artifactId>fenixedu-treasury-sync</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -208,18 +208,32 @@
 				<version>1.6</version>
 				<executions>
 					<execution>
+						<id>xjc-singap-siag</id>
 						<goals>
 							<goal>xjc</goal>
 						</goals>
+						<configuration>
+							<forceRegenerate>true</forceRegenerate>
+							<packageName>org.fenixedu.treasury.generated.sources.saft.singap.siag</packageName>
+							<outputDirectory>${basedir}/target/generated-sources/xsd/singap_siag</outputDirectory>
+							<schemaDirectory>${basedir}/src/main/xsd/saft/</schemaDirectory>
+							<schemaFiles>FenixEdu_ERP_Integration_1.0.4.xsd</schemaFiles>
+						</configuration>
+					</execution>
+					<execution>
+						<id>xjc-sap</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<forceRegenerate>true</forceRegenerate>
+							<packageName>org.fenixedu.treasury.generated.sources.saft.sap</packageName>
+							<outputDirectory>${basedir}/target/generated-sources/xsd/sap</outputDirectory>
+							<schemaDirectory>${basedir}/src/main/xsd/saft/</schemaDirectory>
+							<schemaFiles>FenixEdu_ERP_Integration_1.0.5.xsd</schemaFiles>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<forceRegenerate>true</forceRegenerate>
-					<packageName></packageName>
-					<outputDirectory>${basedir}/target/generated-sources/xsd/</outputDirectory>
-					<schemaDirectory>${basedir}/src/main/xsd/saft/</schemaDirectory>
-					<schemaFiles>FenixEdu_ERP_Integration_1.0.4.xsd</schemaFiles>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

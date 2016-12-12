@@ -49,7 +49,7 @@ import org.fenixedu.treasury.domain.paymentcodes.FinantialDocumentPaymentCode;
 import org.fenixedu.treasury.domain.paymentcodes.MultipleEntriesPaymentCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentCodeTarget;
 import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
-import org.fenixedu.treasury.services.integration.erp.ERPExporter;
+import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.document.forwardpayments.ForwardPaymentController;
@@ -313,8 +313,11 @@ public class DebtAccountController extends TreasuryBaseController {
                     .filter(d -> d.isDocumentSeriesNumberSet()).collect(Collectors.toSet()));
             
             if (pendingDocuments.size() > 0) {
+                final IERPExporter erpExporter = debtAccount.getFinantialInstitution().getErpIntegrationConfiguration()
+                        .getERPExternalServiceImplementation().getERPExporter();
+
                 ERPExportOperation output =
-                        ERPExporter.exportFinantialDocumentToIntegration(debtAccount.getFinantialInstitution(), pendingDocuments);
+                        erpExporter.exportFinantialDocumentToIntegration(debtAccount.getFinantialInstitution(), pendingDocuments);
                 addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
                 return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
             }
