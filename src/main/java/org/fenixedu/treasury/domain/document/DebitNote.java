@@ -146,7 +146,7 @@ public class DebitNote extends DebitNote_Base {
     public ERPCustomerFieldsBean saveCustomerDataBeforeExportation() {
         if (!isDocumentToExport()) {
             throw new TreasuryDomainException(
-                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+                    "error.FinantialDocument.saveCustomerDataBeforeExportation.document.not.pending.for.exportation");
         }
 
         final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromDebitNote(this);
