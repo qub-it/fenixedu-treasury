@@ -101,6 +101,7 @@ public class ERPConfigurationController extends TreasuryBaseController {
             @RequestParam(value = "paymentsintegrationseries", required = false) Series paymentsIntegrationSeries,
             @RequestParam(value = "implementationclassname", required = false) String implementationClassName,
             @RequestParam(value = "maxsizebytestoexportonlineModel", required = false) Long maxSizeBytesToExportOnline,
+            @RequestParam(value = "erpidprocess", required = false) final String erpIdProcess,
             Model model, RedirectAttributes redirectAttributes) {
 
         setERPConfiguration(eRPConfiguration, model);
@@ -109,7 +110,7 @@ public class ERPConfigurationController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(eRPConfiguration.getFinantialInstitution(), model);
 
             updateERPConfiguration(active, exportOnlyRelatedDocumentsPerExport, exportAnnulledRelatedDocuments, externalURL,
-                    username, password, paymentsIntegrationSeries, implementationClassName, maxSizeBytesToExportOnline, model);
+                    username, password, paymentsIntegrationSeries, implementationClassName, maxSizeBytesToExportOnline, erpIdProcess, model);
 
             return redirect(READ_URL + getERPConfiguration(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
@@ -123,10 +124,10 @@ public class ERPConfigurationController extends TreasuryBaseController {
     @Atomic
     public void updateERPConfiguration(boolean active, boolean exportOnlyRelatedDocumentsPerExport,
             boolean exportAnnulledRelatedDocuments, String externalURL, String username, String password,
-            Series paymentsIntegrationSeries, String implementationClassName, Long maxSizeBytesToExportOnline, Model model) {
+            Series paymentsIntegrationSeries, String implementationClassName, Long maxSizeBytesToExportOnline, String erpIdProcess, Model model) {
         getERPConfiguration(model).edit(active, paymentsIntegrationSeries, externalURL, username, password,
                 exportAnnulledRelatedDocuments, exportOnlyRelatedDocumentsPerExport, implementationClassName,
-                maxSizeBytesToExportOnline);
+                maxSizeBytesToExportOnline, erpIdProcess);
     }
 
     @RequestMapping(value = "/update/{oid}/test")

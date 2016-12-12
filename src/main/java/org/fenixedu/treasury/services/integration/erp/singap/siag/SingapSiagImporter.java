@@ -265,7 +265,6 @@ public class SingapSiagImporter implements IERPImporter {
                         } else {
                             //The Settlement note must be annulled
                             settlementNote.anullDocument(
-                                    true,
                                     BundleUtil.getString(Constants.BUNDLE,
                                             "label.info.integration.erpimporter.annulled.by.integration")
                                             + " - ["
