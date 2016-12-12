@@ -350,6 +350,16 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 </li>
             </c:if>
         </c:if>
+        	
+        	<%--
+	        <li>
+		        <a class="" id="printLabel2" href="#"
+		            onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';"> 
+			        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+	            	<spring:message code="label.print" />
+		        </a>
+	        </li>
+	        --%>
         
         <c:if test="${debitNote.isPreparing() || debitNote.isClosed()}">
 			<li>            
@@ -417,13 +427,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 </ul>
             </div>
         </c:if>
-        | 
-        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
-        <a class="" id="printLabel2" href="#"
-            onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';"> <spring:message
-                code="label.print" />
-        </a>
-	<c:if test="${debitNote.isClosed()}">
+	<c:if test="${debitNote.isClosed() && not debitNote.documentToExport}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= DebitNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${debitNote.externalId}">

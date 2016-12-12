@@ -274,12 +274,16 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 </ul>
             </div>
         </c:if>
-
-        |&nbsp;<span class="glyphicon glyphicon-print" aria-hidden="true"></span> &nbsp; <a class="" id="printLabel2" href="#"
-            onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';"> <spring:message
-                code="label.print" />
+		
+		<%-- 
+        <a class="" id="printLabel2" href="#"
+            onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';">
+	        <span class="glyphicon glyphicon-print" aria-hidden="true"></span> &nbsp; 
+            <spring:message code="label.print" />
         </a>
-	<c:if test="${creditNote.isClosed()}">
+        --%>
+        
+	<c:if test="${creditNote.isClosed() && not creditNote.documentToExport}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= CreditNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${creditNote.externalId}">

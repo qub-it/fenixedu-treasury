@@ -230,7 +230,14 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
 %>             
             |&nbsp; <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;<a
         class="" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/update/${settlementNote.externalId}"><spring:message
-            code="label.event.update" /></a> &nbsp;
+            code="label.event.update" /></a> 
+
+		&nbsp;|&nbsp;
+		<a class="" id="printLabel2" target="_blank" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/printdocument">
+		    <span class="glyphicon glyphicon-print" aria-hidden="true"></span>&nbsp; 
+			<spring:message code="label.FinantialDocument.print.uncertified.settlement.note" />
+		</a>
+    
     <c:if test="${settlementNote.isPreparing()}">
         |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;<a class="" href="#" data-toggle="modal" data-target="#deleteModal"><spring:message
                 code="label.event.delete" /></a> &nbsp;|&nbsp; 
@@ -238,6 +245,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         <a class="" href="#" data-toggle="modal" data-target="#closeModal"> <spring:message code="label.event.document.manageInvoice.closeSettlementNote" />
         </a> &nbsp;
     </c:if>
+    
     <c:if test="${settlementNote.isClosed()}">
         |&nbsp;<span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
         <a class="" href="#" data-toggle="modal" data-target="#anullModal"> <spring:message code="label.event.document.managePayments.anullSettlementNote" />
@@ -279,15 +287,8 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
             </ul>
         </div>
     </c:if>
-<!--     |&nbsp; <span class="glyphicon glyphicon-print" aria-hidden="true"></span> &nbsp; <a class="" id="printLabel2" href="#" -->
-<%--         onclick="document.getElementById('accordion').style.display = 'none';window.print();document.getElementById('accordion').style.display = 'block';"> <spring:message --%>
-<%--             code="label.print" /> --%>
-    |&nbsp; <span class="glyphicon glyphicon-print" aria-hidden="true"></span> &nbsp; <a class="" id="printLabel2" target="_blank" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/printdocument">
-        <spring:message
-            code="label.print" />
-    </a>
     
-	<c:if test="${settlementNote.isClosed()}">
+	<c:if test="${settlementNote.isClosed() and not settlementNote.documentToExport}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= SettlementNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${settlementNote.externalId}">
