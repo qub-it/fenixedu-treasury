@@ -18,9 +18,11 @@ import org.fenixedu.treasury.services.integration.erp.sap.SAPExporter;
 import org.fenixedu.treasury.services.integration.erp.sap.SAPImporter;
 import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES;
 import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES_Service;
+import org.fenixedu.treasury.services.integration.erp.sap.ZulfwscustomersReturn1S;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsdocumentStatusWs1;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesIn;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesOut;
+import org.fenixedu.treasury.util.Constants;
 
 import com.google.common.base.Strings;
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
@@ -46,16 +48,24 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         auditFile.setData(documentsInformation.getData());
 
         ZulwsfaturacaoClientesOut zulwsfaturacaoClientesOut = client.zulfmwsFaturacaoClientes(auditFile);
-        
+
         output.setRequestId(zulwsfaturacaoClientesOut.getRequestId());
-        for(ZulwsdocumentStatusWs1 item : zulwsfaturacaoClientesOut.getDocumentStatus().getItem()) {
+        for (ZulwsdocumentStatusWs1 item : zulwsfaturacaoClientesOut.getDocumentStatus().getItem()) {
             DocumentStatusWS status = new DocumentStatusWS();
             status.setDocumentNumber(item.getDocumentNumber());
-            status.setErrorDescription(String.format("[STATUS: %s] - %s", item.getIntegrationStatus(), item.getErrorDescription()));
+            status.setErrorDescription(
+                    String.format("[STATUS: %s] - %s", item.getIntegrationStatus(), item.getErrorDescription()));
             status.setIntegrationStatus(covertToStatusType(item.getIntegrationStatus(), item.getSapDocumentNumber()));
             output.getDocumentStatus().add(status);
         }
-        
+
+        for (final ZulfwscustomersReturn1S item : zulwsfaturacaoClientesOut.getCustomers().getItem()) {
+            final String otherMessage = String.format("%s: [%s] %s", Constants.bundle("label.SAPExternalService.customer.integration.result"),
+                    item.getIntegrationStatus(), item.getReturnMsg());
+
+            output.getOtherMessages().add(otherMessage);
+        }
+
         output.setSoapInboundMessage(loggingHandler.getInboundMessage());
         output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
 
@@ -63,13 +73,13 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
     }
 
     private StatusType covertToStatusType(final String status, final String sapDocumentNumber) {
-        if(!Strings.isNullOrEmpty(sapDocumentNumber) && "S".equals(status)) {
+        if (!Strings.isNullOrEmpty(sapDocumentNumber) && "S".equals(status)) {
             return StatusType.SUCCESS;
         }
-        
+
         return StatusType.ERROR;
     }
-    
+
     @Override
     public String sendInfoOffline(DocumentsInformationInput documentsInformation) {
         throw new RuntimeException("not.implemented");

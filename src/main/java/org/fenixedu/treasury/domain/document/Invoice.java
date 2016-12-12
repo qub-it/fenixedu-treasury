@@ -113,6 +113,40 @@ public abstract class Invoice extends Invoice_Base {
         super.delete(deleteEntries);
     }
 
+    public abstract ERPCustomerFieldsBean saveCustomerDataBeforeExportation();
+    public abstract ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation();
+    
+    public void editCustomerFieldsForIntegration(final ERPCustomerFieldsBean bean) {
+    }
+
+    public void editPayorCustomerFieldsForIntegration(final ERPCustomerFieldsBean bean) {
+        if (!isDocumentToExport()) {
+            throw new TreasuryDomainException(
+                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+        }
+
+        setPayorCustomerBusinessId(bean.getCustomerBusinessId());
+        setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setPayorCustomerNationality(bean.getCustomerNationality());
+        setPayorCustomerId(bean.getCustomerId());
+        setPayorCustomerAccountId(bean.getCustomerAccountId());
+        setPayorCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setPayorCustomerName(bean.getCustomerName());
+        setPayorCustomerStreetName(bean.getCustomerStreetName());
+        setPayorCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setPayorCustomerCity(bean.getCustomerCity());
+        setPayorCustomerZipCode(bean.getCustomerZipCode());
+        setPayorCustomerRegion(bean.getCustomerRegion());
+        setPayorCustomerCountry(bean.getCustomerCountry());
+    }
+    
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+    
     public static Stream<? extends Invoice> findAll() {
         return FinantialDocument.findAll().filter(x -> x instanceof Invoice).map(Invoice.class::cast);
     }

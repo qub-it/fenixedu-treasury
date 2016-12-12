@@ -35,46 +35,41 @@ public class ERPExportSingleDocumentsTask extends CronTask {
         } else {
             try {
                 FinantialDocument document = FenixFramework.getDomainObject(externalId);
-                if (document != null)
-                {
-                    if (document.isPreparing())
-                    {
+                if (document != null) {
+                    if (document.isPreparing()) {
                         taskLog("Ignored, trying to export a PREPARING document, oid: " + externalId);
+                    } else {
+                        FinantialInstitution finantialInstitution =
+                                document.getDocumentNumberSeries().getSeries().getFinantialInstitution();
+                        final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+                                .getERPExternalServiceImplementation().getERPExporter();
+
+                        ERPExportOperation exportOperation = erpExporter
+                                .exportFinantialDocumentToIntegration(finantialInstitution, Collections.singletonList(document));
+                        taskLog("Exported document: " + document.getUiDocumentNumber() + "=>"
+                                + (exportOperation.getSuccess() ? "OK" : "NOK"));
+
+//                        int MAX_DOCUMENTS_TO_CALL_EXPORT_PENDING_TASK = 10;
+//
+//                        if (finantialInstitution.getFinantialDocumentsPendingForExportationSet().size() > 0
+//                                && finantialInstitution.getFinantialDocumentsPendingForExportationSet()
+//                                        .size() <= MAX_DOCUMENTS_TO_CALL_EXPORT_PENDING_TASK) {
+//
+//                            //Try to Call ERP Export PendingDocumentsTasks
+//                            new Thread() {
+//                                @Override
+//                                @Atomic
+//                                public void run() {
+//                                    try {
+//                                        Thread.sleep(1000);
+//                                    } catch (InterruptedException e) {
+//                                    }
+//                                    SchedulerSystem.queue(new TaskRunner(new ERPExportPendingDocumentsTask()));
+//                                };
+//                            }.start();
+//                        }
                     }
-                    else
-                    {
-                FinantialInstitution finantialInstitution =
-                        document.getDocumentNumberSeries().getSeries().getFinantialInstitution();
-                final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
-                        .getERPExternalServiceImplementation().getERPExporter();
-
-                ERPExportOperation exportOperation =
-                        erpExporter.exportFinantialDocumentToIntegration(finantialInstitution,
-                                Collections.singletonList(document));
-                taskLog("Exported document: " + document.getUiDocumentNumber() + "=>"
-                        + (exportOperation.getSuccess() ? "OK" : "NOK"));
-
-                int MAX_DOCUMENTS_TO_CALL_EXPORT_PENDING_TASK = 10;
-
-                if (finantialInstitution.getFinantialDocumentsPendingForExportationSet().size() > 0
-                        && finantialInstitution.getFinantialDocumentsPendingForExportationSet().size() <= MAX_DOCUMENTS_TO_CALL_EXPORT_PENDING_TASK) {
-
-                    //Try to Call ERP Export PendingDocumentsTasks
-                    new Thread() {
-                        @Override
-                        @Atomic
-                        public void run() {
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                            }
-                            SchedulerSystem.queue(new TaskRunner(new ERPExportPendingDocumentsTask()));
-                        };
-                    }.start();
-                }
-                    }
-                }
-                else{
+                } else {
                     taskLog("Exported document not found oid: " + externalId);
                 }
             } catch (Exception ex) {

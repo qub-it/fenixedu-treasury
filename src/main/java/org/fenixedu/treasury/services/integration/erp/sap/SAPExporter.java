@@ -66,6 +66,7 @@ import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
 import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentEntry;
 import org.fenixedu.treasury.domain.document.Invoice;
@@ -138,15 +139,18 @@ public class SAPExporter implements IERPExporter {
     private static final int MAX_CITY = 50;
     private static final int MAX_ZIPCODE = 20;
     private static final int MAX_REGION = 50;
-    private static final int MAX_STREE_NAME = 90;
-    
+    private static final int MAX_STREET_NAME = 90;
+
+    private static final int MAX_FISCAL_NUM = 20;
+
     private static final String SAFT_PT_ENCODING = "UTF-8";
     private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
 
-    private String generateERPFile(FinantialInstitution institution, DateTime fromDate, DateTime toDate,
-            List<? extends FinantialDocument> allDocuments, Boolean generateAllCustomers, Boolean generateAllProducts,
-            java.util.function.UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
+    private String generateERPFile(final FinantialInstitution institution, final DateTime fromDate, final DateTime toDate,
+            final List<? extends FinantialDocument> allDocuments, final boolean generateAllCustomers,
+            final Boolean generateAllProducts,
+            final java.util.function.UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
 
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(allDocuments);
 
@@ -176,8 +180,7 @@ public class SAPExporter implements IERPExporter {
 
         // ClientsTable (Chapter 2.2 in AuditFile)
         List<org.fenixedu.treasury.generated.sources.saft.sap.Customer> customerList = masterFiles.getCustomer();
-        Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Customer> customerMap =
-                new HashMap<String, org.fenixedu.treasury.generated.sources.saft.sap.Customer>();
+        final Map<String, ERPCustomerFieldsBean> customerMap = new HashMap<String, ERPCustomerFieldsBean>();
 
         // Readd All  Clients if needed
         if (generateAllCustomers) {
@@ -194,11 +197,12 @@ public class SAPExporter implements IERPExporter {
 
             int i = 0;
             for (Customer customer : allCustomers) {
+                ERPCustomerFieldsBean customerBean = ERPCustomerFieldsBean.fillFromCustomer(customer);
                 org.fenixedu.treasury.generated.sources.saft.sap.Customer saftCustomer =
-                        this.convertCustomerToSAFTCustomer(customer);
+                        this.convertCustomerToSAFTCustomer(customerBean);
                 // information.setCurrentCounter(information.getCurrentCounter()
                 // + 1);
-                customerMap.put(saftCustomer.getCustomerID(), saftCustomer);
+                customerMap.put(saftCustomer.getCustomerID(), customerBean);
                 i++;
                 if (i % 100 == 0) {
                     logger.info(
@@ -260,34 +264,38 @@ public class SAPExporter implements IERPExporter {
         invoices.setTotalCredit(BigDecimal.ZERO);
         invoices.setTotalDebit(BigDecimal.ZERO);
 
-        for (FinantialDocument document : allDocuments) {
-            if ((document.isCreditNote() || document.isDebitNote()) && (document.isClosed() || document.isAnnulled())) {
-                try {
-                    WorkDocument workDocument = convertToSAFTWorkDocument((Invoice) document, customerMap, productMap);
-                    workingDocuments.getWorkDocument().add(workDocument);
+        if (!generateAllCustomers && !generateAllProducts) {
+            for (FinantialDocument document : allDocuments) {
+                if ((document.isCreditNote() || document.isDebitNote()) && (document.isClosed() || document.isAnnulled())) {
+                    try {
+                        WorkDocument workDocument = convertToSAFTWorkDocument((Invoice) document, customerMap, productMap);
+                        workingDocuments.getWorkDocument().add(workDocument);
 
-                    // AcumulateValues
-                    numberOfWorkingDocuments = numberOfWorkingDocuments.add(BigInteger.ONE);
-                    if (!document.isAnnulled()) {
-                        if (document.isDebitNote()) {
-                            totalDebitOfWorkingDocuments =
-                                    totalDebitOfWorkingDocuments.add(workDocument.getDocumentTotals().getNetTotal());
-                        } else if (document.isCreditNote()) {
-                            totalCreditOfWorkingDocuments =
-                                    totalCreditOfWorkingDocuments.add(workDocument.getDocumentTotals().getNetTotal());
+                        // AcumulateValues
+                        numberOfWorkingDocuments = numberOfWorkingDocuments.add(BigInteger.ONE);
+                        if (!document.isAnnulled()) {
+                            if (document.isDebitNote()) {
+                                totalDebitOfWorkingDocuments =
+                                        totalDebitOfWorkingDocuments.add(workDocument.getDocumentTotals().getNetTotal());
+                            } else if (document.isCreditNote()) {
+                                totalCreditOfWorkingDocuments =
+                                        totalCreditOfWorkingDocuments.add(workDocument.getDocumentTotals().getNetTotal());
+                            }
                         }
-                    }
 
-                } catch (Exception ex) {
-                    logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
-                    throw ex;
-                }
-            } else {
-                if (!document.isSettlementNote()) {
-                    logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
+                    } catch (Exception ex) {
+                        logger.error(
+                                "Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
+                        throw ex;
+                    }
+                } else {
+                    if (!document.isSettlementNote()) {
+                        logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
+                    }
                 }
             }
         }
+
         // Update Totals of Workingdocuments
         workingDocuments.setNumberOfEntries(numberOfWorkingDocuments);
         workingDocuments.setTotalCredit(totalCreditOfWorkingDocuments.setScale(2, RoundingMode.HALF_EVEN));
@@ -300,32 +308,37 @@ public class SAPExporter implements IERPExporter {
         paymentsDocuments.setNumberOfEntries(BigInteger.ZERO);
         paymentsDocuments.setTotalCredit(BigDecimal.ZERO);
         paymentsDocuments.setTotalDebit(BigDecimal.ZERO);
-        for (FinantialDocument document : allDocuments) {
-            checkForUnsetDocumentSeriesNumberInDocumentsToExport(Lists.newArrayList(document));
 
-            if (document.isSettlementNote() && (document.isClosed() || document.isAnnulled())) {
-                try {
-                    Payment paymentDocument = convertToSAFTPaymentDocument((SettlementNote) document, customerMap, productMap);
-                    paymentsDocuments.getPayment().add(paymentDocument);
+        if (!generateAllCustomers && !generateAllProducts) {
+            for (FinantialDocument document : allDocuments) {
+                checkForUnsetDocumentSeriesNumberInDocumentsToExport(Lists.newArrayList(document));
 
-                    // AcumulateValues
-                    numberOfPaymentsDocuments = numberOfPaymentsDocuments.add(BigInteger.ONE);
-                    if (!document.isAnnulled()) {
-                        totalCreditOfPaymentsDocuments =
-                                totalCreditOfPaymentsDocuments.add(((SettlementNote) document).getTotalCreditAmount());
-                        totalDebitOfPaymentsDocuments =
-                                totalDebitOfPaymentsDocuments.add(((SettlementNote) document).getTotalDebitAmount());
+                if (document.isSettlementNote() && (document.isClosed() || document.isAnnulled())) {
+                    try {
+                        Payment paymentDocument =
+                                convertToSAFTPaymentDocument((SettlementNote) document, customerMap, productMap);
+                        paymentsDocuments.getPayment().add(paymentDocument);
+
+                        // AcumulateValues
+                        numberOfPaymentsDocuments = numberOfPaymentsDocuments.add(BigInteger.ONE);
+                        if (!document.isAnnulled()) {
+                            totalCreditOfPaymentsDocuments =
+                                    totalCreditOfPaymentsDocuments.add(((SettlementNote) document).getTotalCreditAmount());
+                            totalDebitOfPaymentsDocuments =
+                                    totalDebitOfPaymentsDocuments.add(((SettlementNote) document).getTotalDebitAmount());
+                        }
+                    } catch (Exception ex) {
+                        logger.error(
+                                "Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
+                        throw ex;
                     }
-                } catch (Exception ex) {
-                    logger.error("Error processing document " + document.getUiDocumentNumber() + ": " + ex.getLocalizedMessage());
-                    throw ex;
+                } else {
+                    if (document.isSettlementNote()) {
+                        logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
+                    }
                 }
-            } else {
-                if (document.isSettlementNote()) {
-                    logger.info("Ignoring document " + document.getUiDocumentNumber() + " because is not closed yet.");
-                }
-            }
 
+            }
         }
 
         // Update Totals of Payment Documents
@@ -335,7 +348,9 @@ public class SAPExporter implements IERPExporter {
         sourceDocuments.setPayments(paymentsDocuments);
 
         // Update the Customer Table in SAFT
-        for (org.fenixedu.treasury.generated.sources.saft.sap.Customer customer : customerMap.values()) {
+        for (final ERPCustomerFieldsBean customerBean : customerMap.values()) {
+            final org.fenixedu.treasury.generated.sources.saft.sap.Customer customer =
+                    convertCustomerToSAFTCustomer(customerBean);
             customerList.add(customer);
         }
 
@@ -353,20 +368,14 @@ public class SAPExporter implements IERPExporter {
         return xml;
     }
 
-    private Payment convertToSAFTPaymentDocument(SettlementNote document,
-            Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Customer> baseCustomers,
+    private Payment convertToSAFTPaymentDocument(final SettlementNote document,
+            final Map<String, ERPCustomerFieldsBean> baseCustomers,
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> productMap) {
         Payment payment = new Payment();
 
         // Find the Customer in BaseCustomers
-        org.fenixedu.treasury.generated.sources.saft.sap.Customer customer = null;
-
-        if (baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
-            customer = baseCustomers.get(document.getDebtAccount().getCustomer().getCode());
-        } else {
-            // If not found, create a new one and add it to baseCustomers
-            customer = convertCustomerToSAFTCustomer(document.getDebtAccount().getCustomer());
-            baseCustomers.put(customer.getCustomerID(), customer);
+        if (!baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
+            throw new TreasuryDomainException("error.SAPExporter.convertToSAFTPaymentDocument.customer.not.processed");
         }
 
         // MovementDate
@@ -380,7 +389,7 @@ public class SAPExporter implements IERPExporter {
 
             /* ANIL: 2015/10/20 converted from dateTime to Date */
             payment.setTransactionDate(convertToXMLDate(dataTypeFactory, documentDate));
-            
+
             /* SAP: 2016/09/19 This element is required */
             payment.setPaymentType(SAFTPTPaymentType.RG);
 
@@ -388,7 +397,9 @@ public class SAPExporter implements IERPExporter {
             payment.setPaymentRefNo(document.getUiDocumentNumber());
 
             // Finantial Transaction Reference
-            payment.setFinantialTransactionReference(!Strings.isNullOrEmpty(document.getFinantialTransactionReference()) ? document.getFinantialTransactionReference() : "");
+            payment.setFinantialTransactionReference(
+                    !Strings.isNullOrEmpty(document.getFinantialTransactionReference()) ? document
+                            .getFinantialTransactionReference() : "");
 
             //OriginDocumentNumber
             payment.setSourceID(!Strings.isNullOrEmpty(document.getVersioningCreator()) ? document.getVersioningCreator() : " ");
@@ -439,7 +450,8 @@ public class SAPExporter implements IERPExporter {
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
 
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(paymentEntry.getPaymentMethod()));
-                    method.setPaymentMethodReference(!Strings.isNullOrEmpty(paymentEntry.getPaymentMethodId()) ? paymentEntry.getPaymentMethodId() : "");
+                    method.setPaymentMethodReference(
+                            !Strings.isNullOrEmpty(paymentEntry.getPaymentMethodId()) ? paymentEntry.getPaymentMethodId() : "");
                     payment.getPaymentMethod().add(method);
                 }
                 payment.setSettlementType(SAFTPTSettlementType.NL);
@@ -453,7 +465,9 @@ public class SAPExporter implements IERPExporter {
                     method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
 
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(reimbursmentEntry.getPaymentMethod()));
-                    method.setPaymentMethodReference(!Strings.isNullOrEmpty(reimbursmentEntry.getReimbursementMethodId()) ? reimbursmentEntry.getReimbursementMethodId() : "");
+                    method.setPaymentMethodReference(
+                            !Strings.isNullOrEmpty(reimbursmentEntry.getReimbursementMethodId()) ? reimbursmentEntry
+                                    .getReimbursementMethodId() : "");
 
                     payment.getPaymentMethod().add(method);
                     payment.setSettlementType(SAFTPTSettlementType.NR);
@@ -478,7 +492,6 @@ public class SAPExporter implements IERPExporter {
                 payment.getPaymentMethod().add(voidMethod);
                 payment.setSettlementType(SAFTPTSettlementType.NN);
             }
-
 
             // DocumentTotals
             SourceDocuments.Payments.Payment.DocumentTotals docTotals = new SourceDocuments.Payments.Payment.DocumentTotals();
@@ -561,20 +574,22 @@ public class SAPExporter implements IERPExporter {
         return paymentMethod.getCode();
     }
 
-    private WorkDocument convertToSAFTWorkDocument(Invoice document,
-            Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Customer> baseCustomers,
-            Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
+    private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
+            final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
+        final ERPCustomerFieldsBean customerBean = document.saveCustomerDataBeforeExportation();
+        
         WorkDocument workDocument = new WorkDocument();
 
         // Find the Customer in BaseCustomers
-        org.fenixedu.treasury.generated.sources.saft.sap.Customer customer = null;
+        if (baseCustomers.containsKey(customerBean.getCustomerId())) {
+            ERPCustomerFieldsBean customer = baseCustomers.get(customerBean.getCustomerId());
 
-        if (baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
-            customer = baseCustomers.get(document.getDebtAccount().getCustomer().getCode());
+            if (!customer.getCustomerFiscalNumber().equals(customerBean.getCustomerFiscalNumber())) {
+                throw new TreasuryDomainException("error.SAPExporter.customer.registered.with.different.fiscalNumber");
+            }
         } else {
             // If not found, create a new one and add it to baseCustomers
-            customer = convertCustomerToSAFTCustomer(document.getDebtAccount().getCustomer());
-            baseCustomers.put(customer.getCustomerID(), customer);
+            baseCustomers.put(customerBean.getCustomerId(), customerBean);
         }
 
         if (document instanceof AdvancedPaymentCreditNote
@@ -588,13 +603,19 @@ public class SAPExporter implements IERPExporter {
 
         //check the PayorDebtAccount
         if (document.getPayorDebtAccount() != null) {
-            if (baseCustomers.containsKey(document.getPayorDebtAccount().getCustomer().getCode())) {
-                //do nothing
+            final ERPCustomerFieldsBean payorCustomerBean = document.saveCustomerDataBeforeExportation();
+            
+            if (baseCustomers.containsKey(customerBean.getCustomerId())) {
+                final ERPCustomerFieldsBean payorCustomer = baseCustomers.get(customerBean.getCustomerId());
+
+                if (!payorCustomer.getCustomerFiscalNumber().equals(customerBean.getCustomerFiscalNumber())) {
+                    throw new TreasuryDomainException("error.SAPExporter.customer.registered.with.different.fiscalNumber");
+                }
             } else {
                 // If not found, create a new one and add it to baseCustomers
                 org.fenixedu.treasury.generated.sources.saft.sap.Customer payorCustomer =
-                        convertCustomerToSAFTCustomer(document.getPayorDebtAccount().getCustomer());
-                baseCustomers.put(payorCustomer.getCustomerID(), payorCustomer);
+                        convertCustomerToSAFTCustomer(payorCustomerBean);
+                baseCustomers.put(payorCustomerBean.getCustomerId(), payorCustomerBean);
             }
         }
 
@@ -692,7 +713,8 @@ public class SAPExporter implements IERPExporter {
             workDocument.setPeriod(document.getDocumentDate().getMonthOfYear());
 
             // SourceID
-            workDocument.setSourceID(!Strings.isNullOrEmpty(document.getVersioningCreator()) ? document.getVersioningCreator() : "");
+            workDocument
+                    .setSourceID(!Strings.isNullOrEmpty(document.getVersioningCreator()) ? document.getVersioningCreator() : "");
 
         } catch (DatatypeConfigurationException e) {
 
@@ -771,7 +793,7 @@ public class SAPExporter implements IERPExporter {
                 reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
                 reference.setOrderDate(documentDateCalendar);
                 reference.setLineNumber(BigInteger.ONE);
-                
+
                 orderReferences.add(reference);
             }
 
@@ -1012,34 +1034,35 @@ public class SAPExporter implements IERPExporter {
         }
     }
 
-    private AddressStructurePT convertAddressToAddressPT(final String addressDetail, final String zipCode, final String zipCodeRegion,
-            final String street) {
+    private AddressStructurePT convertAddressToAddressPT(final String addressDetail, final String zipCode,
+            final String zipCodeRegion, final String street) {
         final AddressStructurePT companyAddress = new AddressStructurePT();
 
         companyAddress.setCountry("PT");
-        
-        if(addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
-            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed", String.valueOf(MAX_ADDRESS_DETAIL));
+
+        if (addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
+            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed",
+                    String.valueOf(MAX_ADDRESS_DETAIL));
         }
         companyAddress.setAddressDetail(!Strings.isNullOrEmpty(addressDetail) ? addressDetail : MORADA_DESCONHECIDO);
 
-        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
+        if (zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
             throw new TreasuryDomainException("error.SAPExporter.city.more.than.allowed", String.valueOf(MAX_CITY));
         }
         companyAddress.setCity(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
-        
-        if(zipCode != null && zipCode.length() > MAX_ZIPCODE) {
+
+        if (zipCode != null && zipCode.length() > MAX_ZIPCODE) {
             throw new TreasuryDomainException("error.SAPExporter.zipCode.more.than.allowed", String.valueOf(MAX_ZIPCODE));
         }
-        
+
         companyAddress.setPostalCode(!Strings.isNullOrEmpty(zipCode) ? zipCode : MORADA_DESCONHECIDO);
 
-        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
+        if (zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
             throw new TreasuryDomainException("error.SAPExporter.region.more.than.allowed", String.valueOf(MAX_REGION));
         }
         companyAddress.setRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
 
-        companyAddress.setStreetName(Splitter.fixedLength(MAX_STREE_NAME).splitToList(street).get(0));
+        companyAddress.setStreetName(Splitter.fixedLength(MAX_STREET_NAME).splitToList(street).get(0));
 
         return companyAddress;
     }
@@ -1075,8 +1098,7 @@ public class SAPExporter implements IERPExporter {
                 md.update(("SALTING WITH QUB:" + xml).getBytes(SAFT_PT_ENCODING));
                 byte[] output = md.digest();
                 String digestAscii = bytesToHex(output);
-                xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with UTF-8 encode): " + digestAscii
-                        + " -->\n";
+                xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with UTF-8 encode): " + digestAscii + " -->\n";
             } catch (Exception ex) {
 
             }
@@ -1098,7 +1120,8 @@ public class SAPExporter implements IERPExporter {
         return buf.toString();
     }
 
-    private org.fenixedu.treasury.generated.sources.saft.sap.Customer convertCustomerToSAFTCustomer(Customer customer) {
+    private org.fenixedu.treasury.generated.sources.saft.sap.Customer convertCustomerToSAFTCustomer(
+            final ERPCustomerFieldsBean customer) {
         org.fenixedu.treasury.generated.sources.saft.sap.Customer c =
                 new org.fenixedu.treasury.generated.sources.saft.sap.Customer();
 
@@ -1111,11 +1134,7 @@ public class SAPExporter implements IERPExporter {
          * ser preenchido com a designa??o ?Desconhecido?.
          */
 
-        if (customer instanceof AdhocCustomer) {
-            c.setAccountID("ADHOC");
-        } else {
-            c.setAccountID("STUDENT");
-        }
+        c.setAccountID(customer.getCustomerAccountId());
 
         // BillingAddress
         // List<PhysicalAddress> addresses = customer
@@ -1124,40 +1143,26 @@ public class SAPExporter implements IERPExporter {
         // c.setBillingAddress(convertToSAFTAddressStructure(addresses.get(0)));
         // } else {
         // PhysicalAddress addr = new PhysicalAddress();
-        
+
         // Ensure address is filled to avoid errors in invoices
-        
-        if(Strings.isNullOrEmpty(customer.getCountryCode())) {
-            throw new TreasuryDomainException("error.SapExporter.address.countryCode.not.filled");
-        } else if(Strings.isNullOrEmpty(customer.getAddress())) {
-            throw new TreasuryDomainException("error.SapExporter.address.address.not.filled");
-        } else if(Strings.isNullOrEmpty(customer.getZipCode())) {
-            throw new TreasuryDomainException("error.SapExporter.address.zipCode.not.filled");
-        } else if(Strings.isNullOrEmpty(customer.getDistrictSubdivision())) {
-            throw new TreasuryDomainException("error.SapExporter.address.districtSubdivision.not.filled");
-        }
-        
-        c.setBillingAddress(convertAddressToSAFTAddress(customer.getCountryCode(), customer.getAddress(), customer.getZipCode(),
-                customer.getDistrictSubdivision(), customer.getAddress()));
-                // }
+
+        c.setBillingAddress(convertAddressToSAFTAddress(customer));
 
         // CompanyName
-        c.setCompanyName(customer.getName());
+        c.setCompanyName(customer.getCustomerName());
 
         // Contact
-        c.setContact(Splitter.fixedLength(50).splitToList(customer.getName()).get(0));
+        c.setContact(customer.getCustomerContact());
 
         // CustomerID
-        c.setCustomerID(customer.getCode());
+        c.setCustomerID(customer.getCustomerId());
 
-        c.setCustomerBusinessID(customer.getBusinessIdentification());
+        c.setCustomerBusinessID(customer.getCustomerBusinessId());
 
         // CustomerTaxID
-        if (Strings.isNullOrEmpty(customer.getFiscalNumber())) {
-            c.setCustomerTaxID(Customer.DEFAULT_FISCAL_NUMBER);
-        } else {
-            c.setCustomerTaxID(customer.getFiscalNumber());
-        }
+
+        c.setCustomerTaxID(customer.getCustomerFiscalNumber());
+
         // Email
         // c.setEmail("");
 
@@ -1175,42 +1180,32 @@ public class SAPExporter implements IERPExporter {
         // Telephone
         // c.setTelephone("");
 
-        c.setFiscalCountry(customer.getFiscalCountry());
-        c.setNationality(customer.getNationalityCountryCode());
+        c.setFiscalCountry(customer.getCustomerFiscalCountry());
+        c.setNationality(customer.getCustomerNationality());
 
         return c;
     }
 
-    private AddressStructure convertAddressToSAFTAddress(String country, String addressDetail, String zipCode,
-            String zipCodeRegion, String street) {
+    private AddressStructure convertAddressToSAFTAddress(final ERPCustomerFieldsBean customer) {
         final AddressStructure companyAddress = new AddressStructure();
 
-        companyAddress.setCountry(!Strings.isNullOrEmpty(country) ? country : MORADA_DESCONHECIDO);
-        
-        if(addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
-            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed", String.valueOf(MAX_ADDRESS_DETAIL));
-        }
-        
-        companyAddress.setAddressDetail(!Strings.isNullOrEmpty(addressDetail) ? addressDetail : MORADA_DESCONHECIDO);
+        companyAddress.setCountry(
+                !Strings.isNullOrEmpty(customer.getCustomerCountry()) ? customer.getCustomerCountry() : MORADA_DESCONHECIDO);
 
-        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
-            throw new TreasuryDomainException("error.SAPExporter.city.more.than.allowed", String.valueOf(MAX_CITY));
-        }
-        companyAddress.setCity(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+        companyAddress.setAddressDetail(!Strings.isNullOrEmpty(customer.getCustomerAddressDetail()) ? customer
+                .getCustomerAddressDetail() : MORADA_DESCONHECIDO);
 
+        companyAddress.setCity(
+                !Strings.isNullOrEmpty(customer.getCustomerRegion()) ? customer.getCustomerRegion() : MORADA_DESCONHECIDO);
 
-        if(zipCode != null && zipCode.length() > MAX_ZIPCODE) {
-            throw new TreasuryDomainException("error.SAPExporter.zipCode.more.than.allowed", String.valueOf(MAX_ZIPCODE));
-        }
-        
-        companyAddress.setPostalCode(!Strings.isNullOrEmpty(zipCode) ? zipCode : MORADA_DESCONHECIDO);
+        companyAddress.setPostalCode(
+                !Strings.isNullOrEmpty(customer.getCustomerZipCode()) ? customer.getCustomerZipCode() : MORADA_DESCONHECIDO);
 
-        if(zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
-            throw new TreasuryDomainException("error.SAPExporter.region.more.than.allowed", String.valueOf(MAX_REGION));
-        }
-        companyAddress.setRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
+        companyAddress.setRegion(
+                !Strings.isNullOrEmpty(customer.getCustomerRegion()) ? customer.getCustomerRegion() : MORADA_DESCONHECIDO);
 
-        companyAddress.setStreetName(Splitter.fixedLength(MAX_STREE_NAME).splitToList(street).get(0));
+        companyAddress.setStreetName(customer.getCustomerStreetName());
+
         return companyAddress;
     }
 
@@ -1359,8 +1354,10 @@ public class SAPExporter implements IERPExporter {
         if (operationFile.getSize() <= erpIntegrationConfiguration.getMaxSizeBytesToExportOnline()) {
             input.setData(operationFile.getContent());
             DocumentsInformationOutput sendInfoOnlineResult = service.sendInfoOnline(input);
+
             logBean.appendIntegrationLog(
                     Constants.bundle("info.ERPExporter.sucess.sending.inforation.online", sendInfoOnlineResult.getRequestId()));
+            operation.setErpOperationId(sendInfoOnlineResult.getRequestId());
 
             //if we have result in online situation, then check the information of integration STATUS
             for (DocumentStatusWS status : sendInfoOnlineResult.getDocumentStatus()) {
@@ -1390,6 +1387,11 @@ public class SAPExporter implements IERPExporter {
                 }
             }
 
+            for (final String m : sendInfoOnlineResult.getOtherMessages()) {
+                operation.appendInfoLog(m);
+                operation.appendErrorLog(m);
+            }
+
             logBean.defineSoapInboundMessage(sendInfoOnlineResult.getSoapInboundMessage());
             logBean.defineSoapOutboundMessage(sendInfoOnlineResult.getSoapOutboundMessage());
 
@@ -1416,7 +1418,7 @@ public class SAPExporter implements IERPExporter {
     @Atomic(mode = TxMode.WRITE)
     private ERPExportOperation createSaftExportOperation(byte[] data, FinantialInstitution institution, DateTime when) {
         String filename = institution.getFiscalNumber() + "_" + when.toString() + ".xml";
-        ERPExportOperation operation = ERPExportOperation.create(data, filename, institution, when, false, false, false);
+        ERPExportOperation operation = ERPExportOperation.create(data, filename, institution, null, when, false, false, false);
         return operation;
     }
 
@@ -1455,7 +1457,7 @@ public class SAPExporter implements IERPExporter {
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
 
         documents = processCreditNoteSettlementsInclusion(documents);
-        
+
         SAPExporter saftExporter = new SAPExporter();
         DateTime beginDate =
                 documents.stream().min((x, y) -> x.getDocumentDate().compareTo(y.getDocumentDate())).get().getDocumentDate();
@@ -1465,26 +1467,25 @@ public class SAPExporter implements IERPExporter {
                 preProcessFunctionBeforeSerialize);
     }
 
-    
     private List<FinantialDocument> processCreditNoteSettlementsInclusion(List<FinantialDocument> documents) {
         final List<FinantialDocument> result = Lists.newArrayList(documents);
-        
+
         // Ensure settlement entries of credit entries include credits notes to export
-        
-        for(final FinantialDocument finantialDocument : documents) {
-            if(finantialDocument.isSettlementNote()) {
+
+        for (final FinantialDocument finantialDocument : documents) {
+            if (finantialDocument.isSettlementNote()) {
                 final SettlementNote settlementNote = (SettlementNote) finantialDocument;
-                
+
                 for (final SettlementEntry settlementEntry : settlementNote.getSettlemetEntriesSet()) {
-                    if(settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
-                        if(!result.contains(settlementEntry.getInvoiceEntry().getFinantialDocument())) {
+                    if (settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
+                        if (!result.contains(settlementEntry.getInvoiceEntry().getFinantialDocument())) {
                             result.add(settlementEntry.getInvoiceEntry().getFinantialDocument());
                         }
                     }
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -1495,6 +1496,14 @@ public class SAPExporter implements IERPExporter {
             }
         }
     }
+
+    // @formatter:off
+    /*
+     * ********
+     * PRODUCTS
+     * ********
+     */
+    // @formatter:on
 
     @Override
     public String exportsProductsToXML(FinantialInstitution finantialInstitution) {
@@ -1508,6 +1517,14 @@ public class SAPExporter implements IERPExporter {
         return saftExporter.generateERPFile(finantialInstitution, new DateTime(), new DateTime(),
                 new ArrayList<FinantialDocument>(), false, true, preProcessFunctionBeforeSerialize);
     }
+
+    // @formatter:off
+    /*
+     * *********
+     * CUSTOMERS
+     * *********
+     */
+    // @formatter:on
 
     @Override
     public String exportsCustomersToXML(FinantialInstitution finantialInstitution) {
@@ -1706,6 +1723,35 @@ public class SAPExporter implements IERPExporter {
         return (AuditFile x) -> {
             return x;
         };
+    }
+
+    /* Deprecated Methods */
+    // SERVICE
+    public ERPExportOperation _deprecated_exportFullToIntegration(FinantialInstitution institution, DateTime fromDate,
+            DateTime toDate, String username, Boolean includeMovements) {
+
+        ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
+        try {
+            SAPExporter saftExporter = new SAPExporter();
+            List<FinantialDocument> documents =
+                    new ArrayList<FinantialDocument>(institution.getExportableDocuments(fromDate, toDate));
+            documents = processCreditNoteSettlementsInclusion(documents);
+
+            logger.info("Collecting " + documents.size() + " documents to export to institution " + institution.getCode());
+            UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(institution);
+            String xml = saftExporter.generateERPFile(institution, fromDate, toDate, documents, true, true, auditFilePreProcess);
+
+            writeContentToExportOperation(xml, operation);
+
+            boolean success = sendDocumentsInformationToIntegration(institution, operation);
+
+            operation.getFinantialDocumentsSet().addAll(documents);
+            operation.setSuccess(success);
+
+        } catch (Throwable t) {
+            writeError(operation, t);
+        }
+        return operation;
     }
 
 }

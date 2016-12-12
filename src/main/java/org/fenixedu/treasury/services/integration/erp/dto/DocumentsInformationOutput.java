@@ -29,6 +29,8 @@ package org.fenixedu.treasury.services.integration.erp.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 public class DocumentsInformationOutput {
     private String requestId;
     private List<DocumentStatusWS> documentStatus;
@@ -36,6 +38,8 @@ public class DocumentsInformationOutput {
     private String soapOutboundMessage;
     private String soapInboundMessage;
 
+    private List<String> otherMessages = Lists.newArrayList();
+    
     public DocumentsInformationOutput() {
         documentStatus = new ArrayList<DocumentStatusWS>();
     }
@@ -70,6 +74,14 @@ public class DocumentsInformationOutput {
     
     public void setSoapOutboundMessage(String soapOutboundMessage) {
         this.soapOutboundMessage = soapOutboundMessage;
+    }
+    
+    public List<String> getOtherMessages() {
+        return otherMessages;
+    }
+    
+    public void setOtherMessages(List<String> otherMessages) {
+        this.otherMessages = otherMessages;
     }
 
 }

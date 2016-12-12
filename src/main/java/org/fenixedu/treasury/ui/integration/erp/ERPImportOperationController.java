@@ -222,7 +222,7 @@ public class ERPImportOperationController extends TreasuryBaseController {
         }
 
         ERPImportOperation eRPImportOperation = ERPImportOperation.create(file.getOriginalFilename(), file.getBytes(),
-                finantialInstitution, new DateTime(), false, false, false);
+                finantialInstitution, null, new DateTime(), false, false, false);
 
         return eRPImportOperation;
     }
@@ -310,7 +310,7 @@ public class ERPImportOperationController extends TreasuryBaseController {
     private ERPImportOperation cloneERPImportOperation(ERPImportOperation erpImportOperation) {
         ERPImportOperation newERPImportOperation =
                 ERPImportOperation.create(erpImportOperation.getFile().getFilename(), erpImportOperation.getFile().getContent(),
-                        erpImportOperation.getFinantialInstitution(), new DateTime(), false, false, false);
+                        erpImportOperation.getFinantialInstitution(), erpImportOperation.getErpOperationId(), new DateTime(), false, false, false);
         return newERPImportOperation;
     }
 }
