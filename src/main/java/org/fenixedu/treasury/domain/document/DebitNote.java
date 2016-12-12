@@ -166,6 +166,9 @@ public class DebitNote extends DebitNote_Base {
         setCustomerRegion(bean.getCustomerRegion());
         setCustomerCountry(bean.getCustomerCountry());
 
+        setCustomerFieldsUpdateDate(new DateTime());
+        setCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
+        
         return bean;
     }
 
@@ -192,6 +195,9 @@ public class DebitNote extends DebitNote_Base {
         setPayorCustomerZipCode(bean.getCustomerZipCode());
         setPayorCustomerRegion(bean.getCustomerRegion());
         setPayorCustomerCountry(bean.getCustomerCountry());
+
+        setPayorCustomerFieldsUpdateDate(new DateTime());
+        setPayorCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
 
         return bean;
     }
@@ -441,7 +447,7 @@ public class DebitNote extends DebitNote_Base {
                     DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(), debitEntry.getTreasuryEvent(),
                             debitEntry.getVat(), debitEntry.getAmount().add(debitEntry.getExemptedAmount()),
                             debitEntry.getDueDate(), debitEntry.getPropertiesMap(), debitEntry.getProduct(),
-                            debitEntry.getDescription(), debitEntry.getQuantity(), debitEntry.getInterestRate(), new DateTime());
+                            debitEntry.getDescription(), debitEntry.getQuantity(), debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
 
             if (debitEntry.getTreasuryExemption() != null) {
                 final TreasuryExemption treasuryExemption = debitEntry.getTreasuryExemption();

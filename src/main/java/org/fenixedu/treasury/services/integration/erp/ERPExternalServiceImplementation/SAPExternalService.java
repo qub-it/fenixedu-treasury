@@ -60,8 +60,9 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         }
 
         for (final ZulfwscustomersReturn1S item : zulwsfaturacaoClientesOut.getCustomers().getItem()) {
-            final String otherMessage = String.format("%s: [%s] %s", Constants.bundle("label.SAPExternalService.customer.integration.result"),
-                    item.getIntegrationStatus(), item.getReturnMsg());
+            final String otherMessage =
+                    String.format("%s (SAP nº %s): [%s] %s", Constants.bundle("label.SAPExternalService.customer.integration.result"),
+                            !Strings.isNullOrEmpty(item.getCustomerIdSap()) ? item.getCustomerIdSap() : "", item.getIntegrationStatus(), item.getReturnMsg());
 
             output.getOtherMessages().add(otherMessage);
         }

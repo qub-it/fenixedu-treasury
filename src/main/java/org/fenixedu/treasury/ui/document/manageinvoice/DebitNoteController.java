@@ -42,7 +42,6 @@ import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.commons.StringNormalizer;
 import org.fenixedu.treasury.domain.Currency;
-import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
@@ -724,4 +723,24 @@ public class DebitNoteController extends TreasuryBaseController {
 
         return updatepayordebtaccount(debitNote, model, redirectAttributes);
     }
+    
+    private static final String VIEW_ERP_CUSTOMER_DATA_URI = "/viewerpcustomerfields";
+    public static final String VIEW_ERP_CUSTOMER_DATA_URL = CONTROLLER_URL + VIEW_ERP_CUSTOMER_DATA_URI;
+
+    @RequestMapping(value = VIEW_ERP_CUSTOMER_DATA_URI + "/{oid}", method = RequestMethod.GET)
+    public String viewerpcustomerdata(@PathVariable("oid") final DebitNote debitNote, final Model model, final RedirectAttributes redirectAttributes) {
+        try {
+            assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
+
+            model.addAttribute("invoice", debitNote);
+            model.addAttribute("backUrl", READ_URL + "/" + debitNote.getExternalId());
+
+            return "treasury/document/manageinvoice/erpcustomerfields/read";
+        } catch (final DomainException e) {
+            addErrorMessage(e.getLocalizedMessage(), model);
+        }
+        
+        return redirect(READ_URL + debitNote.getExternalId(), model, redirectAttributes);
+    }
+    
 }
