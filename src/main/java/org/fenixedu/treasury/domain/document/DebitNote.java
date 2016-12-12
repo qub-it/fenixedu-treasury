@@ -130,10 +130,6 @@ public class DebitNote extends DebitNote_Base {
         return BigDecimal.ZERO;
     }
 
-    public static Stream<DebitNote> findAll() {
-        return FinantialDocument.findAll().filter(x -> x instanceof DebitNote).map(DebitNote.class::cast);
-    }
-
     @Atomic
     public void edit(final DebtAccount payorDebtAccount, final LocalDate documentDate, LocalDate documentDueDate,
             final String originDocumentNumber) {
@@ -146,6 +142,71 @@ public class DebitNote extends DebitNote_Base {
         checkRules();
     }
 
+    @Override
+    public ERPCustomerFieldsBean saveCustomerDataBeforeExportation() {
+        if (!isDocumentToExport()) {
+            throw new TreasuryDomainException(
+                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+        }
+
+        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromDebitNote(this);
+
+        setCustomerBusinessId(bean.getCustomerBusinessId());
+        setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setCustomerNationality(bean.getCustomerNationality());
+        setCustomerId(bean.getCustomerId());
+        setCustomerAccountId(bean.getCustomerAccountId());
+        setCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setCustomerName(bean.getCustomerName());
+        setCustomerContact(bean.getCustomerContact());
+        setCustomerStreetName(bean.getCustomerStreetName());
+        setCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setCustomerCity(bean.getCustomerCity());
+        setCustomerZipCode(bean.getCustomerZipCode());
+        setCustomerRegion(bean.getCustomerRegion());
+        setCustomerCountry(bean.getCustomerCountry());
+
+        return bean;
+    }
+
+    @Override
+    public ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation() {
+        if (!isDocumentToExport()) {
+            throw new TreasuryDomainException(
+                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+        }
+
+        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillPayorFromDebitNote(this);
+
+        setPayorCustomerBusinessId(bean.getCustomerBusinessId());
+        setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setPayorCustomerNationality(bean.getCustomerNationality());
+        setPayorCustomerId(bean.getCustomerId());
+        setPayorCustomerAccountId(bean.getCustomerAccountId());
+        setPayorCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setPayorCustomerName(bean.getCustomerName());
+        setPayorCustomerContact(bean.getCustomerContact());
+        setPayorCustomerStreetName(bean.getCustomerStreetName());
+        setPayorCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setPayorCustomerCity(bean.getCustomerCity());
+        setPayorCustomerZipCode(bean.getCustomerZipCode());
+        setPayorCustomerRegion(bean.getCustomerRegion());
+        setPayorCustomerCountry(bean.getCustomerCountry());
+
+        return bean;
+    }
+    
+    // @formatter:off
+    /* **********
+     * DEBIT NOTE
+     * **********
+     */
+    // @formatter:on
+    
+    public static Stream<DebitNote> findAll() {
+        return FinantialDocument.findAll().filter(x -> x instanceof DebitNote).map(DebitNote.class::cast);
+    }
+    
     @Atomic
     public static DebitNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
             final DateTime documentDate) {

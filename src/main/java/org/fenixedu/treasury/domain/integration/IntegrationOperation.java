@@ -39,6 +39,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
 
@@ -55,8 +56,9 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
         super();
     }
 
-    protected void init(final org.joda.time.DateTime executionDate, final boolean processed, final boolean success,
+    protected void init(final String erpOperationId, final DateTime executionDate, final boolean processed, final boolean success,
             final java.lang.String errorLog) {
+        setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);
         setSuccess(success);

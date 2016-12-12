@@ -229,8 +229,38 @@ class document.FinantialDocument {
 	boolean exportedInLegacyERP;
 }
 
-
 	class document.Invoice extends document.FinantialDocument {
+		/* SAFT client data snapshot */
+		String customerBusinessId;
+		String customerFiscalCountry;
+		String customerNationality;
+		String customerId;
+		String customerAccountId;
+		String customerFiscalNumber;
+		String customerName;
+		String customerContact;
+		String customerStreetName;
+		String customerAddressDetail;
+		String customerCity;
+		String customerZipCode;
+		String customerRegion;
+		String customerCountry;
+		
+		/* SAFT payor client data snapshot */
+		String payorCustomerBusinessId;
+		String payorCustomerFiscalCountry;
+		String payorCustomerNationality;
+		String payorCustomerId;
+		String payorCustomerAccountId;
+		String payorCustomerFiscalNumber;
+		String payorCustomerName;
+		String payorCustomerContact;
+		String payorCustomerStreetName;
+		String payorCustomerAddressDetail;
+		String payorCustomerCity;
+		String payorCustomerZipCode;
+		String payorCustomerRegion;
+		String payorCustomerCountry;
 	}
 	
 		class document.DebitNote extends document.Invoice {
@@ -680,14 +710,15 @@ class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFil
 
 class integration.IntegrationOperation
 {
-       DateTime executionDate;
-       boolean processed;
-       boolean success;
-       boolean corrected;
-       String errorLog;
-       String integrationLog;
-       String soapInboundMessage;
-       String soapOutboundMessage;
+	DateTime executionDate;
+	boolean processed;
+	boolean success;
+	boolean corrected;
+	String errorLog;
+	String integrationLog;
+	String soapInboundMessage;
+	String soapOutboundMessage;
+	String erpOperationId;
 }
 /* --- IntegrationOperation --- */
 

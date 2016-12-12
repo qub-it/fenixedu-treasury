@@ -1375,7 +1375,7 @@ public class SingapSiagExporter implements IERPExporter {
     @Atomic(mode = TxMode.WRITE)
     private ERPExportOperation createSaftExportOperation(byte[] data, FinantialInstitution institution, DateTime when) {
         String filename = institution.getFiscalNumber() + "_" + when.toString() + ".xml";
-        ERPExportOperation operation = ERPExportOperation.create(data, filename, institution, when, false, false, false);
+        ERPExportOperation operation = ERPExportOperation.create(data, filename, institution, null, when, false, false, false);
         return operation;
     }
 

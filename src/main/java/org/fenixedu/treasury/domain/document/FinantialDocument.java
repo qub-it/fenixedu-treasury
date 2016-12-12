@@ -269,7 +269,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
                     BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
 
         }
-        
+
         setCloseDate(new DateTime());
         checkRules();
     }
