@@ -659,8 +659,7 @@
 												</xs:sequence>
 											</xs:complexType>
 										</xs:element>
-										<xs:element minOccurs="0" maxOccurs="unbounded"
-											name="PaymentMethod" type="PaymentMethod" />
+										<xs:element minOccurs="0" maxOccurs="unbounded" name="PaymentMethod" type="PaymentMethod" />
 										<xs:element ref="SourceID" />
 										<xs:element ref="SystemEntryDate" />
 										<xs:element ref="CustomerID" />

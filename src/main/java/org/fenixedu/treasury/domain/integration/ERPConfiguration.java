@@ -78,7 +78,7 @@ public class ERPConfiguration extends ERPConfiguration_Base {
     public void edit(final boolean active, final Series paymentsIntegrationSeries, final String externalURL,
             final String username, final String password, final boolean exportAnnulledRelatedDocuments,
             final boolean exportOnlyRelatedDocumentsPerExport, final String implementationClassName,
-            Long maxSizeBytesToExportOnline) {
+            Long maxSizeBytesToExportOnline, final String erpIdProcess) {
         setActive(active);
         setPaymentsIntegrationSeries(paymentsIntegrationSeries);
         setExternalURL(externalURL);
@@ -88,6 +88,8 @@ public class ERPConfiguration extends ERPConfiguration_Base {
         setExportOnlyRelatedDocumentsPerExport(exportOnlyRelatedDocumentsPerExport);
         setImplementationClassName(implementationClassName);
         setMaxSizeBytesToExportOnline(maxSizeBytesToExportOnline);
+        setErpIdProcess(erpIdProcess);
+        
         checkRules();
     }
 

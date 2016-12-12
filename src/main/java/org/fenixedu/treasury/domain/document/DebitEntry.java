@@ -739,34 +739,31 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public String getERPIntegrationMetadata() {
-        Map<String, String> propertiesMap = Maps.newHashMap();
-
+        
         String degreeCode = "";
+        if(getTreasuryEvent() != null && !Strings.isNullOrEmpty(getTreasuryEvent().getDegreeCode())) {
+            degreeCode = getTreasuryEvent().getDegreeCode();
+        } else if(getPropertiesMap() != null) {
+            if (getPropertiesMap().containsKey(TreasuryEventKeys.DEGREE_CODE)) {
+                degreeCode = getPropertiesMap().get(TreasuryEventKeys.DEGREE_CODE);
+            } else if (getPropertiesMap().containsKey(TreasuryEventKeys.DEGREE_CODE.getDescriptionI18N().getContent())) {
+                degreeCode = getPropertiesMap().get(TreasuryEventKeys.DEGREE_CODE.getDescriptionI18N().getContent());
+            }
+        }
+        
         String executionYear = "";
-
-        if (this.getPropertiesMap() != null && this.getPropertiesMap().isEmpty() == false) {
-            propertiesMap = this.getPropertiesMap();
-        } else if (this.getTreasuryEvent() != null) {
-            //Return the TreasuryEvent Metadata
-            return this.getTreasuryEvent().getERPIntegrationMetadata();
+        if(getTreasuryEvent() != null && !Strings.isNullOrEmpty(getTreasuryEvent().getExecutionYearName())) {
+            executionYear = getTreasuryEvent().getExecutionYearName();
+        } else if(getPropertiesMap() != null) {
+            if (getPropertiesMap().containsKey(TreasuryEventKeys.EXECUTION_YEAR)) {
+                executionYear = getPropertiesMap().get(TreasuryEventKeys.EXECUTION_YEAR);
+            } else if (getPropertiesMap().containsKey(TreasuryEventKeys.EXECUTION_YEAR.getDescriptionI18N().getContent())) {
+                executionYear = getPropertiesMap().get(TreasuryEventKeys.EXECUTION_YEAR.getDescriptionI18N().getContent());
+            }
         }
 
-        if (propertiesMap.containsKey(TreasuryEventKeys.DEGREE_CODE)) {
-            degreeCode = propertiesMap.get(TreasuryEventKeys.DEGREE_CODE);
-        } else if (propertiesMap.containsKey(TreasuryEventKeys.DEGREE_CODE.getDescriptionI18N().getContent())) {
-            degreeCode = propertiesMap.get(TreasuryEventKeys.DEGREE_CODE.getDescriptionI18N().getContent());
-        }
-
-        if (propertiesMap.containsKey(TreasuryEventKeys.EXECUTION_YEAR)) {
-            executionYear = propertiesMap.get(TreasuryEventKeys.EXECUTION_YEAR);
-        } else if (propertiesMap.containsKey(TreasuryEventKeys.EXECUTION_YEAR.getDescriptionI18N().getContent())) {
-            executionYear = propertiesMap.get(TreasuryEventKeys.EXECUTION_YEAR.getDescriptionI18N().getContent());
-        }
-
-        //HACK: This should be done using GJSON
         return "{\"" + TreasuryEventKeys.DEGREE_CODE + "\":\"" + degreeCode + "\",\"" + TreasuryEventKeys.EXECUTION_YEAR + "\":\""
                 + executionYear + "\"}";
-        //WHY ISN't 
     }
 
     @Atomic

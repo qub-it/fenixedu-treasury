@@ -238,6 +238,13 @@ ${portal.toolkit()}
                                 value='${eRPConfiguration.maxSizeBytesToExportOnline}' />
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.ERPConfiguration.erpIdProcess" /></th>
+                        <td><c:out
+                                value='${eRPConfiguration.erpIdProcess}' />
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </form>
