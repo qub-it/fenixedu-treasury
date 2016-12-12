@@ -191,7 +191,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     
     @Override
     public String getFiscalCountry() {
-        return null;
+        return getCountryCode();
     }
 
     @Override

@@ -246,6 +246,9 @@ class document.FinantialDocument {
 		String customerRegion;
 		String customerCountry;
 		
+		String customerFieldsUpdateUser;
+		DateTime customerFieldsUpdateDate;
+
 		/* SAFT payor client data snapshot */
 		String payorCustomerBusinessId;
 		String payorCustomerFiscalCountry;
@@ -261,8 +264,11 @@ class document.FinantialDocument {
 		String payorCustomerZipCode;
 		String payorCustomerRegion;
 		String payorCustomerCountry;
+		
+		String payorCustomerFieldsUpdateUser;
+		DateTime payorCustomerFieldsUpdateDate;
 	}
-	
+
 		class document.DebitNote extends document.Invoice {
 		}
 		

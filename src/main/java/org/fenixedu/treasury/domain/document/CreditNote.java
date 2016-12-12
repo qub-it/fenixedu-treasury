@@ -258,6 +258,11 @@ public class CreditNote extends CreditNote_Base {
 
     @Override
     public ERPCustomerFieldsBean saveCustomerDataBeforeExportation() {
+        if (!isDocumentToExport()) {
+            throw new TreasuryDomainException(
+                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+        }
+
         final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromCreditNote(this);
         
         setCustomerBusinessId(bean.getCustomerBusinessId());
@@ -275,28 +280,40 @@ public class CreditNote extends CreditNote_Base {
         setCustomerRegion(bean.getCustomerRegion());
         setCustomerCountry(bean.getCustomerCountry());
         
+        setCustomerFieldsUpdateDate(new DateTime());
+        setCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
+        
         return bean;
     }
     
     @Override
     public ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation() {
+        if (!isDocumentToExport()) {
+            throw new TreasuryDomainException(
+                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
+        }
+
         final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillPayorFromCreditNote(this);
         
-        setCustomerBusinessId(bean.getCustomerBusinessId());
-        setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
-        setCustomerNationality(bean.getCustomerNationality());
-        setCustomerId(bean.getCustomerId());
-        setCustomerAccountId(bean.getCustomerAccountId());
-        setCustomerFiscalNumber(bean.getCustomerFiscalNumber());
-        setCustomerName(bean.getCustomerName());
-        setCustomerContact(bean.getCustomerContact());
-        setCustomerStreetName(bean.getCustomerStreetName());
-        setCustomerAddressDetail(bean.getCustomerAddressDetail());
-        setCustomerCity(bean.getCustomerCity());
-        setCustomerZipCode(bean.getCustomerZipCode());
-        setCustomerRegion(bean.getCustomerRegion());
-        setCustomerCountry(bean.getCustomerCountry());
+        setPayorCustomerBusinessId(bean.getCustomerBusinessId());
+        setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
+        setPayorCustomerNationality(bean.getCustomerNationality());
+        setPayorCustomerId(bean.getCustomerId());
+        setPayorCustomerAccountId(bean.getCustomerAccountId());
+        setPayorCustomerFiscalNumber(bean.getCustomerFiscalNumber());
+        setPayorCustomerName(bean.getCustomerName());
+        setPayorCustomerContact(bean.getCustomerContact());
+        setPayorCustomerStreetName(bean.getCustomerStreetName());
+        setPayorCustomerAddressDetail(bean.getCustomerAddressDetail());
+        setPayorCustomerCity(bean.getCustomerCity());
+        setPayorCustomerZipCode(bean.getCustomerZipCode());
+        setPayorCustomerRegion(bean.getCustomerRegion());
+        setPayorCustomerCountry(bean.getCustomerCountry());
         
+        setPayorCustomerFieldsUpdateDate(new DateTime());
+        setPayorCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
+
         return bean;
     }
+    
 }

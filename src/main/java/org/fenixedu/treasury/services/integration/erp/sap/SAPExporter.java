@@ -578,7 +578,7 @@ public class SAPExporter implements IERPExporter {
     private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
             final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
         final ERPCustomerFieldsBean customerBean = document.saveCustomerDataBeforeExportation();
-        
+
         WorkDocument workDocument = new WorkDocument();
 
         // Find the Customer in BaseCustomers
@@ -604,18 +604,15 @@ public class SAPExporter implements IERPExporter {
 
         //check the PayorDebtAccount
         if (document.getPayorDebtAccount() != null) {
-            final ERPCustomerFieldsBean payorCustomerBean = document.saveCustomerDataBeforeExportation();
-            
-            if (baseCustomers.containsKey(customerBean.getCustomerId())) {
-                final ERPCustomerFieldsBean payorCustomer = baseCustomers.get(customerBean.getCustomerId());
+            final ERPCustomerFieldsBean payorCustomerBean = document.savePayorCustomerDataBeforeExportation();
 
-                if (!payorCustomer.getCustomerFiscalNumber().equals(customerBean.getCustomerFiscalNumber())) {
+            if (baseCustomers.containsKey(payorCustomerBean.getCustomerId())) {
+                final ERPCustomerFieldsBean payorCustomer = baseCustomers.get(payorCustomerBean.getCustomerId());
+
+                if (!payorCustomer.getCustomerFiscalNumber().equals(payorCustomerBean.getCustomerFiscalNumber())) {
                     throw new TreasuryDomainException("error.SAPExporter.customer.registered.with.different.fiscalNumber");
                 }
             } else {
-                // If not found, create a new one and add it to baseCustomers
-                org.fenixedu.treasury.generated.sources.saft.sap.Customer payorCustomer =
-                        convertCustomerToSAFTCustomer(payorCustomerBean);
                 baseCustomers.put(payorCustomerBean.getCustomerId(), payorCustomerBean);
             }
         }
@@ -914,7 +911,7 @@ public class SAPExporter implements IERPExporter {
             // CompanyAddress
             AddressStructurePT companyAddress = null;
             //TODOJN Locale por resolver
-            companyAddress = convertAddressToAddressPT(finantialInstitution.getAddress(), finantialInstitution.getZipCode(),
+            companyAddress = convertFinantialInstitutionAddressToAddressPT(finantialInstitution.getAddress(), finantialInstitution.getZipCode(),
                     finantialInstitution.getMunicipality() != null ? finantialInstitution.getMunicipality()
                             .getLocalizedName(new Locale("pt")) : "---",
                     finantialInstitution.getAddress());
@@ -1035,34 +1032,15 @@ public class SAPExporter implements IERPExporter {
         }
     }
 
-    private AddressStructurePT convertAddressToAddressPT(final String addressDetail, final String zipCode,
+    private AddressStructurePT convertFinantialInstitutionAddressToAddressPT(final String addressDetail, final String zipCode,
             final String zipCodeRegion, final String street) {
         final AddressStructurePT companyAddress = new AddressStructurePT();
 
         companyAddress.setCountry("PT");
-
-        if (addressDetail != null && addressDetail.length() > MAX_ADDRESS_DETAIL) {
-            throw new TreasuryDomainException("error.SAPExporter.addressDetail.more.than.allowed",
-                    String.valueOf(MAX_ADDRESS_DETAIL));
-        }
         companyAddress.setAddressDetail(!Strings.isNullOrEmpty(addressDetail) ? addressDetail : MORADA_DESCONHECIDO);
-
-        if (zipCodeRegion != null && zipCodeRegion.length() > MAX_CITY) {
-            throw new TreasuryDomainException("error.SAPExporter.city.more.than.allowed", String.valueOf(MAX_CITY));
-        }
         companyAddress.setCity(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
-
-        if (zipCode != null && zipCode.length() > MAX_ZIPCODE) {
-            throw new TreasuryDomainException("error.SAPExporter.zipCode.more.than.allowed", String.valueOf(MAX_ZIPCODE));
-        }
-
         companyAddress.setPostalCode(!Strings.isNullOrEmpty(zipCode) ? zipCode : MORADA_DESCONHECIDO);
-
-        if (zipCodeRegion != null && zipCodeRegion.length() > MAX_REGION) {
-            throw new TreasuryDomainException("error.SAPExporter.region.more.than.allowed", String.valueOf(MAX_REGION));
-        }
         companyAddress.setRegion(!Strings.isNullOrEmpty(zipCodeRegion) ? zipCodeRegion : MORADA_DESCONHECIDO);
-
         companyAddress.setStreetName(Splitter.fixedLength(MAX_STREET_NAME).splitToList(street).get(0));
 
         return companyAddress;
