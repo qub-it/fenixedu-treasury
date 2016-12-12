@@ -99,6 +99,31 @@ ${portal.toolkit()}
     enctype="multipart/form-data">
     <div class="panel panel-default">
         <div class="panel-body">
+                    <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.Vat.finantialInstitution" />
+                </div>
+
+                <div class="col-sm-10">
+                    <select id="vat_finantialInstitution" class="js-example-basic-single" name="finantialinstitution">
+                    </select>
+                    <script>
+    <%-- CHANGE_ME --%> <%-- INSERT YOUR FORMAT FOR element --%>
+    var finantialInstitution_options = [
+    <c:forEach items="${finantialInstitutionList}" var="element">   // THIS _FIELD_NAME__options must be added in the Controller.java 
+    {
+        text :"<c:out value='${element.name}'/>",  //Format the Output for the HTML Option
+        id : "<c:out value='${element.externalId}'/>" //Define the ID for the HTML Option
+    },
+    </c:forEach>
+    ];
+
+//Init Select2Options
+    initSelect2("#vat_finantialInstitution",finantialInstitution_options, "<c:out value='${param.finantialinstitution}'/>"); //
+</script>
+                </div>
+            </div>
+
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
                     <spring:message code="label.ERPImportOperation.file" />
