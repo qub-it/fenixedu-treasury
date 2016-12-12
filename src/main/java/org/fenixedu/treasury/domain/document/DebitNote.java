@@ -228,7 +228,7 @@ public class DebitNote extends DebitNote_Base {
 
         if (this.getFinantialDocumentEntriesSet().size() > 0 && this.isClosed()) {
 
-            DateTime now = new DateTime();
+            final DateTime now = new DateTime();
 
             //1. criar nota de acerto
             //2. percorrer os itens de divida, criar correspondente item de acerto com o valor "aberto"
@@ -242,12 +242,7 @@ public class DebitNote extends DebitNote_Base {
             //7. fechar settlement note
 
             // No final podem sobrar itens de acerto com valor pendente de utilizacao, que representam os valores ja pagos nos itens de dividas correspondentes
-            DocumentNumberSeries documentNumberSeriesCreditNote = DocumentNumberSeries
-                    .find(FinantialDocumentType.findForCreditNote(), this.getDocumentNumberSeries().getSeries());
-            DocumentNumberSeries documentNumberSeriesSettlementNote = DocumentNumberSeries
-                    .find(FinantialDocumentType.findForSettlementNote(), this.getDocumentNumberSeries().getSeries());
-
-            createEquivalentCreditNote(documentNumberSeriesCreditNote, now, reason, anullGeneratedInterests);
+            createEquivalentCreditNote(now, reason, anullGeneratedInterests);
 
             //Clear the InterestRate for DebitEntry
             for (final DebitEntry debitEntry : this.getDebitEntriesSet()) {
@@ -260,16 +255,21 @@ public class DebitNote extends DebitNote_Base {
 
                 debitEntry.clearInterestRate();
 
+                // Remove treasury exemption
+                if(debitEntry.getTreasuryExemption() != null) {
+                    debitEntry.getTreasuryExemption().delete();
+                }
+                
                 // Also remove from treasury event
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
                 }
-
+                
                 for (final CreditEntry creditEntry : debitEntry.getCreditEntriesSet()) {
-                    closeCreditEntryIfPossible(reason, now, documentNumberSeriesSettlementNote, debitEntry, creditEntry);
+                    debitEntry.closeCreditEntryIfPossible(reason, now, creditEntry);
                 }
             }
-            
+
             this.setAnnulledReason(reason);
         } else if (isPreparing()) {
             if (!getCreditNoteSet().isEmpty()) {
@@ -307,41 +307,15 @@ public class DebitNote extends DebitNote_Base {
         }
     }
 
-    private void closeCreditEntryIfPossible(String reason, DateTime now,
-            DocumentNumberSeries documentNumberSeriesSettlementNote, DebitEntry debitEntry, final CreditEntry creditEntry) {
-        if (!creditEntry.getFinantialDocument().isPreparing()) {
-            return;
-        }
-
-        if (!Constants.isPositive(debitEntry.getOpenAmount())) {
-            return;
-        }
-
-        if (Constants.isLessThan(debitEntry.getOpenAmount(), creditEntry.getOpenAmount())) {
-            // split credit entry
-            creditEntry.splitCreditEntry(creditEntry.getOpenAmount().subtract(debitEntry.getOpenAmount()));
-        }
-
-        creditEntry.getFinantialDocument().closeDocument();
-
-        final SettlementNote settlementNote =
-                SettlementNote.create(this.getDebtAccount(), documentNumberSeriesSettlementNote, now, now, "");
-        settlementNote.setDocumentObservations(
-                reason + " - [" + Authenticate.getUser().getUsername() + "] " + new DateTime().toString("YYYY-MM-dd HH:mm"));
-
-        SettlementEntry.create(creditEntry, settlementNote, creditEntry.getOpenAmount(),
-                reason + "-" + creditEntry.getDescription(), now, false);
-        SettlementEntry.create(creditEntry.getDebitEntry(), settlementNote, creditEntry.getOpenAmount(),
-                reason + "-" + creditEntry.getDebitEntry().getDescription(), now, false);
-
-        settlementNote.closeDocument();
-    }
-
     @Atomic
-    public void createEquivalentCreditNote(DocumentNumberSeries documentNumberSeries, DateTime documentDate,
-            String documentObservations, boolean createForInterestRateEntries) {
+    public void createEquivalentCreditNote(final DateTime documentDate, final String documentObservations,
+            final boolean createForInterestRateEntries) {
         for (DebitEntry entry : this.getDebitEntriesSet()) {
-            createCreditEntry(documentNumberSeries, documentDate, documentObservations, entry);
+            //Get the amount for credit without tax, and considering the credit quantity FOR ONE
+            final BigDecimal amountForCredit =
+                    entry.getCurrency().getValueWithScale(Constants.divide(entry.getAvailableAmountForCredit(),
+                            BigDecimal.ONE.add(Constants.divide(entry.getVatRate(), BigDecimal.valueOf(100)))));
+            entry.createCreditEntry(documentDate, entry.getDescription(), documentObservations, amountForCredit, null);
         }
 
         if (!createForInterestRateEntries) {
@@ -350,28 +324,13 @@ public class DebitNote extends DebitNote_Base {
 
         for (final DebitEntry entry : this.getDebitEntriesSet()) {
             for (DebitEntry interestEntry : entry.getInterestDebitEntriesSet()) {
-                createCreditEntry(documentNumberSeries, documentDate, documentObservations, interestEntry);
+                final BigDecimal amountForCredit = interestEntry.getCurrency()
+                        .getValueWithScale(Constants.divide(interestEntry.getAvailableAmountForCredit(),
+                                BigDecimal.ONE.add(Constants.divide(entry.getVatRate(), BigDecimal.valueOf(100)))));
+                interestEntry.createCreditEntry(documentDate, entry.getDescription(), documentObservations, amountForCredit,
+                        null);
             }
         }
-    }
-
-    private void createCreditEntry(final DocumentNumberSeries documentNumberSeries, final DateTime documentDate,
-            final String documentObservations, final DebitEntry entry) {
-        CreditNote creditNote =
-                CreditNote.create(this.getDebtAccount(), documentNumberSeries, documentDate, this, this.getUiDocumentNumber());
-        creditNote.setDocumentObservations(documentObservations);
-
-        //Get the amount for credit without tax, and considering the credit quantity FOR ONE
-        final BigDecimal amountForCredit =
-                entry.getCurrency().getValueWithScale(Constants.divide(entry.getAvailableAmountForCredit(),
-                        BigDecimal.ONE.add(Constants.divide(entry.getVatRate(), BigDecimal.valueOf(100)))));
-
-        if (!Constants.isPositive(amountForCredit)) {
-            return;
-        }
-
-        CreditEntry.create(creditNote, entry.getDescription(), entry.getProduct(), entry.getVat(), amountForCredit, documentDate,
-                entry, BigDecimal.ONE);
     }
 
     public Set<CreditEntry> getRelatedCreditEntriesSet() {
