@@ -289,9 +289,16 @@ public class SettlementNote extends SettlementNote_Base {
     private void closeCreditNotes(SettlementNoteBean bean) {
         for (CreditEntryBean creditEntryBean : bean.getCreditEntries()) {
             if (creditEntryBean.isIncluded()) {
-                if (!creditEntryBean.getCreditEntry().getFinantialDocument().isClosed()) {
-                    creditEntryBean.getCreditEntry().getFinantialDocument().closeDocument();
+                final CreditEntry creditEntry = creditEntryBean.getCreditEntry();
+                
+                if (!creditEntry.getFinantialDocument().isClosed()) {
+                    if(Constants.isLessThan(creditEntryBean.getCreditAmountWithVat(), creditEntry.getOpenAmount())) {
+                        creditEntry.splitCreditEntry(creditEntry.getOpenAmount().subtract(creditEntryBean.getCreditAmountWithVat()));
+                    }
+                    
+                    creditEntry.getFinantialDocument().closeDocument();
                 }
+                
                 SettlementEntry.create(creditEntryBean, this, bean.getDate().toDateTimeAtStartOfDay());
             }
         }

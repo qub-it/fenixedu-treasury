@@ -108,8 +108,8 @@ public class SettlementEntry extends SettlementEntry_Base {
         if (!(getFinantialDocument() instanceof SettlementNote)) {
             throw new TreasuryDomainException("error.SettlementEntry.finantialDocument.not.settlement.note.type");
         }
-        
-        if(getInvoiceEntry().isCreditNoteEntry() && !Constants.isEqual(getAmount(), getTotalAmount())) {
+
+        if (getInvoiceEntry().isCreditNoteEntry() && !Constants.isEqual(getAmount(), getTotalAmount())) {
             throw new TreasuryDomainException("error.SettlementEntry.creditNoteEntry.total.amount.not.equal");
         }
     }
