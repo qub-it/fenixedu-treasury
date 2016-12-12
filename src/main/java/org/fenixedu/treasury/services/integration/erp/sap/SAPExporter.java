@@ -65,6 +65,7 @@ import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
 import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentEntry;
@@ -595,8 +596,20 @@ public class SAPExporter implements IERPExporter {
 
     private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
             final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
-        final ERPCustomerFieldsBean customerBean = document.saveCustomerDataBeforeExportation();
-
+        if(document.isDocumentToExport()) {
+            document.saveCustomerDataBeforeExportation();
+        }
+        
+        ERPCustomerFieldsBean customerBean = null;
+        
+        if(document.isDebitNote()) {
+            customerBean = ERPCustomerFieldsBean.fillFromDebitNote((DebitNote) document);
+        } else if(document.isCreditNote()) {
+            customerBean = ERPCustomerFieldsBean.fillFromCreditNote((CreditNote) document);
+        } else {
+            throw new RuntimeException("unknown document type");
+        }
+        
         WorkDocument workDocument = new WorkDocument();
 
         // Find the Customer in BaseCustomers
@@ -622,8 +635,20 @@ public class SAPExporter implements IERPExporter {
 
         //check the PayorDebtAccount
         if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
-            final ERPCustomerFieldsBean payorCustomerBean = document.savePayorCustomerDataBeforeExportation();
+            if(document.isDocumentToExport()) {
+                document.savePayorCustomerDataBeforeExportation();
+            }
+            
+            ERPCustomerFieldsBean payorCustomerBean = null;
 
+            if(document.isDebitNote()) {
+                payorCustomerBean = ERPCustomerFieldsBean.fillPayorFromDebitNote((DebitNote) document);
+            } else if(document.isCreditNote()) {
+                payorCustomerBean = ERPCustomerFieldsBean.fillPayorFromCreditNote((CreditNote) document);
+            } else {
+                throw new RuntimeException("unknown document type");
+            }
+            
             if (baseCustomers.containsKey(payorCustomerBean.getCustomerId())) {
                 final ERPCustomerFieldsBean payorCustomer = baseCustomers.get(payorCustomerBean.getCustomerId());
 

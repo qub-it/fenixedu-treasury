@@ -168,7 +168,7 @@ public class DebitNote extends DebitNote_Base {
 
         setCustomerFieldsUpdateDate(new DateTime());
         setCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
-        
+
         return bean;
     }
 
@@ -201,18 +201,18 @@ public class DebitNote extends DebitNote_Base {
 
         return bean;
     }
-    
+
     // @formatter:off
     /* **********
      * DEBIT NOTE
      * **********
      */
     // @formatter:on
-    
+
     public static Stream<DebitNote> findAll() {
         return FinantialDocument.findAll().filter(x -> x instanceof DebitNote).map(DebitNote.class::cast);
     }
-    
+
     @Atomic
     public static DebitNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
             final DateTime documentDate) {
@@ -443,11 +443,11 @@ public class DebitNote extends DebitNote_Base {
         for (final FinantialDocumentEntry finantialDocumentEntry : getFinantialDocumentEntriesSet()) {
             final DebitEntry debitEntry = (DebitEntry) finantialDocumentEntry;
 
-            DebitEntry newDebitEntry =
-                    DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(), debitEntry.getTreasuryEvent(),
-                            debitEntry.getVat(), debitEntry.getAmount().add(debitEntry.getExemptedAmount()),
-                            debitEntry.getDueDate(), debitEntry.getPropertiesMap(), debitEntry.getProduct(),
-                            debitEntry.getDescription(), debitEntry.getQuantity(), debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
+            DebitEntry newDebitEntry = DebitEntry.create(Optional.of(newDebitNote), debitEntry.getDebtAccount(),
+                    debitEntry.getTreasuryEvent(), debitEntry.getVat(),
+                    debitEntry.getAmount().add(debitEntry.getExemptedAmount()), debitEntry.getDueDate(),
+                    debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(), debitEntry.getQuantity(),
+                    debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
 
             if (debitEntry.getTreasuryExemption() != null) {
                 final TreasuryExemption treasuryExemption = debitEntry.getTreasuryExemption();
