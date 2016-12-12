@@ -119,6 +119,18 @@ public class SettlementNote extends SettlementNote_Base {
         if(isClosed() && isReimbursement() && getCurrentReimbursementProcessStatus() == null) {
             throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
         }
+        
+        if (isClosed()) {
+            for (final SettlementEntry settlementEntry : getSettlemetEntriesSet()) {
+                if(!settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
+                    continue;
+                }
+
+                if(!settlementEntry.getInvoiceEntry().getFinantialDocument().isClosed()) {
+                        throw new TreasuryDomainException("error.SettlementNote.settlement.entry.for.credit.entry.not.closed");
+                }
+            }
+        }        
     }
 
     @Atomic

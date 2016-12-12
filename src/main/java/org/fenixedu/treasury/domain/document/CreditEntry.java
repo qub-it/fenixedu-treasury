@@ -30,6 +30,7 @@ package org.fenixedu.treasury.domain.document;
 import java.math.BigDecimal;
 import java.util.stream.Stream;
 
+import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.Product;
 import org.fenixedu.treasury.domain.Vat;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -71,7 +72,7 @@ public class CreditEntry extends CreditEntry_Base {
         this.setDebitEntry(debitEntry);
         this.setFromExemption(fromExemption);
         recalculateAmountValues();
-        
+
         checkRules();
     }
 
@@ -104,6 +105,12 @@ public class CreditEntry extends CreditEntry_Base {
                 throw new TreasuryDomainException("error.CreditEntry.reated.debit.entry.invalid.total.credited.amount");
             }
         }
+
+        // Ensure this credit entry is only one in credit note
+        if (getFinantialDocument().getFinantialDocumentEntriesSet().size() != 1) {
+            throw new TreasuryDomainException("error.CreditEntry.finantialDocument.with.unexpected.entries");
+        }
+        
     }
 
     public boolean isFromExemption() {
@@ -117,10 +124,10 @@ public class CreditEntry extends CreditEntry_Base {
     }
 
     public void edit(String description, BigDecimal amount, BigDecimal quantity) {
-        if(isFromExemption()) {
+        if (isFromExemption()) {
             throw new TreasuryDomainException("error.CreditEntry.cannot.edit.due.to.exemption.origin");
         }
-        
+
         this.setAmount(amount);
         this.setQuantity(quantity);
         this.setDescription(description);
@@ -188,9 +195,8 @@ public class CreditEntry extends CreditEntry_Base {
             throw new TreasuryDomainException("error.CreditEntry.createFromExemption.requires.treasuryExemption");
         }
 
-        final CreditEntry cr =
-                new CreditEntry(finantialDocument, debitEntry.getProduct(), debitEntry.getVat(), amount, description,
-                        BigDecimal.ONE, entryDateTime, debitEntry, true);
+        final CreditEntry cr = new CreditEntry(finantialDocument, debitEntry.getProduct(), debitEntry.getVat(), amount,
+                description, BigDecimal.ONE, entryDateTime, debitEntry, true);
 
         cr.recalculateAmountValues();
 
@@ -200,6 +206,33 @@ public class CreditEntry extends CreditEntry_Base {
     @Override
     public BigDecimal getOpenAmountWithInterests() {
         return getOpenAmount();
+    }
+
+    public CreditEntry splitCreditEntry(final BigDecimal remainingAmount) {
+        if (!Constants.isLessThan(remainingAmount, getOpenAmount())) {
+            throw new TreasuryDomainException("error.CreditEntry.splitCreditEntry.remainingAmount.less.than.open.amount");
+        }
+
+        final Currency currency = getDebtAccount().getFinantialInstitution().getCurrency();
+
+        final BigDecimal remainingAmountWithoutVatDividedByQuantity = currency.getValueWithScale(Constants
+                .divide(Constants.defaultScale(remainingAmount).multiply(BigDecimal.ONE.subtract(getVatRate())), getQuantity()));
+
+        final CreditNote newCreditNote = CreditNote.create(this.getDebtAccount(),
+                getFinantialDocument().getDocumentNumberSeries(), getFinantialDocument().getDocumentDate(),
+                ((CreditNote) getFinantialDocument()).getDebitNote(), getFinantialDocument().getOriginDocumentNumber());
+        newCreditNote.setDocumentObservations(getFinantialDocument().getDocumentObservations());
+
+        final BigDecimal newOpenAmountWithoutVatDividedByQuantity = Constants
+                .divide(Constants.defaultScale(getOpenAmount()).multiply(BigDecimal.ONE.subtract(getVatRate())), getQuantity());
+
+        setAmount(newOpenAmountWithoutVatDividedByQuantity.subtract(remainingAmountWithoutVatDividedByQuantity));
+        recalculateAmountValues();
+
+        final CreditEntry newCreditEntry = CreditEntry.create(newCreditNote, getDescription(), getProduct(), getVat(),
+                remainingAmountWithoutVatDividedByQuantity, getEntryDateTime(), getDebitEntry(), BigDecimal.ONE);
+        
+        return newCreditEntry;
     }
 
 }
