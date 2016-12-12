@@ -43,6 +43,7 @@ import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
+import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
@@ -281,19 +282,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
             this.setInstitutionForExportation(this.getDocumentNumberSeries().getSeries().getFinantialInstitution());
         }
 
-        final FinantialDocument refDocument = this;
-
-        new Thread() {
-            @Override
-            @Atomic
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                }
-                SchedulerSystem.queue(new TaskRunner(new ERPExportSingleDocumentsTask(refDocument.getExternalId())));
-            };
-        }.start();
+        ERPExporterManager.scheduleSingleDocument(this);
     }
 
     @Atomic
