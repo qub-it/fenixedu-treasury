@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252" ?>
 <xs:schema xmlns:doc="urn:schemas-basda-org:schema-extensions:documentation"
 	xmlns:ns="urn:OECD:StandardAuditFile-Tax:PT_1.03_01" xmlns="urn:OECD:StandardAuditFile-Tax:PT_1.03_01"
 	attributeFormDefault="unqualified" elementFormDefault="qualified"
@@ -620,7 +620,7 @@
 										<xs:element ref="PaymentRefNo" />
 										
 										<!--  Extension -->
-										<xs:element name="FinantialTransactionReference" type="xs:string" />
+										<xs:element name="FinantialTransactionReference" type="xs:string" minOccurs="0" />
 										
 										<xs:element minOccurs="0" ref="Period" />
 										<xs:element minOccurs="0" ref="TransactionID" />
@@ -637,7 +637,7 @@
 													<xs:element name="ERPId" type="xs:string" minOccurs="0" maxOccurs="1" />
 													<xs:element name="Status" type="ReimbursementStatusType" minOccurs="1" maxOccurs="1" />
 													<xs:element name="StatusId" type="xs:string" minOccurs="0" maxOccurs="1" />
-													<xs:element name="StatusDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+													<xs:element name="StatusDate" type="xs:dateTime" minOccurs="0" maxOccurs="1" />
 													<xs:element name="StatusRemarks" type="xs:string" minOccurs="0" maxOccurs="1" />
 												</xs:sequence>
 											</xs:complexType>
@@ -792,7 +792,7 @@
 			<xs:element name="PaymentAmount" type="SAFmonetaryType" />
 			<xs:element name="PaymentDate" type="SAFdateType" />
 			<!-- Extension -->
-			<xs:element name="PaymentMethodReference" type="xs:string" />
+			<xs:element name="PaymentMethodReference" type="xs:string" minOccurs="0" />
 		</xs:sequence>
 	</xs:complexType>
 	<!-- Estrutura de Taxa dos recibos -->

@@ -409,11 +409,11 @@
 							<!-- </wsdlDirectory> -->
 							<wsdlFiles>
 								<wsdlFile>
-									${basedir}/src/main/resources/wsdl/zws_faturacaoclientes_2016_06_14.wsdl
+									${basedir}/src/main/resources/wsdl/zws_faturacaoclientes_2016_09_22.wsdl
 								</wsdlFile>
 							</wsdlFiles>
 							<wsdlLocation>
-								/wsdl/zws_faturacaoclientes_2016_06_14.wsdl
+								/wsdl/zws_faturacaoclientes_2016_09_22.wsdl
 							</wsdlLocation>
 							<extension>true</extension>
 							<protocol>Xsoap1.2</protocol>

@@ -292,6 +292,7 @@ class document.PaymentEntry {
 
 class document.ReimbursementEntry {
 	BigDecimalT reimbursedAmount;
+	String reimbursementMethodId;
 }
 
 
@@ -1555,6 +1556,72 @@ relation ReimbursementEntryPaymentMode {
         multiplicity *;
     }
 }
+
+class document.reimbursement.ReimbursementProcessStatusType {
+	String code;
+	String description;
+	boolean initialStatus;
+	boolean finalStatus;
+}
+
+	relation ReimbursementProcessStatusTypeBennu {
+		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+			multiplicity 1..1;
+		}
+		
+		document.reimbursement.ReimbursementProcessStatusType playsRole reimbursementProcessStatusTypes {
+			multiplicity *;
+		}
+	}
+
+	relation ReimbursementProcessStatusTypeSettlementNote {
+		document.SettlementNote playsRole settlementNotes {
+			multiplicity *;
+		}
+	
+		document.reimbursement.ReimbursementProcessStatusType playsRole currentReimbursementProcessStatus {
+			multiplicity 0..1;
+		}
+	}
+
+class document.reimbursement.ReimbursementProcessStateLog {
+	String erpProcessId;
+	String statusId;
+	DateTime statusDate;
+	String remarks;
+}
+
+	relation ReimbursementProcessStateLogBennu {
+		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+			multiplicity 1..1;
+		}
+		
+		document.reimbursement.ReimbursementProcessStateLog playsRole reimbursementProcessStateLogs {
+			multiplicity *;
+		}
+	}
+	
+	relation ReimbursementProcessStateLogReimbursementProcessStatusType {
+	
+		document.reimbursement.ReimbursementProcessStatusType playsRole ReimbursementProcessStatusType {
+			multiplicity 1..1;
+		}
+				
+		document.reimbursement.ReimbursementProcessStateLog playsRole reimbursementProcessStateLogs {
+			multiplicity *;
+		}
+	}
+
+	relation ReimbursementProcessStateLogSettlementNote {
+	
+		document.SettlementNote playsRole settlementNote {
+			multiplicity 1..1;
+		}
+
+		document.reimbursement.ReimbursementProcessStateLog playsRole reimbursementProcessStateLogs {
+			multiplicity *;
+		}
+	}
 
 relation FinantialDocumentPendingForExportationFinantialInstitution {
 	document.FinantialDocument playsRole finantialDocumentsPendingForExportation {
