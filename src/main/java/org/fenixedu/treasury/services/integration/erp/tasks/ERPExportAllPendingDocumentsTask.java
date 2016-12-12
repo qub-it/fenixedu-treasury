@@ -110,11 +110,11 @@ public class ERPExportAllPendingDocumentsTask extends CronTask {
 
             Set<FinantialDocument> pendingDocuments = finantialInstitution.getFinantialDocumentsPendingForExportationSet()
                     .stream().filter(x -> x.isAnnulled() || x.isClosed())
-                    .filter(x -> x.isSettlementNote() == exportSettlementNotes).limit(LIMIT).collect(Collectors.toSet());
+                    .filter(x -> x.isSettlementNote() == exportSettlementNotes).collect(Collectors.toSet());
 
             List<FinantialDocument> sortedDocuments = pendingDocuments.stream().collect(Collectors.toList());
 
-            sortedDocuments = sortedDocuments.stream().limit(LIMIT).collect(Collectors.toList());
+            sortedDocuments = sortedDocuments.stream().collect(Collectors.toList());
 
             int count = 0;
             if (pendingDocuments.isEmpty() == false) {
