@@ -28,6 +28,7 @@
 package org.fenixedu.treasury.domain;
 
 import java.text.Normalizer;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,7 +37,6 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
-import org.fenixedu.treasury.util.Constants;
 import org.fenixedu.treasury.util.FiscalCodeValidation;
 import org.fenixedu.treasury.util.LocalizedStringUtil;
 
@@ -49,6 +49,16 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public static final String DEFAULT_FISCAL_NUMBER = "999999990";
     public static final int MAX_CODE_LENGHT = 20;
 
+    public static final Comparator<Customer> COMPARE_BY_NAME_IGNORE_CASE = new Comparator<Customer>() {
+
+        @Override
+        public int compare(final Customer o1, final Customer o2) {
+            int c = o1.getName().compareToIgnoreCase(o2.getName());
+            return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+        }
+    };
+    
+    
     protected Customer() {
         super();
         setBennu(Bennu.getInstance());
