@@ -27,4 +27,6 @@ public interface IERPExporter {
 
     public void requestPendingDocumentStatus(final FinantialInstitution finantialInstitution);
 
+    public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument);
+
 }

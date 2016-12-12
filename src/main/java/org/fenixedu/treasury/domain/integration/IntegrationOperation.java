@@ -57,7 +57,7 @@ public abstract class IntegrationOperation extends IntegrationOperation_Base {
     }
 
     protected void init(final String erpOperationId, final DateTime executionDate, final boolean processed, final boolean success,
-            final java.lang.String errorLog) {
+            final String errorLog) {
         setErpOperationId(erpOperationId);
         setExecutionDate(executionDate);
         setProcessed(processed);

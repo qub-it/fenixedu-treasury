@@ -37,6 +37,7 @@ import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
@@ -101,6 +102,18 @@ public class CreditNote extends CreditNote_Base {
     @Override
     public boolean isDeletable() {
         return true;
+    }
+    
+    public boolean isAdvancePayment() {
+        if(getFinantialDocumentEntriesSet().isEmpty()) {
+            return false;
+        }
+        
+        if(TreasurySettings.getInstance().getAdvancePaymentProduct() == null) {
+            return false;
+        }
+        
+        return getCreditEntries().iterator().next().getProduct() == TreasurySettings.getInstance().getAdvancePaymentProduct();
     }
 
     @Override
