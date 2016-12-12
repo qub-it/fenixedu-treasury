@@ -78,7 +78,7 @@ public class Series extends Series_Base {
     }
 
     protected Series(final FinantialInstitution finantialInstitution, final String code, final LocalizedString name,
-            final boolean externSeries, final boolean certificated, final boolean legacy, final boolean defaultSeries) {
+            final boolean externSeries, final boolean certificated, final boolean legacy, final boolean defaultSeries, final boolean selectable) {
         this();
         setActive(true);
         setFinantialInstitution(finantialInstitution);
@@ -88,6 +88,7 @@ public class Series extends Series_Base {
         setCertificated(certificated);
         setLegacy(legacy);
         setDefaultSeries(defaultSeries);
+        setSelectable(selectable);
 
         checkRules();
     }
@@ -124,7 +125,7 @@ public class Series extends Series_Base {
 
     @Atomic
     public void edit(final String code, final LocalizedString name, final boolean externSeries, final boolean certificated,
-            final boolean legacy, final boolean active) {
+            final boolean legacy, final boolean active, final boolean selectable) {
         setName(name);
         setActive(active);
         if (!code.equalsIgnoreCase(getCode())) {
@@ -152,6 +153,9 @@ public class Series extends Series_Base {
             }
             setLegacy(legacy);
         }
+        
+        setSelectable(selectable);
+        
         checkRules();
     }
 
@@ -168,6 +172,10 @@ public class Series extends Series_Base {
 
     public boolean isDefaultSeries() {
         return super.getDefaultSeries();
+    }
+    
+    public boolean isSelectable() {
+        return super.getSelectable();
     }
 
     @Atomic
@@ -186,14 +194,14 @@ public class Series extends Series_Base {
         deleteDomainObject();
     }
 
-    public static Set<Series> readAll() {
+    public static Set<Series> findAll() {
         return Bennu.getInstance().getSeriesSet();
     }
 
     public static Set<Series> find(final FinantialInstitution finantialInstitution) {
         Set<Series> result = Sets.newHashSet();
 
-        for (final Series it : readAll()) {
+        for (final Series it : findAll()) {
             if (it.getFinantialInstitution() == finantialInstitution) {
                 result.add(it);
             }
@@ -201,7 +209,7 @@ public class Series extends Series_Base {
 
         return result;
     }
-
+    
     public static Series findByCode(final FinantialInstitution finantialInstitution, final String code) {
         Series result = null;
 
@@ -245,9 +253,8 @@ public class Series extends Series_Base {
 
     @Atomic
     public static Series create(final FinantialInstitution finantialInstitution, final String code, final LocalizedString name,
-            final boolean externSeries, final boolean certificated, final boolean legacy, final boolean defaultSeries) {
-        return new Series(finantialInstitution, code, name, externSeries, certificated, legacy, defaultSeries);
-
+            final boolean externSeries, final boolean certificated, final boolean legacy, final boolean defaultSeries, final boolean selectable) {
+        return new Series(finantialInstitution, code, name, externSeries, certificated, legacy, defaultSeries, selectable);
     }
 
     @Atomic

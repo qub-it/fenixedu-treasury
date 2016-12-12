@@ -83,7 +83,7 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
         DebtAccount referenceDebtAccount = this.getDebtAccount();
         DocumentNumberSeries docNumberSeries = this.getDocumentSeriesForPayments();
         SettlementNote settlementNote =
-                SettlementNote.create(referenceDebtAccount, docNumberSeries, new DateTime(), whenRegistered, comments);
+                SettlementNote.create(referenceDebtAccount, docNumberSeries, new DateTime(), whenRegistered, comments, null);
 
         //######################################
         //1. Find the InvoiceEntries

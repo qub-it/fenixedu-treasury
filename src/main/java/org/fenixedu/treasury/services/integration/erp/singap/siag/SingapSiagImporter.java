@@ -123,8 +123,8 @@ public class SingapSiagImporter implements IERPImporter {
             BigInteger totalPayments = BigInteger.ZERO;
             for (Payment payment : auditFile.getSourceDocuments().getPayments().getPayment()) {
                 DocumentStatusWS docStatus = new DocumentStatusWS();
-                eRPImportOperation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE, "info.ERPImporter.processing.payment",
-                        payment.getPaymentRefNo()));
+                eRPImportOperation.appendInfoLog(
+                        BundleUtil.getString(Constants.BUNDLE, "info.ERPImporter.processing.payment", payment.getPaymentRefNo()));
                 SettlementNote note = null;
                 try {
                     note = processErpPayment(payment, eRPImportOperation);
@@ -211,15 +211,13 @@ public class SingapSiagImporter implements IERPImporter {
     private SettlementNote processErpPayment(Payment payment, ERPImportOperation eRPImportOperation) {
         boolean newSettlementNoteCreated = false;
         ERPConfiguration integrationConfig = eRPImportOperation.getFinantialInstitution().getErpIntegrationConfiguration();
-        DocumentNumberSeries seriesToIntegratePayments =
-                DocumentNumberSeries.find(FinantialDocumentType.findForSettlementNote(),
-                        integrationConfig.getPaymentsIntegrationSeries());
+        DocumentNumberSeries seriesToIntegratePayments = DocumentNumberSeries.find(FinantialDocumentType.findForSettlementNote(),
+                integrationConfig.getPaymentsIntegrationSeries());
 
         //if is a reimbursement, then we must find the correct document series
         if (payment.getSettlementType() != null && payment.getSettlementType().equals(SAFTPTSettlementType.NR)) {
-            seriesToIntegratePayments =
-                    DocumentNumberSeries.find(FinantialDocumentType.findForReimbursementNote(),
-                            integrationConfig.getPaymentsIntegrationSeries());
+            seriesToIntegratePayments = DocumentNumberSeries.find(FinantialDocumentType.findForReimbursementNote(),
+                    integrationConfig.getPaymentsIntegrationSeries());
         }
 
         if (seriesToIntegratePayments == null || seriesToIntegratePayments.getSeries().getExternSeries() == false) {
@@ -234,17 +232,14 @@ public class SingapSiagImporter implements IERPImporter {
         if (customer != null) {
             customerDebtAccount = DebtAccount.findUnique(eRPImportOperation.getFinantialInstitution(), customer).orElse(null);
             if (customerDebtAccount != null) {
-                SettlementNote existingSettlementNote =
-                        SettlementNote
-                                .findByDocumentNumberSeries(seriesToIntegratePayments)
-                                .filter(x -> x.getOriginDocumentNumber() != null
-                                        && x.getOriginDocumentNumber().equals(externalNumber)).findFirst().orElse(null);
+                SettlementNote existingSettlementNote = SettlementNote.findByDocumentNumberSeries(seriesToIntegratePayments)
+                        .filter(x -> x.getOriginDocumentNumber() != null && x.getOriginDocumentNumber().equals(externalNumber))
+                        .findFirst().orElse(null);
 
                 //if we couldn't find from the ExternalNumber, then try to find if SOURCE_ID has value
                 if (existingSettlementNote == null && !Strings.isNullOrEmpty(payment.getSourceID())) {
-                    existingSettlementNote =
-                            SettlementNote.findAll().filter(x -> x.getUiDocumentNumber().equals(payment.getSourceID()))
-                                    .findFirst().orElse(null);
+                    existingSettlementNote = SettlementNote.findAll()
+                            .filter(x -> x.getUiDocumentNumber().equals(payment.getSourceID())).findFirst().orElse(null);
                     //Update the OriginDocumentNumber
                     if (existingSettlementNote != null) {
                         existingSettlementNote.setOriginDocumentNumber(payment.getPaymentRefNo());
@@ -264,16 +259,15 @@ public class SingapSiagImporter implements IERPImporter {
                             //Already annulled
                         } else {
                             //The Settlement note must be annulled
-                            settlementNote.anullDocument(
-                                    BundleUtil.getString(Constants.BUNDLE,
-                                            "label.info.integration.erpimporter.annulled.by.integration")
-                                            + " - ["
-                                            + new DateTime().toString("YYYY-MM-dd HH:mm:ss") + "]", false);
+                            settlementNote.anullDocument(BundleUtil.getString(Constants.BUNDLE,
+                                    "label.info.integration.erpimporter.annulled.by.integration") + " - ["
+                                    + new DateTime().toString("YYYY-MM-dd HH:mm:ss") + "]", false);
                         }
                         return settlementNote;
                     } else {
                         //HACK: DONT Accept repeting Documents for (UPDATE)
-                        eRPImportOperation.appendInfoLog("label.error.integration.erpimporter.invalid.already.existing.payment.ignored");
+                        eRPImportOperation
+                                .appendInfoLog("label.error.integration.erpimporter.invalid.already.existing.payment.ignored");
                         return settlementNote;
                         //throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.already.existing.payment");
                     }
@@ -288,23 +282,22 @@ public class SingapSiagImporter implements IERPImporter {
                         if (payment.getPaymentMethod().size() > 0) {
                             if (payment.getPaymentMethod().get(0).getPaymentDate() != null) {
                                 try {
-                                    paymentDate =
-                                            new org.joda.time.DateTime(payment.getPaymentMethod().get(0).getPaymentDate()
-                                                    .toGregorianCalendar());
+                                    paymentDate = new org.joda.time.DateTime(
+                                            payment.getPaymentMethod().get(0).getPaymentDate().toGregorianCalendar());
                                 } catch (Exception ex) {
                                     //ignore error on getting payment date
                                 }
                             }
                         }
                         //Create a new SettlementNote
-                        settlementNote =
-                                SettlementNote.create(customerDebtAccount, seriesToIntegratePayments, documentDate, paymentDate,
-                                        externalNumber);
+                        settlementNote = SettlementNote.create(customerDebtAccount, seriesToIntegratePayments, documentDate,
+                                paymentDate, externalNumber, null);
                         newSettlementNoteCreated = true;
                     }
                 }
             } else {
-                throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.debtaccount.to.integrate.payments");
+                throw new TreasuryDomainException(
+                        "label.error.integration.erpimporter.invalid.debtaccount.to.integrate.payments");
             }
         } else {
             throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.customer.to.integrate.payments");
@@ -317,9 +310,8 @@ public class SingapSiagImporter implements IERPImporter {
                     throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.line.source.in.payment");
                 }
                 String invoiceReferenceNumber = paymentLine.getSourceDocumentID().get(0).getOriginatingON();
-                FinantialDocument referenceDocument =
-                        FinantialDocument.findByUiDocumentNumber(eRPImportOperation.getFinantialInstitution(),
-                                invoiceReferenceNumber);
+                FinantialDocument referenceDocument = FinantialDocument
+                        .findByUiDocumentNumber(eRPImportOperation.getFinantialInstitution(), invoiceReferenceNumber);
                 if (referenceDocument == null || ((referenceDocument instanceof Invoice) == false)) {
                     throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.line.source.in.payment");
                 }
@@ -347,9 +339,8 @@ public class SingapSiagImporter implements IERPImporter {
                 //Create a new settlement entry for this payment
                 XMLGregorianCalendar paymentStatusDate = payment.getDocumentStatus().getPaymentStatusDate();
                 DateTime paymentDate = new DateTime(paymentStatusDate.toGregorianCalendar());
-                SettlementEntry settlementEntry =
-                        SettlementEntry.create(invoiceEntry, settlementNote, paymentAmount, invoiceEntry.getDescription(),
-                                paymentDate, false);
+                SettlementEntry settlementEntry = SettlementEntry.create(invoiceEntry, settlementNote, paymentAmount,
+                        invoiceEntry.getDescription(), paymentDate, false);
 
                 //Update the PaymentDate
                 if (paymentDate.isBefore(settlementNote.getPaymentDate())) {
@@ -360,17 +351,15 @@ public class SingapSiagImporter implements IERPImporter {
             if (payment.getSettlementType() != null && payment.getSettlementType().equals(SAFTPTSettlementType.NR)) {
                 //Continue processing the Reimbursment Methods (New or Updating??!?!)
                 for (PaymentMethod paymentMethod : payment.getPaymentMethod()) {
-                    ReimbursementEntry reimbursmentEntry =
-                            ReimbursementEntry.create(settlementNote,
-                                    convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()),
-                                    paymentMethod.getPaymentAmount());
+                    ReimbursementEntry reimbursmentEntry = ReimbursementEntry.create(settlementNote,
+                            convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()), paymentMethod.getPaymentAmount(), null);
                 }
             } else {
                 //Continue processing the Payment Methods (New or Updating??!?!)
                 for (PaymentMethod paymentMethod : payment.getPaymentMethod()) {
                     PaymentEntry paymentEntry =
-                            PaymentEntry.create(convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()),
-                                    settlementNote, paymentMethod.getPaymentAmount(), null);
+                            PaymentEntry.create(convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()), settlementNote,
+                                    paymentMethod.getPaymentAmount(), null);
                 }
             }
 
@@ -412,8 +401,8 @@ public class SingapSiagImporter implements IERPImporter {
         for (WorkDocument w : file.getSourceDocuments().getWorkingDocuments().getWorkDocument()) {
             result.add(w.getDocumentNumber());
         }
-        for (org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.SalesInvoices.Invoice i : file.getSourceDocuments()
-                .getSalesInvoices().getInvoice()) {
+        for (org.fenixedu.treasury.generated.sources.saft.singap.siag.SourceDocuments.SalesInvoices.Invoice i : file
+                .getSourceDocuments().getSalesInvoices().getInvoice()) {
             result.add(i.getInvoiceNo());
         }
         for (Payment p : file.getSourceDocuments().getPayments().getPayment()) {
@@ -427,5 +416,5 @@ public class SingapSiagImporter implements IERPImporter {
         final AuditFile auditFile = readAuditFileFromXML();
         return auditFile.getHeader().getTaxRegistrationNumber() + "";
     }
-    
+
 }

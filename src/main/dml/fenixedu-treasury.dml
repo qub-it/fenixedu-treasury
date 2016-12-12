@@ -203,6 +203,7 @@ class document.Series {
 	boolean certificated;
 	boolean legacy;
 	boolean defaultSeries;
+	boolean selectable;
 }
 
 class document.DocumentNumberSeries {
@@ -262,7 +263,6 @@ class document.FinantialDocumentEntry {
 		BigDecimalT vatRate;
 		BigDecimalT netAmount;
 		BigDecimalT amountWithVat;
-	
 	}
 
 	class document.DebitEntry extends document.InvoiceEntry {

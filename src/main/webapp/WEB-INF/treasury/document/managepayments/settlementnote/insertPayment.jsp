@@ -162,10 +162,9 @@ ${portal.angularToolkit()}
 										return;
 									}
 									$scope.object.paymentEntries.push({
-										paymentAmount : parseFloat(
-												$scope.paymentAmount)
-												.toFixed(2),
-										paymentMethod : $scope.paymentMethod.id
+										paymentAmount : parseFloat($scope.paymentAmount).toFixed(2),
+										paymentMethod : $scope.paymentMethod.id,
+										paymentMethodId: $scope.paymentMethodId
 									});
 									$scope.paymentAmount = undefined;
 								}
@@ -385,18 +384,14 @@ ${portal.angularToolkit()}
                 class="table responsive table-bordered table-hover" width="100%">
                 <thead>
                     <tr>
-                        <c:if
-                            test="${ settlementNoteBean.reimbursementNote }">
-                            <th><spring:message
-                                    code="label.ReimbursementMethod" /></th>
+                        <c:if test="${ settlementNoteBean.reimbursementNote }">
+                            <th><spring:message code="label.ReimbursementMethod" /></th>
                         </c:if>
-                        <c:if
-                            test="${ not settlementNoteBean.reimbursementNote }">
-                            <th><spring:message
-                                    code="label.PaymentMethod" /></th>
+                        <c:if test="${ not settlementNoteBean.reimbursementNote }">
+                            <th><spring:message code="label.PaymentMethod" /></th>
                         </c:if>
-                        <th><spring:message
-                                code="label.PaymentMethod.value" /></th>
+                        <th><spring:message code="label.PaymentMethod.value" /></th>
+						<th><spring:message code="label.PaymentMethod.paymentMethodId" /></th>
                         <!-- operation column -->
                         <th style="width: 15%"></th>
                     </tr>
@@ -404,10 +399,9 @@ ${portal.angularToolkit()}
                 <tbody>
                     <tr
                         ng-repeat="paymentEntryBean in object.paymentEntries">
-                        <td>{{ getPaymentName(
-                            paymentEntryBean.paymentMethod ) }}</td>
-                        <td>{{ paymentEntryBean.paymentAmount + " "
-                            + currencySymbol }}</td>
+                        <td>{{ getPaymentName(paymentEntryBean.paymentMethod ) }}</td>
+                        <td>{{ paymentEntryBean.paymentAmount + " " + currencySymbol }}</td>
+                        <td>{{ paymentEntryBean.paymentMethodId }}</td>
                         <td>
                             <button type="button"
                                 class="btn btn-default"
@@ -463,8 +457,7 @@ ${portal.angularToolkit()}
             </div>
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.PaymentMethod.base.value" />
+                    <spring:message code="label.PaymentMethod.base.value" />
                 </div>
                 <div class="col-sm-4">
                     <div class="input-group">
@@ -476,6 +469,14 @@ ${portal.angularToolkit()}
                             ng-pattern="/^(0*\.(0[1-9]|[1-9][0-9]?)|[1-9][0-9]*(\.[0-9]{1,2})?)$/" />
                     </div>
                 </div>
+            </div>
+            <div class="form-group row">
+            	<div class="col-sm-2 control-label">
+            		<spring:message code="label.PaymentMethod.paymentMethodId" />
+            	</div>
+            	<div class="col-sm-4">
+	                <input id="settlementNote_paymentMethodId" class="form-control" type="text" name="paymentMethodId" ng-model="paymentMethodId" />
+            	</div>
             </div>
             <p class="alert alert-danger"
                 ng-show="form.paymentAmount.$error.pattern">

@@ -383,6 +383,12 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                             <td><c:out value='${settlementNote.documentObservations}' /></td>
                         </tr>
                     </c:if>
+                    <c:if test="${not empty  settlementNote.finantialTransactionReference}">
+                        <tr>
+                            <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.finantialTransactionReference" /></th>
+                            <td><c:out value='${settlementNote.finantialTransactionReference}' /></td>
+                        </tr>
+                    </c:if>
                     <c:if test="${not empty  settlementNote.clearDocumentToExportReason}">
                         <tr>
                             <th scope="row" class="col-xs-3"><spring:message code="label.DebitNote.clearDocumentToExportReason" /></th>
@@ -548,30 +554,30 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         <h2>
             <spring:message code="label.SettlementNote.paymentEntries" />
         </h2>
-        <datatables:table id="paymentEntries" row="payemntEntry" data="${settlementNote.paymentEntriesSet}" cssClass="table responsive table-bordered table-hover" cdn="false"
+        <datatables:table id="paymentEntries" row="paymentEntry" data="${settlementNote.paymentEntriesSet}" cssClass="table responsive table-bordered table-hover" cdn="false"
             cellspacing="2">
             <datatables:column cssStyle="width:10%">
                 <datatables:columnHead>
                     <spring:message code="label.document.managepayments.settlementnote.PaymentMethod" />
                 </datatables:columnHead>
-                <c:out value="${payemntEntry.paymentMethod.name.content}" />
+                <c:out value="${paymentEntry.paymentMethod.name.content}" />
             </datatables:column>
             <datatables:column cssStyle="width:10%">
                 <datatables:columnHead>
                     <spring:message code="label.PaymentEntry.payedAmount" />
                 </datatables:columnHead>
-                <c:out value="${settlementNote.currency.getValueFor(payemntEntry.payedAmount)}" />
+                <c:out value="${settlementNote.currency.getValueFor(paymentEntry.payedAmount)}" />
+            </datatables:column>
+            <datatables:column cssStyle="width:20%">
+            	<datatables:columnHead>
+            		<spring:message code="label.PaymentEntry.paymentMethodId" />
+            	</datatables:columnHead>
+                <c:out value="${paymentEntry.paymentMethodId}" />
             </datatables:column>
         </datatables:table>
         <script>
-									createDataTables(
-											'paymentEntries',
-											false,
-											false,
-											false,
-											"${pageContext.request.contextPath}",
-											"${datatablesI18NUrl}");
-								</script>
+			createDataTables('paymentEntries', false, false, false, "${pageContext.request.contextPath}", "${datatablesI18NUrl}");
+		</script>
     </c:when>
     <c:when test="${not empty settlementNote.reimbursementEntriesSet}">
         <h2>
@@ -591,16 +597,16 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                 </datatables:columnHead>
                 <c:out value="${settlementNote.currency.getValueFor(reimbursementEntry.reimbursedAmount)}" />
             </datatables:column>
+            <datatables:column cssStyle="width:20%">
+            	<datatables:columnHead>
+            		<spring:message code="label.PaymentEntry.reimbursementMethodId" />
+            	</datatables:columnHead>
+                <c:out value="${reimbursementEntry.reimbursementMethodId}" />
+            </datatables:column>
         </datatables:table>
         <script>
-									createDataTables(
-											'reimbursementEntries',
-											false,
-											false,
-											false,
-											"${pageContext.request.contextPath}",
-											"${datatablesI18NUrl}");
-								</script>
+			createDataTables('reimbursementEntries', false, false, false, "${pageContext.request.contextPath}", "${datatablesI18NUrl}");
+		</script>
     </c:when>
     <c:otherwise>
         <h2>

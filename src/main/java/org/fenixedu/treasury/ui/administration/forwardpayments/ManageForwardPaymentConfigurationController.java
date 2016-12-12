@@ -56,7 +56,7 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
         model.addAttribute("finantialInstitution", finantialInstitution);
         model.addAttribute("bean", bean);
 
-        model.addAttribute("series_options", Series.readAll());
+        model.addAttribute("series_options", Series.findAll());
         model.addAttribute("paymentMethod_options", PaymentMethod.findAll().collect(Collectors.toSet()));
 
         return jspPage(EDIT_URI);

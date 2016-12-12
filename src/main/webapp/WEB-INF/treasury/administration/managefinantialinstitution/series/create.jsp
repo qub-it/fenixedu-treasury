@@ -115,7 +115,9 @@ ${portal.toolkit()}
                                 code="label.yes" /></option>
                     </select>
                     <script>
-                    $("#series_externSeries").val('<c:out value='${not empty param.externseries ? param.externseries : series.externSeries }'/>');
+	                    $(document).ready(function() {
+		                    $("#series_externSeries").select2().select2("val", "<c:out value='${not empty param.externseries ? param.externseries : series.externSeries }' />");
+	                    });
                     </script>
                 </div>
             </div>
@@ -133,7 +135,9 @@ ${portal.toolkit()}
                                 code="label.yes" /></option>
                     </select>
                     <script>
-                    $("#series_certificated").val('<c:out value='${not empty param.certificated ? param.certificated : series.certificated }'/>');
+	                    $(document).ready(function() {
+		                    $("#series_certificated").select2().select2("val", "<c:out value='${not empty param.certificated ? param.certificated : series.certificated }' />");
+	                    });
                     </script>
                 </div>
             </div>
@@ -145,13 +149,38 @@ ${portal.toolkit()}
                 <div class="col-sm-2">
                     <select id="series_legacy" name="legacy"
                         class="form-control">
-                        <option value="false"><spring:message
-                                code="label.no" /></option>
-                        <option value="true"><spring:message
-                                code="label.yes" /></option>
+                        <option value="false">
+                        	<spring:message code="label.no" />
+                        </option>
+                        <option value="true">
+                        	<spring:message code="label.yes" />
+                        </option>
                     </select>
                     <script>
-                    $("#series_legacy").val('<c:out value='${not empty param.legacy ? param.legacy : series.legacy }'/>');
+	                    $(document).ready(function() {
+		                    $("#series_legacy").select2().select2("val", "<c:out value='${not empty param.legacy ? param.legacy : series.legacy }' />");
+	                    });
+                    </script>
+                </div>
+            </div>
+            <div>
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.Series.selectable" />
+                </div>
+                <div class="col-sm-2">
+                    <select id="series_selectable" name="selectable"
+                        class="form-control">
+                        <option value="false">
+                        	<spring:message code="label.no" />
+                        </option>
+                        <option value="true">
+                        	<spring:message code="label.yes" />
+                        </option>
+                    </select>
+                    <script>
+	                    $(document).ready(function() {
+		                    $("#series_selectable").select2().select2("val", "<c:out value='${not empty param.selectable ? param.selectable : series.selectable }' />");
+	                    });
                     </script>
                 </div>
             </div>
@@ -164,7 +193,4 @@ ${portal.toolkit()}
 </form>
 
 <script>
-$(document).ready(function() {
-	
-});
 </script>

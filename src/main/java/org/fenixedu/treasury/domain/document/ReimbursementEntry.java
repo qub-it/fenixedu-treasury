@@ -45,15 +45,18 @@ public class ReimbursementEntry extends ReimbursementEntry_Base {
     }
 
     protected ReimbursementEntry(final SettlementNote settlementNote, final PaymentMethod paymentMethod,
-            final BigDecimal reimbursedAmount) {
+            final BigDecimal reimbursedAmount, final String reimbursementMethodId) {
         this();
-        init(settlementNote, paymentMethod, reimbursedAmount);
+        init(settlementNote, paymentMethod, reimbursedAmount, reimbursementMethodId);
     }
 
-    protected void init(final SettlementNote settlementNote, final PaymentMethod paymentMethod, final BigDecimal reimbursedAmount) {
+    protected void init(final SettlementNote settlementNote, final PaymentMethod paymentMethod, final BigDecimal reimbursedAmount, 
+                final String reimbursementMethodId) {
         setSettlementNote(settlementNote);
         setPaymentMethod(paymentMethod);
         setReimbursedAmount(reimbursedAmount);
+        setReimbursementMethodId(reimbursementMethodId);
+        
         checkRules();
     }
 
@@ -118,8 +121,8 @@ public class ReimbursementEntry extends ReimbursementEntry_Base {
 
     @Atomic
     public static ReimbursementEntry create(final SettlementNote settlementNote, final PaymentMethod paymentMethod,
-            final java.math.BigDecimal reimbursedAmount) {
-        return new ReimbursementEntry(settlementNote, paymentMethod, reimbursedAmount);
+            final java.math.BigDecimal reimbursedAmount, final String reimbursementMethodId) {
+        return new ReimbursementEntry(settlementNote, paymentMethod, reimbursedAmount, reimbursementMethodId);
     }
 
     // @formatter: off
