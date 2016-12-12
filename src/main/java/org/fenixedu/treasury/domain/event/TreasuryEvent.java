@@ -168,19 +168,6 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
                 .map(c -> c.getAmountWithVat()).reduce((a, b) -> a.add(b)).orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal getInterestsCreditAmount() {
-        return getInterestsCreditAmount(null);
-    }
-    
-    public BigDecimal getInterestsCreditAmount(final Product product) {
-        final Product interestProduct = TreasurySettings.getInstance().getInterestProduct();
-        
-        return CreditEntry.findActive(this) 
-                .filter(c -> c.getDebitEntry().getProduct() == interestProduct)
-                .filter(c -> product == null || (c.getDebitEntry().getDebitEntry() != null && c.getDebitEntry().getDebitEntry().getProduct() == product))
-                .map(c -> c.getAmountWithVat()).reduce((a, b) -> a.add(b)).orElse(BigDecimal.ZERO);
-    }
-    
     public BigDecimal getPayedAmount() {
         return getAmountToPay().subtract(getRemainingAmountToPay());
     }

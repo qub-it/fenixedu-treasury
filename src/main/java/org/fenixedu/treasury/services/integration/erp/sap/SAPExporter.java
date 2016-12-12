@@ -1372,7 +1372,7 @@ public class SAPExporter implements IERPExporter {
 
             logBean.appendIntegrationLog(
                     Constants.bundle("info.ERPExporter.sucess.sending.inforation.online", sendInfoOnlineResult.getRequestId()));
-            operation.setErpOperationId(sendInfoOnlineResult.getRequestId());
+            logBean.setErpOperationId(sendInfoOnlineResult.getRequestId());
 
             //if we have result in online situation, then check the information of integration STATUS
             for (DocumentStatusWS status : sendInfoOnlineResult.getDocumentStatus()) {
@@ -1414,8 +1414,8 @@ public class SAPExporter implements IERPExporter {
             }
 
             for (final String m : sendInfoOnlineResult.getOtherMessages()) {
-                operation.appendInfoLog(m);
-                operation.appendErrorLog(m);
+                logBean.appendIntegrationLog(m);
+                logBean.appendErrorLog(m);
             }
 
             logBean.defineSoapInboundMessage(sendInfoOnlineResult.getSoapInboundMessage());
@@ -1478,7 +1478,7 @@ public class SAPExporter implements IERPExporter {
     }
 
     private String exportFinantialDocumentToXML(final FinantialInstitution finantialInstitution,
-            final List<FinantialDocument> documents, final UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
+            List<FinantialDocument> documents, final UnaryOperator<AuditFile> preProcessFunctionBeforeSerialize) {
 
         checkForUnsetDocumentSeriesNumberInDocumentsToExport(documents);
 
@@ -1766,35 +1766,6 @@ public class SAPExporter implements IERPExporter {
         return (AuditFile x) -> {
             return x;
         };
-    }
-
-    /* Deprecated Methods */
-    // SERVICE
-    public ERPExportOperation _deprecated_exportFullToIntegration(FinantialInstitution institution, DateTime fromDate,
-            DateTime toDate, String username, Boolean includeMovements) {
-
-        ERPExportOperation operation = createSaftExportOperation(null, institution, new DateTime());
-        try {
-            SAPExporter saftExporter = new SAPExporter();
-            List<FinantialDocument> documents =
-                    new ArrayList<FinantialDocument>(institution.getExportableDocuments(fromDate, toDate));
-            documents = processCreditNoteSettlementsInclusion(documents);
-
-            logger.info("Collecting " + documents.size() + " documents to export to institution " + institution.getCode());
-            UnaryOperator<AuditFile> auditFilePreProcess = getAuditFilePreProcessOperator(institution);
-            String xml = saftExporter.generateERPFile(institution, fromDate, toDate, documents, true, true, auditFilePreProcess);
-
-            writeContentToExportOperation(xml, operation);
-
-            boolean success = sendDocumentsInformationToIntegration(institution, operation);
-
-            operation.getFinantialDocumentsSet().addAll(documents);
-            operation.setSuccess(success);
-
-        } catch (Throwable t) {
-            writeError(operation, t);
-        }
-        return operation;
     }
 
     // Service

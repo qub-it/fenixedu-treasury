@@ -10,6 +10,8 @@ public class IntegrationOperationLogBean {
     private StringBuilder soapInboundMessageBuilder = new StringBuilder();
     private StringBuilder soapOutboundMessageBuilder = new StringBuilder();
     
+    private String erpOperationId;
+    
     public void appendIntegrationLog(String message) {
         integrationLogBuilder.append(new DateTime().toString()).append(message).append("\n");
     }
@@ -40,5 +42,13 @@ public class IntegrationOperationLogBean {
     
     public String getSoapOutboundMessage() {
         return soapOutboundMessageBuilder.toString();
+    }
+    
+    public String getErpOperationId() {
+        return erpOperationId;
+    }
+    
+    public void setErpOperationId(String erpOperationId) {
+        this.erpOperationId = erpOperationId;
     }
 }

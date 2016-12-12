@@ -54,6 +54,7 @@ import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
+import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.PaymentMethod;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.SAFTPTSettlementType;
@@ -113,6 +114,8 @@ public class SingapSiagImporter implements IERPImporter {
     @Atomic(mode = TxMode.WRITE)
     @Override
     public DocumentsInformationOutput processAuditFile(final ERPImportOperation eRPImportOperation) {
+        final IntegrationOperationLogBean logBean = new IntegrationOperationLogBean();
+
         DocumentsInformationOutput result = new DocumentsInformationOutput();
         result.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         result.setRequestId(eRPImportOperation.getExternalId());
@@ -123,11 +126,11 @@ public class SingapSiagImporter implements IERPImporter {
             BigInteger totalPayments = BigInteger.ZERO;
             for (Payment payment : auditFile.getSourceDocuments().getPayments().getPayment()) {
                 DocumentStatusWS docStatus = new DocumentStatusWS();
-                eRPImportOperation.appendInfoLog(
-                        BundleUtil.getString(Constants.BUNDLE, "info.ERPImporter.processing.payment", payment.getPaymentRefNo()));
+                logBean.appendIntegrationLog(
+                        Constants.bundle("info.ERPImporter.processing.payment", payment.getPaymentRefNo()));
                 SettlementNote note = null;
                 try {
-                    note = processErpPayment(payment, eRPImportOperation);
+                    note = processErpPayment(payment, eRPImportOperation, logBean);
                     if (note != null) {
                         if (Strings.isNullOrEmpty(note.getOriginDocumentNumber())) {
                             docStatus.setDocumentNumber(note.getUiDocumentNumber());
@@ -148,18 +151,18 @@ public class SingapSiagImporter implements IERPImporter {
                         throw new TreasuryDomainException("error.ERPImporter.processing.payment", payment.getPaymentRefNo());
                     }
                 } catch (Exception ex) {
-                    eRPImportOperation.appendInfoLog(ex.getLocalizedMessage());
-                    eRPImportOperation.appendErrorLog(ex.getLocalizedMessage());
+                    logBean.appendIntegrationLog(ex.getLocalizedMessage());
+                    logBean.appendErrorLog(ex.getLocalizedMessage());
                     int count = 0;
                     for (StackTraceElement el : ex.getStackTrace()) {
-                        eRPImportOperation.appendErrorLog(el.toString());
+                        logBean.appendErrorLog(el.toString());
                         if (count++ >= 10) {
                             break;
                         }
                     }
-                    eRPImportOperation.appendInfoLog(BundleUtil.getString(Constants.BUNDLE,
+                    logBean.appendIntegrationLog(Constants.bundle(
                             "error.ERPImporter.processing.payment", payment.getPaymentRefNo()));
-                    eRPImportOperation.appendErrorLog(BundleUtil.getString(Constants.BUNDLE,
+                    logBean.appendErrorLog(Constants.bundle(
                             "error.ERPImporter.processing.payment", payment.getPaymentRefNo()));
                     docStatus.setDocumentNumber(payment.getPaymentRefNo());
                     docStatus.setErrorDescription("Error: " + ex.getLocalizedMessage());
@@ -189,26 +192,30 @@ public class SingapSiagImporter implements IERPImporter {
 
         } catch (Exception ex) {
 
-            eRPImportOperation.appendErrorLog(ex.getLocalizedMessage());
+            logBean.appendErrorLog(ex.getLocalizedMessage());
             int count = 0;
             for (StackTraceElement el : ex.getStackTrace()) {
-                eRPImportOperation.appendErrorLog(el.toString());
+                logBean.appendErrorLog(el.toString());
                 if (count++ >= 10) {
                     break;
                 }
             }
 
-            eRPImportOperation.appendErrorLog(ex.getLocalizedMessage());
+            logBean.appendErrorLog(ex.getLocalizedMessage());
             eRPImportOperation.setProcessed(true);
             eRPImportOperation.setCorrected(false);
             eRPImportOperation.setExecutionDate(new DateTime());
             eRPImportOperation.setSuccess(false);
+        } finally {
+            eRPImportOperation.appendLog(logBean.getErrorLog(), logBean.getIntegrationLog(), logBean.getSoapInboundMessage(),
+                    logBean.getSoapOutboundMessage());
         }
         return result;
     }
 
     @Atomic
-    private SettlementNote processErpPayment(Payment payment, ERPImportOperation eRPImportOperation) {
+    private SettlementNote processErpPayment(Payment payment, ERPImportOperation eRPImportOperation,
+            final IntegrationOperationLogBean logBean) {
         boolean newSettlementNoteCreated = false;
         ERPConfiguration integrationConfig = eRPImportOperation.getFinantialInstitution().getErpIntegrationConfiguration();
         DocumentNumberSeries seriesToIntegratePayments = DocumentNumberSeries.find(FinantialDocumentType.findForSettlementNote(),
@@ -266,8 +273,7 @@ public class SingapSiagImporter implements IERPImporter {
                         return settlementNote;
                     } else {
                         //HACK: DONT Accept repeting Documents for (UPDATE)
-                        eRPImportOperation
-                                .appendInfoLog("label.error.integration.erpimporter.invalid.already.existing.payment.ignored");
+                        logBean.appendIntegrationLog("label.error.integration.erpimporter.invalid.already.existing.payment.ignored");
                         return settlementNote;
                         //throw new TreasuryDomainException("label.error.integration.erpimporter.invalid.already.existing.payment");
                     }
