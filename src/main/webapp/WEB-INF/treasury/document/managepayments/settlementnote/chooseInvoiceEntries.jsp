@@ -184,6 +184,7 @@ ${portal.angularToolkit()}
         </div>
     </div>
 
+	<c:if test="${ not settlementNoteBean.reimbursementNote }">
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h3 class="panel-title">
@@ -211,6 +212,7 @@ ${portal.angularToolkit()}
                 </thead>
                 <tbody>
                     <c:forEach items="${ settlementNoteBean.debitEntries}" var="debitEntryBean" varStatus="loop">
+                    	<tr>
                         <c:if test="${ debitEntryBean.notValid }">
                             <tr class="alert alert-danger">
                         </c:if>
@@ -228,31 +230,27 @@ ${portal.angularToolkit()}
                         <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debitEntry.amountWithVat ) }" /></td>
                         <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debitEntry.openAmount ) }" /></td>
                         <td><c:out value="${ debitEntryBean.debitEntry.vat.taxRate }" /></td>
-                        <c:if test="${ not settlementNoteBean.reimbursementNote }">
-                            <td>
-                                <div class="input-group col-sm-12">
-                                    <div class=" input-group-addon">
-                                        <c:out value="${settlementNoteBean.debtAccount.finantialInstitution.currency.symbol}" />
-                                    </div>
-                                    <input class="form-control" name="debtAmount${ loop.index }" ng-model="object.debitEntries[${ loop.index }].debtAmount" type="text"
-                                        ng-disabled="!object.debitEntries[${ loop.index }].isIncluded" ng-pattern="/^(0*\.(0[1-9]|[1-9][0-9]?)|[1-9][0-9]*(\.[0-9]{1,2})?)$/"
-                                        value='0.00' />
+                        <td>
+                            <div class="input-group col-sm-12">
+                                <div class=" input-group-addon">
+                                    <c:out value="${settlementNoteBean.debtAccount.finantialInstitution.currency.symbol}" />
                                 </div>
-                                <p class="alert alert-danger" ng-show="form.debtAmount${ loop.index }.$error.pattern && object.debitEntries[${ loop.index }].isIncluded">
-                                    <spring:message code="error.invalid.format.input" />
-                                </p>
-                            </td>
-                        </c:if>
-                        <c:if test="${ settlementNoteBean.reimbursementNote }">
-                            <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debtAmount ) }"></c:out></td>
-                        </c:if>
+                                <input class="form-control" name="debtAmount${ loop.index }" ng-model="object.debitEntries[${ loop.index }].debtAmount" type="text"
+                                    ng-disabled="!object.debitEntries[${ loop.index }].isIncluded" ng-pattern="/^(0*\.(0[1-9]|[1-9][0-9]?)|[1-9][0-9]*(\.[0-9]{1,2})?)$/"
+                                    value='0.00' />
+                            </div>
+                            <p class="alert alert-danger" ng-show="form.debtAmount${ loop.index }.$error.pattern && object.debitEntries[${ loop.index }].isIncluded">
+                                <spring:message code="error.invalid.format.input" />
+                            </p>
+                        </td>
                         </tr>
                     </c:forEach>
                 </tbody>
             </table>
         </div>
     </div>
-
+	</c:if>
+	
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h3 class="panel-title">

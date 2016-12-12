@@ -716,8 +716,8 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
 
             try {
-                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                        .getERPExternalServiceImplementation().getERPExporter();
+                final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution()
+                        .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
                 //Force a check status first of the document 
                 erpExporter.checkIntegrationDocumentStatus(settlementNote);
             } catch (Exception ex) {
@@ -726,8 +726,8 @@ public class SettlementNoteController extends TreasuryBaseController {
 
             List<FinantialDocument> documentsToExport = Collections.singletonList(settlementNote);
 
-            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                    .getERPExternalServiceImplementation().getERPExporter();
+            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution()
+                    .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
 
             ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
                     settlementNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
