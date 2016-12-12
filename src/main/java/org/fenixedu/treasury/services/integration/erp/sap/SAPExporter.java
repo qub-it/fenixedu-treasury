@@ -63,6 +63,7 @@ import org.fenixedu.treasury.domain.Vat;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
 import org.fenixedu.treasury.domain.document.CreditEntry;
+import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
@@ -133,10 +134,11 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
+    private static final int MAX_REASON = 50;
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
     private static final int MAX_STREET_NAME = 90;
 
-    private static final String SAFT_PT_ENCODING = "UTF-8";
+    public static final String SAFT_PT_ENCODING = "UTF-8";
     private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
 
@@ -364,7 +366,8 @@ public class SAPExporter implements IERPExporter {
     private Payment convertToSAFTPaymentDocument(final SettlementNote document,
             final Map<String, ERPCustomerFieldsBean> baseCustomers,
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> productMap) {
-        final ERPCustomerFieldsBean customerBean = ERPCustomerFieldsBean.fillFromCustomer(document.getDebtAccount().getCustomer());
+        final ERPCustomerFieldsBean customerBean =
+                ERPCustomerFieldsBean.fillFromCustomer(document.getDebtAccount().getCustomer());
 
         Payment payment = new Payment();
 
@@ -379,7 +382,7 @@ public class SAPExporter implements IERPExporter {
             // If not found, create a new one and add it to baseCustomers
             baseCustomers.put(customerBean.getCustomerId(), customerBean);
         }
-        
+
         // Find the Customer in BaseCustomers
         if (!baseCustomers.containsKey(document.getDebtAccount().getCustomer().getCode())) {
             throw new TreasuryDomainException("error.SAPExporter.convertToSAFTPaymentDocument.customer.not.processed");
@@ -434,7 +437,11 @@ public class SAPExporter implements IERPExporter {
                 // Utilizador responsável pelo estado atual do docu-mento.
                 status.setSourceID(" ");
             }
-            status.setReason(document.getDocumentObservations());
+            
+            if(!Strings.isNullOrEmpty(document.getDocumentObservations())) {
+                status.setReason(Splitter.fixedLength(MAX_REASON).splitToList(document.getDocumentObservations()).get(0));
+            }
+            
             // Deve ser preenchido com:
             // 'P' - Documento produzido na aplicacao;
             if (Boolean.TRUE.equals(document.getDocumentNumberSeries().getSeries().getExternSeries())
@@ -566,13 +573,13 @@ public class SAPExporter implements IERPExporter {
         return payment;
     }
 
-    private XMLGregorianCalendar convertToXMLDateTime(DatatypeFactory dataTypeFactory, DateTime documentDate) {
+    public static XMLGregorianCalendar convertToXMLDateTime(DatatypeFactory dataTypeFactory, DateTime documentDate) {
         return dataTypeFactory.newXMLGregorianCalendar(documentDate.getYear(), documentDate.getMonthOfYear(),
                 documentDate.getDayOfMonth(), documentDate.getHourOfDay(), documentDate.getMinuteOfHour(),
                 documentDate.getSecondOfMinute(), 0, DatatypeConstants.FIELD_UNDEFINED);
     }
 
-    private XMLGregorianCalendar convertToXMLDate(DatatypeFactory dataTypeFactory, DateTime date) {
+    public static XMLGregorianCalendar convertToXMLDate(DatatypeFactory dataTypeFactory, DateTime date) {
         return dataTypeFactory.newXMLGregorianCalendarDate(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(),
                 DatatypeConstants.FIELD_UNDEFINED);
     }
@@ -876,7 +883,7 @@ public class SAPExporter implements IERPExporter {
         return tax;
     }
 
-    private TaxTableEntry convertVATtoTaxTableEntry(Vat vat, FinantialInstitution finantialInstitution) {
+    public static TaxTableEntry convertVATtoTaxTableEntry(final Vat vat, final FinantialInstitution finantialInstitution) {
         TaxTableEntry entry = new TaxTableEntry();
         entry.setTaxType("IVA");
         entry.setTaxCode(vat.getVatType().getName().getContent());
@@ -917,9 +924,9 @@ public class SAPExporter implements IERPExporter {
             // CompanyAddress
             AddressStructurePT companyAddress = null;
             //TODOJN Locale por resolver
-            companyAddress = convertFinantialInstitutionAddressToAddressPT(finantialInstitution.getAddress(), finantialInstitution.getZipCode(),
-                    finantialInstitution.getMunicipality() != null ? finantialInstitution.getMunicipality()
-                            .getLocalizedName(new Locale("pt")) : "---",
+            companyAddress = convertFinantialInstitutionAddressToAddressPT(finantialInstitution.getAddress(),
+                    finantialInstitution.getZipCode(), finantialInstitution.getMunicipality() != null ? finantialInstitution
+                            .getMunicipality().getLocalizedName(new Locale("pt")) : "---",
                     finantialInstitution.getAddress());
             header.setCompanyAddress(companyAddress);
 
@@ -1038,8 +1045,8 @@ public class SAPExporter implements IERPExporter {
         }
     }
 
-    private AddressStructurePT convertFinantialInstitutionAddressToAddressPT(final String addressDetail, final String zipCode,
-            final String zipCodeRegion, final String street) {
+    public static AddressStructurePT convertFinantialInstitutionAddressToAddressPT(final String addressDetail,
+            final String zipCode, final String zipCodeRegion, final String street) {
         final AddressStructurePT companyAddress = new AddressStructurePT();
 
         companyAddress.setCountry("PT");
@@ -1052,7 +1059,7 @@ public class SAPExporter implements IERPExporter {
         return companyAddress;
     }
 
-    private String exportAuditFileToXML(AuditFile auditFile) {
+    public static String exportAuditFileToXML(AuditFile auditFile) {
         try {
             final String cleanXMLAnotations = "xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"";
             final String cleanXMLAnotations2 = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
@@ -1103,7 +1110,7 @@ public class SAPExporter implements IERPExporter {
         return buf.toString();
     }
 
-    private org.fenixedu.treasury.generated.sources.saft.sap.Customer convertCustomerToSAFTCustomer(
+    public static org.fenixedu.treasury.generated.sources.saft.sap.Customer convertCustomerToSAFTCustomer(
             final ERPCustomerFieldsBean customer) {
         org.fenixedu.treasury.generated.sources.saft.sap.Customer c =
                 new org.fenixedu.treasury.generated.sources.saft.sap.Customer();
@@ -1169,7 +1176,7 @@ public class SAPExporter implements IERPExporter {
         return c;
     }
 
-    private AddressStructure convertAddressToSAFTAddress(final ERPCustomerFieldsBean customer) {
+    public static AddressStructure convertAddressToSAFTAddress(final ERPCustomerFieldsBean customer) {
         final AddressStructure companyAddress = new AddressStructure();
 
         companyAddress.setCountry(
@@ -1192,7 +1199,7 @@ public class SAPExporter implements IERPExporter {
         return companyAddress;
     }
 
-    private org.fenixedu.treasury.generated.sources.saft.sap.Product convertProductToSAFTProduct(Product product) {
+    public static org.fenixedu.treasury.generated.sources.saft.sap.Product convertProductToSAFTProduct(Product product) {
         org.fenixedu.treasury.generated.sources.saft.sap.Product p =
                 new org.fenixedu.treasury.generated.sources.saft.sap.Product();
 
@@ -1344,10 +1351,21 @@ public class SAPExporter implements IERPExporter {
 
             //if we have result in online situation, then check the information of integration STATUS
             for (DocumentStatusWS status : sendInfoOnlineResult.getDocumentStatus()) {
-                if (status.isIntegratedWithSuccess()) {
+                final FinantialDocument document =
+                        FinantialDocument.findByUiDocumentNumber(institution, status.getDocumentNumber());
+                
+                boolean integratedWithSuccess = status.isIntegratedWithSuccess();
+                String errorDescription = status.getErrorDescription();
+//                if(document.isCreditNote()) {
+//                    final CreditNote creditNote = (CreditNote) document;
+//                    
+//                    creditNote.getRelatedSettlementEntries()
+//                }
 
-                    FinantialDocument document =
-                            FinantialDocument.findByUiDocumentNumber(institution, status.getDocumentNumber());
+
+                if (integratedWithSuccess) {
+
+                    
                     if (document != null) {
                         final String message =
                                 Constants.bundle("info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
@@ -1459,12 +1477,23 @@ public class SAPExporter implements IERPExporter {
             if (finantialDocument.isSettlementNote()) {
                 final SettlementNote settlementNote = (SettlementNote) finantialDocument;
 
+                if(settlementNote.isAnnulled()) {
+                    continue;
+                }
+                
                 for (final SettlementEntry settlementEntry : settlementNote.getSettlemetEntriesSet()) {
                     if (settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
-                        if (!result.contains(settlementEntry.getInvoiceEntry().getFinantialDocument())) {
-                            result.add(settlementEntry.getInvoiceEntry().getFinantialDocument());
+                        final CreditNote creditNote = (CreditNote) settlementEntry.getInvoiceEntry().getFinantialDocument();
+
+                        if (!creditNote.isAdvancePayment() && !result.contains(creditNote)) {
+                            result.add(creditNote);
                         }
                     }
+                }
+
+                if (settlementNote.getAdvancedPaymentCreditNote() != null
+                        && !result.contains(settlementNote.getAdvancedPaymentCreditNote())) {
+                    result.add(settlementNote.getAdvancedPaymentCreditNote());
                 }
             }
         }
@@ -1743,4 +1772,24 @@ public class SAPExporter implements IERPExporter {
         return operation;
     }
 
+    // Service
+    @Override
+    public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
+        final FinantialInstitution finantialInstitution = finantialDocument.getDebtAccount().getFinantialInstitution();
+
+        final ERPConfiguration erpIntegrationConfiguration =
+                finantialDocument.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration();
+        if (erpIntegrationConfiguration == null) {
+            throw new TreasuryDomainException("error.ERPExporter.invalid.erp.configuration");
+        }
+
+        if (erpIntegrationConfiguration.getActive() == false) {
+            throw new TreasuryDomainException("error.IERPExporter.downloadCertifiedDocumentPrint.integration.not.active");
+        }
+
+        final IERPExternalService service = erpIntegrationConfiguration.getERPExternalServiceImplementation();
+
+        return service.downloadCertifiedDocumentPrint(finantialInstitution.getFiscalNumber(),
+                finantialDocument.getUiDocumentNumber(), erpIntegrationConfiguration.getErpIdProcess());
+    }
 }

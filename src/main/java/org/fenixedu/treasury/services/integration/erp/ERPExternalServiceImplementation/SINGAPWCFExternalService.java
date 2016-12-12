@@ -138,5 +138,11 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
     public IERPImporter getERPImporter(final InputStream inputStream) {
         return new SingapSiagImporter(inputStream);
     }
+
+    @Override
+    public byte[] downloadCertifiedDocumentPrint(final String finantialInstitution, final String finantialDocumentNumber,
+            final String erpIdProcess) {
+        throw new RuntimeException("not implemented");
+    }
     
 }

@@ -128,5 +128,11 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
     public IERPImporter getERPImporter(final InputStream inputStream) {
         return new SingapSiagImporter(inputStream);
     }
+
+    @Override
+    public byte[] downloadCertifiedDocumentPrint(String finantialInstitution, String finantialDocumentNumber,
+            String erpIdProcess) {
+        throw new RuntimeException("not implemented");
+    }
     
 }
