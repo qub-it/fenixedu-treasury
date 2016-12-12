@@ -86,6 +86,7 @@ import org.fenixedu.treasury.generated.sources.saft.sap.Header;
 import org.fenixedu.treasury.generated.sources.saft.sap.MovementTax;
 import org.fenixedu.treasury.generated.sources.saft.sap.OrderReferences;
 import org.fenixedu.treasury.generated.sources.saft.sap.PaymentMethod;
+import org.fenixedu.treasury.generated.sources.saft.sap.ReimbursementStatusType;
 import org.fenixedu.treasury.generated.sources.saft.sap.SAFTPTMovementTaxType;
 import org.fenixedu.treasury.generated.sources.saft.sap.SAFTPTSettlementType;
 import org.fenixedu.treasury.generated.sources.saft.sap.SAFTPTSourceBilling;
@@ -95,6 +96,7 @@ import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment;
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment.AdvancedPaymentCredit;
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment.Line.SourceDocumentID;
+import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment.ReimbursementProcess;
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingDocuments.WorkDocument;
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingDocuments.WorkDocument.AdvancedPayment;
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
