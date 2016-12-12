@@ -176,6 +176,7 @@
 				<xs:element minOccurs="0" ref="Fax" />
 				<xs:element minOccurs="0" ref="Email" />
 				<xs:element minOccurs="0" ref="Website" />
+				<xs:element name="IdProcesso" type="ExtensionTextType3Car" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -205,6 +206,8 @@
 				<xs:element minOccurs="0" name="FiscalCountry" type="CountryType" />
 				<!-- Extension -->
 				<xs:element minOccurs="0" name="Nationality" type="CountryType" />
+				<!-- Extension -->
+				<xs:element minOccurs="1" maxOccurs="1" name="Disable" type="ExtensionTextTypeMax1Car" />
 				<xs:element ref="CustomerID" />
 				<xs:element ref="AccountID" />
 				<xs:element ref="CustomerTaxID" />
@@ -1200,7 +1203,8 @@
 		</xs:simpleType>
 	</xs:element>
 	<!-- Meio de pagamento -->
-	<xs:element name="PaymentMechanism">
+	<!-- Extension: do not restrict codes -->
+	<xs:element name="PaymentMechanism" type="xs:string">
 		<xs:annotation>
 			<xs:documentation>
 				Restricao:CC para Cartao credito, CD para Cartao debito, CH para Cheque
@@ -1213,24 +1217,6 @@
 				Ticket restaurante, TE para Ticket Ensino
 			</xs:documentation>
 		</xs:annotation>
-		<xs:simpleType>
-			<xs:restriction base="xs:string">
-				<xs:enumeration value="CC" />
-				<xs:enumeration value="CD" />
-				<xs:enumeration value="CH" />
-				<xs:enumeration value="CO" />
-				<xs:enumeration value="CS" />
-				<xs:enumeration value="DE" />
-				<xs:enumeration value="LC" />
-				<xs:enumeration value="MB" />
-				<xs:enumeration value="NU" />
-				<xs:enumeration value="OU" />
-				<xs:enumeration value="PR" />
-				<xs:enumeration value="TB" />
-				<xs:enumeration value="TR" />
-				<xs:enumeration value="TE" />
-			</xs:restriction>
-		</xs:simpleType>
 	</xs:element>
 	<!-- Codigo unico do documento de venda -->
 	<xs:element name="PaymentRefNo">
@@ -1713,4 +1699,18 @@
 			<xs:enumeration value="CONCLUDED" />
 		</xs:restriction>
 	</xs:simpleType>
+	
+	<xs:simpleType name="ExtensionTextTypeMax1Car">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="0" />
+			<xs:maxLength value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ExtensionTextType3Car">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="3" />
+			<xs:maxLength value="3" />
+		</xs:restriction>
+	</xs:simpleType>	
 </xs:schema>
