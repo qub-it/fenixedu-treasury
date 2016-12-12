@@ -1,9 +1,7 @@
 package org.fenixedu.treasury.services.integration.erp;
 
+import java.io.InputStream;
 import java.util.List;
-import java.util.function.UnaryOperator;
-
-import oecd.standardauditfile_tax.pt_1.AuditFile;
 
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationInput;
@@ -17,6 +15,7 @@ public interface IERPExternalService {
 
     public List<DocumentStatusWS> getIntegrationStatusFor(String finantialInstiution, List<String> documentInformaton);
 
-    public UnaryOperator<AuditFile> getAuditFilePreProcessOperator();
-
+    public IERPExporter getERPExporter();
+    
+    public IERPImporter getERPImporter(final InputStream inputStream);
 }

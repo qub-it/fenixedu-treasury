@@ -25,7 +25,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FenixEdu Treasury.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fenixedu.treasury.services.integration.erp;
+package org.fenixedu.treasury.services.integration.erp.sap;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -56,6 +56,13 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
+import org.fenixedu.treasury.generated.sources.saft.sap.AuditFile;
+import org.fenixedu.treasury.generated.sources.saft.sap.PaymentMethod;
+import org.fenixedu.treasury.generated.sources.saft.sap.SAFTPTSettlementType;
+import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment;
+import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.Payments.Payment.Line;
+import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingDocuments.WorkDocument;
+import org.fenixedu.treasury.services.integration.erp.IERPImporter;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS.StatusType;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
@@ -66,12 +73,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
-import oecd.standardauditfile_tax.pt_1.AuditFile;
-import oecd.standardauditfile_tax.pt_1.PaymentMethod;
-import oecd.standardauditfile_tax.pt_1.SAFTPTSettlementType;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.Payments.Payment.Line;
-import oecd.standardauditfile_tax.pt_1.SourceDocuments.WorkingDocuments.WorkDocument;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
 
@@ -84,13 +85,13 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // Versão 1.0.3
 // https://info.portaldasfinancas.gov.pt/NR/rdonlyres/BA9FB096-D482-445D-A5DB-C05B1980F7D7/0/Portaria_274_2013_21_09.pdf
 // ******************************************************************************************************************************
-public class ERPImporter {
+public class SAPImporter implements IERPImporter {
 
     private static JAXBContext jaxbContext = null;
-    private static Logger logger = LoggerFactory.getLogger(ERPImporter.class);
+    private static Logger logger = LoggerFactory.getLogger(SAPImporter.class);
     private InputStream fileStream;
 
-    public ERPImporter(InputStream fileStream) {
+    public SAPImporter(InputStream fileStream) {
         this.fileStream = fileStream;
     }
 
@@ -384,8 +385,6 @@ public class ERPImporter {
         org.fenixedu.treasury.domain.PaymentMethod paymentMethod =
                 org.fenixedu.treasury.domain.PaymentMethod.findByCode(paymentMechanism);
         if (paymentMethod == null) {
-            // TODO: Ask why returns some payment method
-            // return org.fenixedu.treasury.domain.PaymentMethod.findAll().findFirst().orElse(null);
             throw new TreasuryDomainException("error.ERPImporter.unkown.payment.method", paymentMechanism);
         }
         return paymentMethod;
@@ -399,7 +398,7 @@ public class ERPImporter {
         for (WorkDocument w : file.getSourceDocuments().getWorkingDocuments().getWorkDocument()) {
             result.add(w.getDocumentNumber());
         }
-        for (oecd.standardauditfile_tax.pt_1.SourceDocuments.SalesInvoices.Invoice i : file.getSourceDocuments()
+        for (org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.SalesInvoices.Invoice i : file.getSourceDocuments()
                 .getSalesInvoices().getInvoice()) {
             result.add(i.getInvoiceNo());
         }
@@ -408,4 +407,11 @@ public class ERPImporter {
         }
         return result;
     }
+
+    @Override
+    public String readTaxRegistrationNumberFromAuditFile() {
+        final AuditFile auditFile = readAuditFileFromXML();
+        return auditFile.getHeader().getTaxRegistrationNumber() + "";
+    }
+    
 }
