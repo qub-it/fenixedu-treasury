@@ -262,9 +262,14 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                <li><a id="exportCreditNoteIntegrationOnline" class=""
-                    href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/exportintegrationonline"><span
-                        class="glyphicon glyphicon-cog" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.exportCreditNoteIntegrationOnline" /></a></li>
+				<c:if test="${settlementNote.documentToExport}">
+                <li>
+                	<a id="exportCreditNoteIntegrationOnline" class="" href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/exportintegrationonline">
+	                	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+	                	<spring:message code="label.event.document.manageInvoice.exportCreditNoteIntegrationOnline" />
+                	</a>
+                </li>
+                </c:if>
                 <li><a class=""
                     href="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/exportintegrationfile"> <span
                         class="glyphicon glyphicon-export" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.exportIntegrationFile" />

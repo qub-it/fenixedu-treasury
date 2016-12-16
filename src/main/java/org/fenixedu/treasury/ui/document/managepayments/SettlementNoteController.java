@@ -205,8 +205,8 @@ public class SettlementNoteController extends TreasuryBaseController {
                 } else {
                     creditEntryBean.setNotValid(false);
                 }
-                
-                if(!creditEntryBean.isNotValid()) {
+
+                if (!creditEntryBean.isNotValid()) {
                     creditSum = creditSum.add(creditEntryBean.getCreditAmountWithVat());
                 }
             } else {
@@ -237,6 +237,7 @@ public class SettlementNoteController extends TreasuryBaseController {
             error = true;
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.need.documentSeries"), model);
         }
+
         if (error) {
             setSettlementNoteBean(bean, model);
             return "treasury/document/managepayments/settlementnote/chooseInvoiceEntries";
@@ -304,6 +305,11 @@ public class SettlementNoteController extends TreasuryBaseController {
         BigDecimal paymentSum = bean.getPaymentAmount();
         boolean error = false;
 
+        if (bean.getPaymentEntries().size() > 1) {
+            error = true;
+            addErrorMessage(Constants.bundle("error.SettlementNote.only.one.payment.method.is.supported"), model);
+        }
+
         if (bean.getPaymentEntries().stream().anyMatch(peb -> Constants.isZero(peb.getPaymentAmount()))) {
             error = true;
             String errorMessage = bean
@@ -353,8 +359,13 @@ public class SettlementNoteController extends TreasuryBaseController {
         if (bean.getDocNumSeries().getSeries().getCertificated() == false) {
             documentDate = bean.getDate().toDateTimeAtStartOfDay();
         }
-        SettlementNote settlementNote = SettlementNote.create(bean.getDebtAccount(), bean.getDocNumSeries(), documentDate,
-                bean.getDate().toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber(), bean.getFinantialTransactionReference());
+        SettlementNote settlementNote =
+                SettlementNote
+                        .create(bean.getDebtAccount(), bean.getDocNumSeries(), documentDate,
+                                bean.getDate().toDateTimeAtStartOfDay(), bean.getOriginDocumentNumber(),
+                                !Strings.isNullOrEmpty(bean.getFinantialTransactionReference()) ? bean
+                                        .getFinantialTransactionReferenceYear() + "/"
+                                        + bean.getFinantialTransactionReference() : "");
         settlementNote.processSettlementNoteCreation(bean);
         settlementNote.closeDocument();
         return settlementNote;
@@ -776,25 +787,25 @@ public class SettlementNoteController extends TreasuryBaseController {
             final RedirectAttributes redirectAttributes, final HttpServletResponse response) {
 
         try {
-            
+
             final byte[] contents = ERPExporterManager.downloadCertifiedDocumentPrint(settlementNote);
-            
+
             response.setContentType("application/pdf");
-            String filename = URLEncoder.encode(StringNormalizer
-                    .normalizePreservingCapitalizedLetters((settlementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber()
-                            + "_" + settlementNote.getUiDocumentNumber() + ".pdf").replaceAll("/", "_").replaceAll("\\s", "_")
+            String filename = URLEncoder.encode(StringNormalizer.normalizePreservingCapitalizedLetters(
+                    (settlementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber() + "_"
+                            + settlementNote.getUiDocumentNumber() + ".pdf").replaceAll("/", "_").replaceAll("\\s", "_")
                                     .replaceAll(" ", "_")),
                     "Windows-1252");
-            
+
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
             response.getOutputStream().write(contents);
-            
+
             return null;
         } catch (final TreasuryDomainException | IOException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
-            
+
             return redirect(READ_URL + "/" + settlementNote.getExternalId(), model, redirectAttributes);
         }
     }
-    
+
 }

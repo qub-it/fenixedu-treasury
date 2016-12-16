@@ -4,10 +4,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.IERPImporter;
@@ -22,10 +26,13 @@ import org.fenixedu.treasury.services.integration.erp.sap.ZULWSFATURACAOCLIENTES
 import org.fenixedu.treasury.services.integration.erp.sap.ZulfwscustomersReturn1S;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsDocumentosInput;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsDocumentosOutput;
+import org.fenixedu.treasury.services.integration.erp.sap.ZulwsReembolsosInput;
+import org.fenixedu.treasury.services.integration.erp.sap.ZulwsReembolsosOutput;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsdocumentStatusWs1;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesIn;
 import org.fenixedu.treasury.services.integration.erp.sap.ZulwsfaturacaoClientesOut;
 import org.fenixedu.treasury.util.Constants;
+import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
 import com.qubit.solution.fenixedu.bennu.webservices.services.client.BennuWebServiceClient;
@@ -59,7 +66,8 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
             status.setDocumentNumber(item.getDocumentNumber());
             status.setErrorDescription(
                     String.format("[STATUS: %s] - %s", item.getIntegrationStatus(), item.getErrorDescription()));
-            status.setIntegrationStatus(convertToStatusType(item.getIntegrationStatus(), item.getDocumentNumber(), item.getSapDocumentNumber()));
+            status.setIntegrationStatus(
+                    convertToStatusType(item.getIntegrationStatus(), item.getDocumentNumber(), item.getSapDocumentNumber()));
             output.getDocumentStatus().add(status);
         }
 
@@ -79,10 +87,10 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
     }
 
     private StatusType convertToStatusType(final String status, String documentNumber, final String sapDocumentNumber) {
-        if(documentNumber.startsWith("NR INT")) {
+        if (documentNumber.startsWith("NR INT")) {
             return "S".equals(status) ? StatusType.SUCCESS : StatusType.ERROR;
         }
-        
+
         if (!Strings.isNullOrEmpty(sapDocumentNumber) && "S".equals(status)) {
             return StatusType.SUCCESS;
         }
@@ -119,19 +127,40 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         try {
             final ZulwsDocumentosOutput zulwsDocumentos = client.zulwsDocumentos(input);
-            final StatusType status = convertToStatusType(zulwsDocumentos.getStatus(), finantialDocumentNumber, finantialDocumentNumber);
-            
+            final StatusType status =
+                    convertToStatusType(zulwsDocumentos.getStatus(), finantialDocumentNumber, finantialDocumentNumber);
+
             if (status != StatusType.SUCCESS) {
-                throw new TreasuryDomainException("error.IERPExternalService.getCertifiedDocumentPrinted.unable.to.retrieve.document",
+                throw new TreasuryDomainException(
+                        "error.IERPExternalService.getCertifiedDocumentPrinted.unable.to.retrieve.document",
                         zulwsDocumentos.getErrorDescription());
             }
-            
+
             return zulwsDocumentos.getBinary();
-        } catch(final ServerSOAPFaultException e) {
+        } catch (final ServerSOAPFaultException e) {
             e.printStackTrace();
-            throw new TreasuryDomainException("error.IERPExternalService.getCertifiedDocumentPrinted.unable.to.retrieve.document");
+            throw new TreasuryDomainException(
+                    "error.IERPExternalService.getCertifiedDocumentPrinted.unable.to.retrieve.document");
         }
 
+    }
+
+    public void checkReimbursementStateChange(final SettlementNote reimbursementNote) {
+        final ERPConfiguration erpConfiguration =
+                reimbursementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration();
+        final ZULWSFATURACAOCLIENTESBLK client = getClient();
+
+        ZulwsReembolsosInput input = new ZulwsReembolsosInput();
+        input.setFinantialDocumentNumber(reimbursementNote.getUiDocumentNumber());
+        input.setIdProcesso(erpConfiguration.getErpIdProcess());
+        input.setTaxRegistrationNumber(reimbursementNote.getDebtAccount().getCustomer().getFiscalNumber());
+
+        final ZulwsReembolsosOutput zulwsReembolsos = client.zulwsReembolsos(input);
+        final Optional<ReimbursementProcessStatusType> reimbursementStatus =
+                ReimbursementProcessStatusType.findUniqueByCode(zulwsReembolsos.getReimbursementStatusCode());
+
+        reimbursementNote.processReimbursementStateChange(reimbursementStatus.get(), zulwsReembolsos.getExerciseYear(),
+                new DateTime(zulwsReembolsos.getReimbursementStatusDate()));
     }
 
     @Override

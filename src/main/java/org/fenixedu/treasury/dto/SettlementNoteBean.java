@@ -53,6 +53,8 @@ public class SettlementNoteBean implements IBean, Serializable {
 
     private Stack<Integer> previousStates;
     
+    private String finantialTransactionReferenceYear;
+    
     private String finantialTransactionReference;
 
     private boolean advancePayment;
@@ -67,6 +69,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         this.setPaymentMethods(PaymentMethod.findAvailableForPaymentInApplication().collect(Collectors.toList()));
 
         this.advancePayment = false;
+        this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
     }
 
     public SettlementNoteBean(DebtAccount debtAccount, boolean reimbursementNote) {
@@ -92,8 +95,9 @@ public class SettlementNoteBean implements IBean, Serializable {
                         SettlementNoteController.CHOOSE_INVOICE_ENTRIES_URL, SettlementNoteController.CALCULATE_INTEREST_URL,
                         SettlementNoteController.CREATE_DEBIT_NOTE_URL, SettlementNoteController.INSERT_PAYMENT_URL,
                         SettlementNoteController.SUMMARY_URL);
-
+        
         this.advancePayment = false;
+        this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
     }
 
     private void setDocumentNumberSeries(DebtAccount debtAccount, boolean reimbursementNote) {
@@ -337,6 +341,14 @@ public class SettlementNoteBean implements IBean, Serializable {
     
     public void setFinantialTransactionReference(String finantialTransactionReference) {
         this.finantialTransactionReference = finantialTransactionReference;
+    }
+    
+    public String getFinantialTransactionReferenceYear() {
+        return finantialTransactionReferenceYear;
+    }
+    
+    public void setFinantialTransactionReferenceYear(String finantialTransactionReferenceYear) {
+        this.finantialTransactionReferenceYear = finantialTransactionReferenceYear;
     }
 
     public class DebitEntryBean implements IBean, Serializable {

@@ -61,13 +61,15 @@ public class SettlementNote extends SettlementNote_Base {
     }
 
     protected SettlementNote(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber,
+            final String finantialTransactionReference) {
         this();
         init(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber, finantialTransactionReference);
     }
 
     protected void init(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber,
+            final String finantialTransactionReference) {
         setFinantialTransactionReference(finantialTransactionReference);
         setOriginDocumentNumber(originDocumentNumber);
         if (paymentDate == null) {
@@ -116,22 +118,22 @@ public class SettlementNote extends SettlementNote_Base {
                         .equals(FinantialDocumentTypeEnum.REIMBURSEMENT_NOTE)) {
             throw new TreasuryDomainException("error.FinantialDocument.finantialDocumentType.invalid");
         }
-        
-        if(isClosed() && isReimbursement() && getCurrentReimbursementProcessStatus() == null) {
+
+        if (isClosed() && isReimbursement() && getCurrentReimbursementProcessStatus() == null) {
             throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
         }
-        
+
         if (isClosed()) {
             for (final SettlementEntry settlementEntry : getSettlemetEntriesSet()) {
-                if(!settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
+                if (!settlementEntry.getInvoiceEntry().isCreditNoteEntry()) {
                     continue;
                 }
 
-                if(!settlementEntry.getInvoiceEntry().getFinantialDocument().isClosed()) {
-                        throw new TreasuryDomainException("error.SettlementNote.settlement.entry.for.credit.entry.not.closed");
+                if (!settlementEntry.getInvoiceEntry().getFinantialDocument().isClosed()) {
+                    throw new TreasuryDomainException("error.SettlementNote.settlement.entry.for.credit.entry.not.closed");
                 }
             }
-        }        
+        }
     }
 
     @Atomic
@@ -173,7 +175,7 @@ public class SettlementNote extends SettlementNote_Base {
             return false;
         }
     }
-    
+
     public boolean isAdvancePaymentSetByUser() {
         return getAdvancePaymentSetByUser();
     }
@@ -220,7 +222,7 @@ public class SettlementNote extends SettlementNote_Base {
         }
 
         processAdvancePayments(bean);
-        
+
         setAdvancePaymentSetByUser(bean.isAdvancePayment());
     }
 
@@ -238,11 +240,11 @@ public class SettlementNote extends SettlementNote_Base {
         final BigDecimal paymentSum = bean.getPaymentAmount();
 
         final BigDecimal availableAmount = paymentSum.subtract(debitSum);
-        
-        if(!Constants.isPositive(availableAmount)) {
+
+        if (!Constants.isPositive(availableAmount)) {
             return;
         }
-        
+
         final String comments = String.format("%s [%s]", Constants.bundle("label.SettlementNote.advancedpayment"),
                 getPaymentDate().toString(Constants.DATE_FORMAT));
 
@@ -251,7 +253,8 @@ public class SettlementNote extends SettlementNote_Base {
 
     private void processReimbursementEntries(SettlementNoteBean bean) {
         for (PaymentEntryBean paymentEntryBean : bean.getPaymentEntries()) {
-            ReimbursementEntry.create(this, paymentEntryBean.getPaymentMethod(), paymentEntryBean.getPaymentAmount(), paymentEntryBean.getPaymentMethodId());
+            ReimbursementEntry.create(this, paymentEntryBean.getPaymentMethod(), paymentEntryBean.getPaymentAmount(),
+                    paymentEntryBean.getPaymentMethodId());
         }
     }
 
@@ -290,15 +293,16 @@ public class SettlementNote extends SettlementNote_Base {
         for (CreditEntryBean creditEntryBean : bean.getCreditEntries()) {
             if (creditEntryBean.isIncluded()) {
                 final CreditEntry creditEntry = creditEntryBean.getCreditEntry();
-                
+
                 if (!creditEntry.getFinantialDocument().isClosed()) {
-                    if(Constants.isLessThan(creditEntryBean.getCreditAmountWithVat(), creditEntry.getOpenAmount())) {
-                        creditEntry.splitCreditEntry(creditEntry.getOpenAmount().subtract(creditEntryBean.getCreditAmountWithVat()));
+                    if (Constants.isLessThan(creditEntryBean.getCreditAmountWithVat(), creditEntry.getOpenAmount())) {
+                        creditEntry
+                                .splitCreditEntry(creditEntry.getOpenAmount().subtract(creditEntryBean.getCreditAmountWithVat()));
                     }
-                    
+
                     creditEntry.getFinantialDocument().closeDocument();
                 }
-                
+
                 SettlementEntry.create(creditEntryBean, this, bean.getDate().toDateTimeAtStartOfDay());
             }
         }
@@ -332,9 +336,10 @@ public class SettlementNote extends SettlementNote_Base {
 
     @Atomic
     public static SettlementNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber, final String finantialTransactionReference) {
-        SettlementNote settlementNote =
-                new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate, originDocumentNumber, finantialTransactionReference);
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber,
+            final String finantialTransactionReference) {
+        SettlementNote settlementNote = new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate,
+                originDocumentNumber, finantialTransactionReference);
 
         return settlementNote;
     }
@@ -466,10 +471,10 @@ public class SettlementNote extends SettlementNote_Base {
         }
 
         if (isReimbursement()) {
-            processReimbursementStateChange(ReimbursementProcessStatusType.findUniqueByInitialStatus().get(), "",
+            processReimbursementStateChange(ReimbursementProcessStatusType.findUniqueByInitialStatus().get(),
                     String.valueOf(getDocumentDate().getYear()), new DateTime());
         }
-        
+
         super.closeDocument(markDocumentToExport);
 
         checkRules();
@@ -477,7 +482,7 @@ public class SettlementNote extends SettlementNote_Base {
 
     @Atomic
     public void processReimbursementStateChange(final ReimbursementProcessStatusType reimbursementStatus,
-            final String erpProcessId, final String exerciseYear, final DateTime reimbursementStatusDate) {
+            final String exerciseYear, final DateTime reimbursementStatusDate) {
 
         if (reimbursementStatus == null) {
             throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementStatus");
@@ -495,7 +500,8 @@ public class SettlementNote extends SettlementNote_Base {
             throw new TreasuryDomainException("error.SettlementNote.currentReimbursementProcessStatus.invalid");
         }
 
-        if (getCurrentReimbursementProcessStatus() != null && !reimbursementStatus.isAfter(getCurrentReimbursementProcessStatus())) {
+        if (getCurrentReimbursementProcessStatus() != null
+                && !reimbursementStatus.isAfter(getCurrentReimbursementProcessStatus())) {
             throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
         }
 
@@ -505,8 +511,8 @@ public class SettlementNote extends SettlementNote_Base {
 
         setCurrentReimbursementProcessStatus(reimbursementStatus);
 
-        ReimbursementProcessStateLog.create(this, reimbursementStatus, erpProcessId, UUID.randomUUID().toString(),
-                reimbursementStatusDate, exerciseYear);
+        ReimbursementProcessStateLog.create(this, reimbursementStatus, UUID.randomUUID().toString(), reimbursementStatusDate,
+                exerciseYear);
 
         if (getCurrentReimbursementProcessStatus() == null) {
             throw new TreasuryDomainException("error.SettlementNote.currentReimbursementProcessStatus.invalid");

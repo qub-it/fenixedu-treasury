@@ -17,13 +17,12 @@ public class ReimbursementProcessStateLog extends ReimbursementProcessStateLog_B
     }
 
     protected ReimbursementProcessStateLog(final SettlementNote settlementNote,
-            final ReimbursementProcessStatusType reimbursementProcessStatusType, final String erpProcessId, final String statusId,
-            final DateTime statusDate, final String remarks) {
+            final ReimbursementProcessStatusType reimbursementProcessStatusType, final String statusId, final DateTime statusDate,
+            final String remarks) {
         this();
 
         setSettlementNote(settlementNote);
         setReimbursementProcessStatusType(reimbursementProcessStatusType);
-        setErpProcessId(erpProcessId);
         setStatusId(statusId);
         setStatusDate(statusDate);
         setRemarks(remarks);
@@ -65,10 +64,10 @@ public class ReimbursementProcessStateLog extends ReimbursementProcessStateLog_B
         return settlementNote.getReimbursementProcessStateLogsSet().stream();
     }
     
-    public static ReimbursementProcessStateLog create(final SettlementNote settlementNote, final ReimbursementProcessStatusType reimbursementProcessStatusType, final String erpProcessId, final String statusId,
+    public static ReimbursementProcessStateLog create(final SettlementNote settlementNote, final ReimbursementProcessStatusType reimbursementProcessStatusType, final String statusId,
             final DateTime statusDate, final String remarks) {
         
-        return new ReimbursementProcessStateLog(settlementNote, reimbursementProcessStatusType, erpProcessId, statusId, statusDate, remarks);
+        return new ReimbursementProcessStateLog(settlementNote, reimbursementProcessStatusType, statusId, statusDate, remarks);
     }
     
 }

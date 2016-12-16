@@ -184,11 +184,6 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
                 .orElse(null);
     }
 
-    public boolean hasMinimumAddressData() {
-        return !Strings.isNullOrEmpty(getAddress()) && !Strings.isNullOrEmpty(getZipCode())
-                && !Strings.isNullOrEmpty(getFiscalCountry());
-    }
-
     @Atomic
     public void registerFinantialInstitutions(List<FinantialInstitution> newFinantialInstitutions) {
 

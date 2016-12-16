@@ -186,8 +186,15 @@ ${portal.angularToolkit()}
             	<div class="col-sm-2 control-label">
             		<spring:message code="label.SettlementNote.finantialTransactionReference" />
             	</div>
-            	<div class="col-sm-4">
-            		<input class="form-control" type="text" ng-model="object.finantialTransactionReference" />
+           		<div class="col-sm-1">
+            		<select class="form-control" ng-model="object.finantialTransactionReferenceYear">
+            			<option>2016</option>
+            			<option>2015</option>
+            			<option>2014</option>
+            		</select>
+           		</div>
+            	<div class="col-sm-3">
+	           		<input class="form-control" type="text" ng-model="object.finantialTransactionReference" />
             	</div>
             </div>
         </div>
