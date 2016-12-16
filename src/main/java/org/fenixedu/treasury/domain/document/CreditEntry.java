@@ -41,6 +41,7 @@ import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 public class CreditEntry extends CreditEntry_Base {
@@ -111,6 +112,10 @@ public class CreditEntry extends CreditEntry_Base {
             throw new TreasuryDomainException("error.CreditEntry.finantialDocument.with.unexpected.entries");
         }
         
+        if(Strings.isNullOrEmpty(getDescription())) {
+            throw new TreasuryDomainException("error.CreditEntry.description.required");
+        }
+
     }
 
     public boolean isFromExemption() {

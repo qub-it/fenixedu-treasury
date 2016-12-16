@@ -40,6 +40,7 @@ import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
@@ -71,6 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.qubit.terra.docs.util.ReportGenerationException;
 
@@ -159,16 +161,21 @@ public class DebtAccountController extends TreasuryBaseController {
             }
         }
 
+        checkIncompleteAddress(debtAccount, model);
+
         model.addAttribute("usedPaymentCodeTargets", usedPaymentCodeTargets);
 
         model.addAttribute("invalidFiscalCode", isInvalidFiscalCode(debtAccount));
-        model.addAttribute("incompleteAddress", hasIncompleteAddress(debtAccount));
 
         return "treasury/accounting/managecustomer/debtaccount/read";
     }
 
-    private Object hasIncompleteAddress(final DebtAccount debtAccount) {
-        return !debtAccount.getCustomer().hasMinimumAddressData();
+    private void checkIncompleteAddress(final DebtAccount debtAccount, final Model model) {
+        final List<String> errorMessages = Lists.newArrayList();
+        final boolean validAddress = ERPCustomerFieldsBean.validateAddress(debtAccount.getCustomer(), errorMessages);
+
+        model.addAttribute("validAddress", validAddress);
+        model.addAttribute("addressErrorMessages", errorMessages);
     }
 
     private boolean isInvalidFiscalCode(final DebtAccount debtAccount) {

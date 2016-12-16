@@ -961,7 +961,7 @@ public class SAPExporter implements IERPExporter {
              * espa?o. Nos casos em que n?o existe o registo comercial, deve ser
              * indicado o NIF.
              */
-            header.setCompanyID(finantialInstitution.getComercialRegistrationCode());
+            header.setCompanyID(finantialInstitution.getFiscalNumber());
 
             // CurrencyCode
             /*
@@ -1414,7 +1414,6 @@ public class SAPExporter implements IERPExporter {
 
             for (final String m : sendInfoOnlineResult.getOtherMessages()) {
                 logBean.appendIntegrationLog(m);
-                logBean.appendErrorLog(m);
             }
 
             logBean.defineSoapInboundMessage(sendInfoOnlineResult.getSoapInboundMessage());

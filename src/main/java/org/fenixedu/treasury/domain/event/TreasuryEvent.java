@@ -282,9 +282,9 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
             if (!debitEntry.isProcessedInDebitNote()) {
                 final DebitNote debitNote =
                         DebitNote.create(
-                                getDebtAccount(),
+                                debitEntry.getDebtAccount(),
                                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
-                                        getDebtAccount().getFinantialInstitution()).get(), new DateTime());
+                                        debitEntry.getDebtAccount().getFinantialInstitution()).get(), new DateTime());
 
                 debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
             }
@@ -298,9 +298,9 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
                 for (final DebitEntry interestDebitEntry : otherDebitEntry.getInterestDebitEntriesSet()) {
                     if (!interestDebitEntry.isProcessedInDebitNote()) {
                         final DebitNote debitNoteForUnprocessedEntries = DebitNote.create(
-                                getDebtAccount(),
+                                debitEntry.getDebtAccount(),
                                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
-                                        getDebtAccount().getFinantialInstitution()).get(), new DateTime());
+                                        debitEntry.getDebtAccount().getFinantialInstitution()).get(), new DateTime());
                         interestDebitEntry.setFinantialDocument(debitNoteForUnprocessedEntries);
                     }
 
@@ -338,6 +338,10 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
 
     @Atomic
     public void transferToDebtAccount(final DebtAccount debtAccount) {
+        if(true) {
+            throw new RuntimeException("deprecated");
+        }
+        
         if(!getDebitEntriesSet().isEmpty()) {
             throw new TreasuryDomainException("error.TreasuryEvent.transferToDebtAccount.not.possible.debit.entries.not.empty");
         }
@@ -365,6 +369,7 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
     }
 
     public static Stream<? extends TreasuryEvent> findActiveBy(DebtAccount debtAccount) {
+        // TODO: Find all by person
         return findAll().filter(x -> x.getDebtAccount().equals(debtAccount));
     }
     

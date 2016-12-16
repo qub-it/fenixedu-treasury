@@ -389,29 +389,6 @@ ${portal.angularToolkit()}
     </div>
 </div>
 
-<c:if test="${debtAccount.hasPreparingDocuments() }">
-    <div class="alert alert-danger" role="alert">
-        <c:if test="${debtAccount.hasPreparingDebitNotes()}">
-            <p>
-                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
-                <spring:message code="label.have.debitNote.in.preparing" />
-            </p>
-        </c:if>
-        <c:if test="${debtAccount.hasPreparingCreditNotes()}">
-            <p>
-                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
-                <spring:message code="label.have.creditNote.in.preparing" />
-            </p>
-        </c:if>
-        <c:if test="${debtAccount.hasPreparingSettlementNotes()}">
-            <p>
-                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
-                <spring:message code="label.have.settlementNote.in.preparing" />
-            </p>
-        </c:if>
-    </div>
-</c:if>
-
 <c:if test="${invalidFiscalCode}">
 	<div class="alert alert-danger" role="alert">
 	    <p>
@@ -421,12 +398,19 @@ ${portal.angularToolkit()}
 	</div>
 </c:if>
 
-<c:if test="${incompleteAddress}">
+<c:if test="${not validAddress}">
 	<div class="alert alert-danger" role="alert">
 	    <p>
 	    	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
 			<spring:message code="label.DebtAccountController.incompleteAddress" />
 		</p>
+		
+	<c:forEach items="${addressErrorMessages}" var="m">
+		<p>
+	    	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
+			<c:out value="${m}" />
+		</p>
+	</c:forEach>
 	</div>	
 </c:if>
 

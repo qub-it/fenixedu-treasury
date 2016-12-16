@@ -269,6 +269,10 @@ public class DebitEntry extends DebitEntry_Base {
         if (this.getEntryDateTime() != null && this.getDueDate().isBefore(this.getEntryDateTime().toLocalDate())) {
             throw new TreasuryDomainException("error.DebitEntry.dueDate.invalid");
         }
+        
+        if(Strings.isNullOrEmpty(getDescription())) {
+            throw new TreasuryDomainException("error.DebitEntry.description.required");
+        }
 
         // If it exempted then it must be on itself or with credit entry but not both
         if (isPositive(getExemptedAmount()) && CreditEntry.findActive(getTreasuryEvent(), getProduct()).count() > 0) {
