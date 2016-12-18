@@ -129,9 +129,9 @@ public class AdhocCustomerController extends TreasuryBaseController {
         try {
             assertUserIsBackOfficeMember(model);
 
-            Customer adhocCustomer = createAdhocCustomer(bean.getCustomerType(), bean.getName(),
-                    bean.getFiscalNumber(), bean.getIdentificationNumber(), bean.getAddress(), bean.getDistrictSubdivision(),
-                    bean.getZipCode(), bean.getCountryCode());
+            Customer adhocCustomer = createAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getFiscalNumber(),
+                    bean.getIdentificationNumber(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(),
+                    bean.getAddressCountryCode(), bean.getCountryCode());
             adhocCustomer.registerFinantialInstitutions(bean.getFinantialInstitutions());
             setAdhocCustomer(adhocCustomer, model);
 
@@ -143,11 +143,11 @@ public class AdhocCustomerController extends TreasuryBaseController {
     }
 
     @Atomic
-    public Customer createAdhocCustomer(CustomerType customerType, String name, String fiscalNumber,
-            String identificationNumber, final String address, final String districtSubdivision, final String zipCode,
+    public Customer createAdhocCustomer(CustomerType customerType, String name, String fiscalNumber, String identificationNumber,
+            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
             final String countryCode) {
-        Customer adhocCustomer = AdhocCustomer.create(customerType, fiscalNumber, name, address, districtSubdivision,
-                zipCode, countryCode, identificationNumber);
+        Customer adhocCustomer = AdhocCustomer.create(customerType, fiscalNumber, name, address, districtSubdivision, zipCode,
+                addressCountryCode, countryCode, identificationNumber);
         return adhocCustomer;
     }
 
@@ -175,8 +175,8 @@ public class AdhocCustomerController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(model);
 
             adhocCustomer.registerFinantialInstitutions(bean.getFinantialInstitutions());
-            updateAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getFiscalNumber(),
-                    bean.getIdentificationNumber(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(),
+            updateAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getFiscalNumber(), bean.getIdentificationNumber(),
+                    bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(), bean.getAddressCountryCode(),
                     bean.getCountryCode(), model);
 
             return redirect(CustomerController.READ_URL + getAdhocCustomer(model).getExternalId(), model, redirectAttributes);
@@ -189,12 +189,12 @@ public class AdhocCustomerController extends TreasuryBaseController {
     }
 
     @Atomic
-    public void updateAdhocCustomer(final CustomerType customerType, final String name,
-            final String fiscalNumber, final String identificationNumber, final String address, final String districtSubdivision,
-            final String zipCode, final String countryCode, final Model model) {
+    public void updateAdhocCustomer(final CustomerType customerType, final String name, final String fiscalNumber,
+            final String identificationNumber, final String address, final String districtSubdivision, final String zipCode,
+            final String addressCountryCode, final String countryCode, final Model model) {
         if (getAdhocCustomer(model).isAdhocCustomer()) {
             ((AdhocCustomer) getAdhocCustomer(model)).edit(customerType, fiscalNumber, name, address, districtSubdivision,
-                    zipCode, countryCode, identificationNumber);
+                    zipCode, addressCountryCode, countryCode, identificationNumber);
         }
     }
 }

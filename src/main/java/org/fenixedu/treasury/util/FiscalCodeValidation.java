@@ -6,10 +6,10 @@ public class FiscalCodeValidation {
 
     public static boolean isValidFiscalNumber(final String countryCode, final String fiscalNumber) {
         return (!Strings.isNullOrEmpty(countryCode) && !Constants.isDefaultCountry(countryCode))
-                || FiscalCodeValidation.isValidcontrib(fiscalNumber);
+                || FiscalCodeValidation.isValidcontrib(countryCode, fiscalNumber);
     }
 
-    public static boolean isValidcontrib(String contrib) {
+    public static boolean isValidcontrib(final String countryCode, final String contrib) {
         boolean functionReturnValue = false;
         functionReturnValue = false;
         int i = 0;

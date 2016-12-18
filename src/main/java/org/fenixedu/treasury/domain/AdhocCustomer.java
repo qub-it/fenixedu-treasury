@@ -46,14 +46,14 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     public boolean isAdhocCustomer() {
         return true;
     }
-    
+
     @Override
     public boolean isActive() {
         return true;
     }
 
-    protected AdhocCustomer(final CustomerType customerType, final String fiscalNumber, final String name,
-            final String address, final String districtSubdivision, final String zipCode, final String countryCode,
+    protected AdhocCustomer(final CustomerType customerType, final String fiscalNumber, final String name, final String address,
+            final String districtSubdivision, final String zipCode, final String addressCountryCode, final String countryCode,
             final String identificationNumber) {
         this();
         setCustomerType(customerType);
@@ -63,6 +63,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setAddress(address);
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
+        setAddressCountryCode(addressCountryCode);
         setCountryCode(countryCode);
         setIdentificationNumber(identificationNumber);
 
@@ -72,7 +73,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     @Override
     protected void checkRules() {
         super.checkRules();
-
     }
 
     @Override
@@ -81,8 +81,8 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Atomic
-    public void edit(final CustomerType customerType, final String fiscalNumber, final String name,
-            final String address, final String districtSubdivision, final String zipCode, final String countryCode,
+    public void edit(final CustomerType customerType, final String fiscalNumber, final String name, final String address,
+            final String districtSubdivision, final String zipCode, final String addressCountryCode, final String countryCode,
             final String identificationNumber) {
         setCustomerType(customerType);
         setFiscalNumber(fiscalNumber);
@@ -90,6 +90,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setAddress(address);
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
+        setAddressCountryCode(addressCountryCode);
         setCountryCode(countryCode);
         setIdentificationNumber(identificationNumber);
 
@@ -120,11 +121,11 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Atomic
-    public static AdhocCustomer create(final CustomerType customerType, final String fiscalNumber,
-            final String name, final String address, final String districtSubdivision, final String zipCode,
+    public static AdhocCustomer create(final CustomerType customerType, final String fiscalNumber, final String name,
+            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
             final String countryCode, final String identificationNumber) {
-        return new AdhocCustomer(customerType, fiscalNumber, name, address, districtSubdivision, zipCode, countryCode,
-                identificationNumber);
+        return new AdhocCustomer(customerType, fiscalNumber, name, address, districtSubdivision, zipCode, addressCountryCode,
+                countryCode, identificationNumber);
     }
 
     public static Stream<AdhocCustomer> findAll() {
@@ -183,12 +184,12 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     public String getDistrict() {
         return getDistrictSubdivision();
     }
-    
+
     @Override
     public String getNationalityCountryCode() {
         return null;
     }
-    
+
     @Override
     public String getFiscalCountry() {
         return getCountryCode();
@@ -203,5 +204,5 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     public String getPhoneNumber() {
         throw new RuntimeException("not supported");
     }
-    
+
 }
