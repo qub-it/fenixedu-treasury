@@ -181,7 +181,8 @@ public class DebtAccountController extends TreasuryBaseController {
     private boolean isInvalidFiscalCode(final DebtAccount debtAccount) {
         return !Strings.isNullOrEmpty(debtAccount.getCustomer().getFiscalCountry())
                 && Constants.isDefaultCountry(debtAccount.getCustomer().getFiscalCountry())
-                && !FiscalCodeValidation.isValidcontrib(debtAccount.getCustomer().getFiscalNumber());
+                && !FiscalCodeValidation.isValidcontrib(debtAccount.getCustomer().getFiscalCountry(),
+                        debtAccount.getCustomer().getFiscalNumber());
     }
 
     @RequestMapping(value = "/read/{oid}/createreimbursement")
@@ -317,7 +318,7 @@ public class DebtAccountController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(debtAccount.getFinantialInstitution(), model);
             List<FinantialDocument> pendingDocuments = new ArrayList(debtAccount.getFinantialDocumentsSet().stream()
                     .filter(d -> d.isDocumentSeriesNumberSet()).collect(Collectors.toSet()));
-            
+
             if (pendingDocuments.size() > 0) {
                 final IERPExporter erpExporter = debtAccount.getFinantialInstitution().getErpIntegrationConfiguration()
                         .getERPExternalServiceImplementation().getERPExporter();

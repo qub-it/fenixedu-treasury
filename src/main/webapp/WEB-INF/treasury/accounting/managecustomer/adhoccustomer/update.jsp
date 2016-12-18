@@ -295,6 +295,32 @@ ${portal.angularToolkit()}
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
                     <spring:message
+                        code="label.AdhocCustomer.addressCountryCode" />
+                </div>
+
+                <div class="col-sm-10">
+                	<c:if test="${adhocCustomer.personCustomer}">
+	                    <input id="adhocCustomer_addressCountryCode"
+	                        class="form-control" type="text"
+	                        ng-model="object.addressCountryCode"
+	                        name="addresscountrycode"
+	                        value='<c:out value='${not empty param.addresscountrycode ? param.addresscountrycode : adhocCustomer.addressCountryCode }'/>' readonly="readonly" />
+					</c:if>
+					
+                	<c:if test="${adhocCustomer.adhocCustomer}">
+	                    <ui-select id="adhocCustomer_addressCountryCode"
+	                        ng-model="$parent.object.addressCountryCode" theme="bootstrap"> 
+	                        <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
+	                        <ui-select-choices repeat="c.id as c in object.countryCodesDataSource | filter: $select.search">
+			                    <span ng-bind-html="c.text | highlight: $select.search"></span>
+	                    	</ui-select-choices>
+	                    </ui-select>
+					</c:if>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message
                         code="label.AdhocCustomer.countryCode" />
                 </div>
 

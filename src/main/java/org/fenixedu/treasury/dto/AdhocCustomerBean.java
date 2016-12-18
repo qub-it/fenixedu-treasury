@@ -53,6 +53,7 @@ public class AdhocCustomerBean implements IBean {
     private String address;
     private String districtSubdivision;
     private String zipCode;
+    private String addressCountryCode;
     private String countryCode;
     private List<FinantialInstitution> finantialInstitutions;
 
@@ -111,6 +112,14 @@ public class AdhocCustomerBean implements IBean {
     public void setZipCode(java.lang.String value) {
         zipCode = value;
     }
+    
+    public String getAddressCountryCode() {
+        return addressCountryCode;
+    }
+    
+    public void setAddressCountryCode(String addressCountryCode) {
+        this.addressCountryCode = addressCountryCode;
+    }
 
     public java.lang.String getCountryCode() {
         return countryCode;
@@ -144,6 +153,7 @@ public class AdhocCustomerBean implements IBean {
         this.setAddress(customer.getAddress());
         this.setDistrictSubdivision(customer.getDistrictSubdivision());
         this.setZipCode(customer.getZipCode());
+        this.setAddressCountryCode(customer.getAddressCountryCode());
         this.setCountryCode(customer.getCountryCode());
         this.setFinantialInstitutions(customer.getDebtAccountsSet().stream().filter(x -> x.getClosed() == false)
                 .map(x -> x.getFinantialInstitution()).collect(Collectors.toList()));

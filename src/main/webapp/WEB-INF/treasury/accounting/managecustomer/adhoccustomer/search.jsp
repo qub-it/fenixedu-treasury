@@ -87,6 +87,7 @@ ${portal.toolkit()}
 					<%--!!!  Field names here --%>
 <th><spring:message code="label.AdhocCustomer.code"/></th>
 <th><spring:message code="label.AdhocCustomer.name"/></th>
+<th><spring:message code="label.AdhocCustomer.fiscalCountry"/></th>
 <th><spring:message code="label.AdhocCustomer.fiscalNumber"/></th>
 <th><spring:message code="label.AdhocCustomer.identificationNumber"/></th>
 <%-- Operations Column --%>
@@ -116,6 +117,7 @@ ${portal.toolkit()}
 				"DT_RowId" : '<c:out value='${searchResult.externalId}'/>',
 "code" : "<c:out value='${searchResult.code}'/>",
 "name" : "<c:out value='${searchResult.name}'/>",
+"fiscalcountry" : "<c:out value='${searchResult.fiscalCountry}'/>",
 "fiscalnumber" : "<c:out value='${searchResult.fiscalNumber}'/>",
 "identificationnumber" : "<c:out value='${searchResult.identificationNumber}'/>",
 "actions" :
@@ -136,6 +138,7 @@ ${portal.toolkit()}
 		"columns": [
 			{ data: 'code' },
 			{ data: 'name' },
+			{ data: 'fiscalcountry' },
 			{ data: 'fiscalnumber' },
 			{ data: 'identificationnumber' },
 			{ data: 'actions',className:"all" }
