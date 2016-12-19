@@ -1308,7 +1308,6 @@ relation TreasuryEventDebtAccount {
 	}
 }
 
-
 /* --- FinantialDocument --- */
 
 relation FinantialDocumentBennu {

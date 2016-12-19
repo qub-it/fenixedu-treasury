@@ -185,7 +185,7 @@ public class DebtAccount extends DebtAccount_Base {
     }
 
     public boolean isDeletable() {
-        return this.getFinantialDocumentsSet().isEmpty() && getInvoiceEntrySet().isEmpty() && getTreasuryEventsSet().isEmpty();
+        return this.getFinantialDocumentsSet().isEmpty() && getInvoiceEntrySet().isEmpty();
     }
 
     @Atomic

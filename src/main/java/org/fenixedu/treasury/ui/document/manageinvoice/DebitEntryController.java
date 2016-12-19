@@ -184,8 +184,8 @@ public class DebitEntryController extends TreasuryBaseController {
             }
             this.setDebitEntryBean(bean, model);
 
-            model.addAttribute("DebitEntry_event_options",
-                    TreasuryEvent.findActiveBy(debtAccount).collect(Collectors.<TreasuryEvent> toList()));
+//            model.addAttribute("DebitEntry_event_options",
+//                    TreasuryEvent.findActiveBy(debtAccount).collect(Collectors.<TreasuryEvent> toList()));
 
             if (debitNote == null) {
                 addInfoMessage(BundleUtil.getString(Constants.BUNDLE,
@@ -350,8 +350,8 @@ public class DebitEntryController extends TreasuryBaseController {
 
         if (debitEntry.getFinantialDocument() == null || !debitEntry.getFinantialDocument().isAnnulled()) {
             setDebitEntryBean(new DebitEntryBean(debitEntry), model);
-            model.addAttribute("DebitEntry_event_options",
-                    TreasuryEvent.findActiveBy(debitEntry.getDebtAccount()).collect(Collectors.<TreasuryEvent> toList()));
+//            model.addAttribute("DebitEntry_event_options",
+//                    TreasuryEvent.findActiveBy(debitEntry.getDebtAccount()).collect(Collectors.<TreasuryEvent> toList()));
             setDebitEntry(debitEntry, model);
             return "treasury/document/manageinvoice/debitentry/update";
         } else {
