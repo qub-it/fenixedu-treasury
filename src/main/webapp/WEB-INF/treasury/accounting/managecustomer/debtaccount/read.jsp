@@ -421,7 +421,7 @@ ${portal.angularToolkit()}
 <c:if test="${!debtAccount.customer.active}">
     <div class="alert alert-warning">
     	<span class="glyphicon glyphicon-exclamation-sign"></span>
-    	<strong><spring:message code="warning.Customer.is.inactive.due.merge.message" /></strong>
+    	<strong><spring:message code="warning.Customer.is.inactive.due.merge.or.fiscal.change.message" /></strong>
    	</div>
 </c:if>
 

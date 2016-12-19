@@ -180,8 +180,11 @@ ${portal.toolkit()}
                 <tbody>
 			                   <c:forEach var="debtAccount" items='${customer.debtAccountsSet}'>
 			                       <tr>
-			                           <th scope="row" class="col-xs-3"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
-			                           <td style="vertical-align: middle">
+			                           <th scope="row" class="col-xs-4"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
+			                           <td class="col-xs-2">
+			                           		<c:out value="${debtAccount.customer.countryCode}" />&nbsp;-&nbsp;<c:out value="${debtAccount.customer.fiscalNumber}" />
+			                           </td>
+			                           <td >
 			                               <div class="col-xs-3">
 			                                   <c:out value="${debtAccount.finantialInstitution.currency.getValueFor(debtAccount.totalInDebt + debtAccount.calculatePendingInterestAmount())}" />
 			                               </div> &nbsp;&nbsp;<a class="btn btn-primary btn-xs"
@@ -200,13 +203,18 @@ ${portal.toolkit()}
 			                   <c:forEach var="inactiveCustomer" items='${customer.person.inactivePersonCustomersSet}'>
 				                   <c:forEach var="debtAccount" items='${inactiveCustomer.debtAccountsSet}'>
 				                       <tr>
-				                           <th scope="row" class="col-xs-3">
+				                           <th scope="row" class="col-xs-4">
 				                           	<c:out value="${debtAccount.finantialInstitution.name}" />
 			                               <c:if test="${!inactiveCustomer.active}">
-			                                   <p><span class="label label-warning"><spring:message code="warning.Customer.is.inactive.due.merge" /></span></p>
+			                                   <p><span class="label label-warning">
+			                                   	<spring:message code="warning.Customer.is.inactive.due.merge.or.fiscal.change" />
+			                                   </span></p>
 			                               </c:if>
 				                           </th>
-				                           <td style="vertical-align: middle">
+				                           <td class="col-xs-2">
+				                           		<c:out value="${debtAccount.customer.countryCode}" />&nbsp;-&nbsp;<c:out value="${debtAccount.customer.fiscalNumber}" />
+				                           </td>
+				                           <td>
 				                               <div class="col-xs-3">
 				                                   <c:out value="${debtAccount.finantialInstitution.currency.getValueFor(debtAccount.totalInDebt + debtAccount.calculatePendingInterestAmount())}" />
 				                               </div> &nbsp;&nbsp;<a class="btn btn-primary btn-xs"
@@ -233,8 +241,5 @@ ${portal.toolkit()}
 </div>
 
 <script>
-	$(document).ready(function() {
-
-
-	});
+	$(document).ready(function() {});
 </script>
