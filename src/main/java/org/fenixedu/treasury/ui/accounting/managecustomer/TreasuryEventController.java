@@ -31,7 +31,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.exceptions.DomainException;
+import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
+import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.DebitEntry;
@@ -92,7 +96,8 @@ public class TreasuryEventController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/")
-    public String searchTreasuryEvents(@RequestParam(value = "debtaccount", required = true) DebtAccount debtAccount, Model model) {
+    public String searchTreasuryEvents(@RequestParam(value = "debtaccount", required = true) DebtAccount debtAccount,
+            Model model) {
         List<? extends TreasuryEvent> searchtreasuryeventsResultsDataSet = filterSearchTreasuryEvents(debtAccount);
 
         model.addAttribute("debtAccount", debtAccount);
@@ -100,32 +105,28 @@ public class TreasuryEventController extends TreasuryBaseController {
         return "treasury/accounting/managecustomer/treasuryevent/search";
     }
 
-    private Stream<? extends TreasuryEvent> getSearchUniverseSearchTreasuryEventsDataSet() {
-        return TreasuryEvent.findAll();
-
+    private List<? extends TreasuryEvent> filterSearchTreasuryEvents(final DebtAccount debtAccount) {
+        return TreasuryEvent.find(debtAccount.getCustomer()).collect(Collectors.<TreasuryEvent> toList());
     }
 
-    private List<? extends TreasuryEvent> filterSearchTreasuryEvents(DebtAccount debtAccount) {
-        return Lists.newArrayList();
-//        return getSearchUniverseSearchTreasuryEventsDataSet().filter(x -> x.getDebtAccount() == debtAccount).collect(
-//                Collectors.<TreasuryEvent> toList());
+    @RequestMapping(value = "/search/view/{debtAccountId}/{oid}")
+    public String processSearchTreasuryEventsToViewAction(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("oid") final TreasuryEvent treasuryEvent, final Model model,
+            final RedirectAttributes redirectAttributes) {
+
+        return redirect(String.format("/treasury/accounting/managecustomer/treasuryevent/read/%s/%s", debtAccount.getExternalId(),
+                treasuryEvent.getExternalId()), model, redirectAttributes);
     }
 
-    @RequestMapping(value = "/search/view/{oid}")
-    public String processSearchTreasuryEventsToViewAction(@PathVariable("oid") TreasuryEvent treasuryEvent, Model model,
-            RedirectAttributes redirectAttributes) {
+    @RequestMapping(value = "/read/{debtAccountId}/{oid}")
+    public String read(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("oid") final TreasuryEvent treasuryEvent, final Model model) {
 
-        return redirect("/treasury/accounting/managecustomer/treasuryevent/read" + "/" + treasuryEvent.getExternalId(), model,
-                redirectAttributes);
-    }
-
-//				
-    @RequestMapping(value = "/read/{oid}")
-    public String read(@PathVariable("oid") TreasuryEvent treasuryEvent, Model model) {
-        model.addAttribute(
-                "allActiveDebitEntriesDataSet",
-                DebitEntry.find(treasuryEvent).sorted(DebitEntry.COMPARE_BY_EVENT_ANNULED_AND_DUE_DATE)
-                        .collect(Collectors.<DebitEntry> toList()));
+        model.addAttribute("debtAccount", debtAccount);
+        model.addAttribute("allActiveDebitEntriesDataSet", DebitEntry.find(treasuryEvent)
+                .sorted(DebitEntry.COMPARE_BY_EVENT_ANNULED_AND_DUE_DATE).collect(Collectors.<DebitEntry> toList()));
 
         model.addAttribute("allActiveCreditEntriesDataSet",
                 CreditEntry.find(treasuryEvent).collect(Collectors.<CreditEntry> toList()));
@@ -134,8 +135,10 @@ public class TreasuryEventController extends TreasuryBaseController {
         return "treasury/accounting/managecustomer/treasuryevent/read";
     }
 
-    @RequestMapping(value = ANNULDEBITENTRY_URI + "{treasuryEventId}/{debitEntryId}")
-    public String anullDebitEntry(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent,
+    @RequestMapping(value = ANNULDEBITENTRY_URI + "{debtAccountId}/{treasuryEventId}/{debitEntryId}")
+    public String anullDebitEntry(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent,
             @PathVariable("debitEntryId") final DebitEntry debitEntry, final Model model) {
 
         try {
@@ -149,11 +152,13 @@ public class TreasuryEventController extends TreasuryBaseController {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
 
-        return read(treasuryEvent, model);
+        return read(debtAccount, treasuryEvent, model);
     }
 
-    @RequestMapping(value = REVERTANNULDEBITENTRY_URI + "{treasuryEventId}/{debitEntryId}")
-    public String revertAnullDebitEntry(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent,
+    @RequestMapping(value = REVERTANNULDEBITENTRY_URI + "{debtAccountId}/{treasuryEventId}/{debitEntryId}")
+    public String revertAnullDebitEntry(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent,
             @PathVariable("debitEntryId") final DebitEntry debitEntry, final Model model) {
 
         try {
@@ -167,17 +172,20 @@ public class TreasuryEventController extends TreasuryBaseController {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
 
-        return read(treasuryEvent, model);
+        return read(debtAccount, treasuryEvent, model);
     }
 
     private static final String ANNULALLDEBITENTRIES_URI = "/annulalldebitentries/";
     public static final String ANNULALLDEBITENTRIES_URL = CONTROLLER_URL + ANNULALLDEBITENTRIES_URI;
 
-    @RequestMapping(value = ANNULALLDEBITENTRIES_URI + "{treasuryEventId}")
-    public String annulAllDebitEntries(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, @RequestParam(
-            value = "treasuryEventAnullDebitEntriesReason", required = false) final String reason, final Model model) {
+    @RequestMapping(value = ANNULALLDEBITENTRIES_URI + "{debtAccountId}/{treasuryEventId}")
+    public String annulAllDebitEntries(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent,
+            @RequestParam(value = "treasuryEventAnullDebitEntriesReason", required = false) final String reason,
+            final Model model) {
         try {
-//            assertUserIsFrontOfficeMember(treasuryEvent.getDebtAccount().getFinantialInstitution(), model);
+            assertUserIsFrontOfficeMember(model);
 
             if (Strings.isNullOrEmpty(reason)) {
                 addErrorMessage(Constants.bundle("label.TreasuryEvent.annulAllDebitEntries.reason.required"), model);
@@ -191,30 +199,7 @@ public class TreasuryEventController extends TreasuryBaseController {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
 
-        return read(treasuryEvent, model);
+        return read(debtAccount, treasuryEvent, model);
     }
-    
-//    private static final String _TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI = "/transfereventotherdebtaccount";
-//    public static final String TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URL = CONTROLLER_URL + _TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI;
-//    
-//    @RequestMapping(value =_TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URI + "/{treasuryEventId}")
-//    public String transferEventOtherDebtAccount(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, 
-//            @RequestParam(value="debtAccountId", required=false) DebtAccount debtAccount, 
-//            final Model model, final RedirectAttributes redirectAttributes) {
-//        try {
-//            assertUserIsFrontOfficeMember(treasuryEvent.getDebtAccount().getFinantialInstitution(), model);
-//            
-//            treasuryEvent.transferToDebtAccount(debtAccount);
-//            
-//            addInfoMessage(Constants.bundle("label.TreasuryEvent.transfer.to.other.debt.success"), model);
-//            
-//            return redirect("/treasury/accounting/managecustomer/treasuryevent/read" + "/" + treasuryEvent.getExternalId(), model, redirectAttributes);
-//
-//        } catch(final DomainException e) {
-//            addErrorMessage(e.getLocalizedMessage(), model);
-//        }
-//        
-//        return read(treasuryEvent, model);
-//    }
-    
+
 }
