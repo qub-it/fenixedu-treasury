@@ -507,6 +507,10 @@ public class SettlementNoteController extends TreasuryBaseController {
         setSettlementNote(settlementNote, model);
 
         try {
+            if(settlementNote.isReimbursement()) {
+                throw new TreasuryDomainException("error.SettlementNote.reimbursement.must.be.rejected.in.erp");
+            }
+            
             assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
             anullReason = anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
                     + new DateTime().toString("YYYY-MM-dd HH:mm");
@@ -803,9 +807,24 @@ public class SettlementNoteController extends TreasuryBaseController {
             return null;
         } catch (final TreasuryDomainException | IOException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
-
-            return redirect(READ_URL + "/" + settlementNote.getExternalId(), model, redirectAttributes);
+            return read(settlementNote, model);
         }
+    }
+
+    private static final String _UPDATE_REIMBURSEMENT_STATE_URI = "/updatereimbursementstate";
+    public static final String UPDATE_REIMBURSEMENT_STATE_URL = CONTROLLER_URL + _UPDATE_REIMBURSEMENT_STATE_URI;
+
+    @RequestMapping(value = _UPDATE_REIMBURSEMENT_STATE_URI + "/{oid}", method = RequestMethod.POST)
+    public String updatereimbursementstate(@PathVariable("oid") final SettlementNote settlementNote, final Model model,
+            final RedirectAttributes redirectAttributes) {
+        try {
+            ERPExporterManager.updateReimbursementState(settlementNote);
+            return redirect(READ_URL + settlementNote.getExternalId(), model, redirectAttributes);
+        } catch(final DomainException e) {
+            addErrorMessage(e.getLocalizedMessage(), model);
+            return read(settlementNote, model);
+        }
+        
     }
 
 }

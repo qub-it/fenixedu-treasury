@@ -48,6 +48,7 @@ import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
+import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
@@ -74,6 +75,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -141,6 +143,17 @@ public class DebitNoteController extends TreasuryBaseController {
                 model.addAttribute("anullDebitNoteMessage", BundleUtil.getString(Constants.BUNDLE,
                         "label.document.manageInvoice.readDebitNote.confirmAnullWithCreditNote"));
             }
+
+            final List<String> errorMessages = Lists.newArrayList();
+            boolean validAddress = ERPCustomerFieldsBean.validateAddress(debitNote.getDebtAccount().getCustomer(), errorMessages);
+
+            if (debitNote.getPayorDebtAccount() != null) {
+                validAddress =
+                        ERPCustomerFieldsBean.validateAddress(debitNote.getPayorDebtAccount().getCustomer(), errorMessages);
+            }
+
+            model.addAttribute("validAddress", validAddress);
+            model.addAttribute("addressErrorMessages", errorMessages);
 
             return "treasury/document/manageinvoice/debitnote/read";
         } catch (Exception ex) {
@@ -755,17 +768,17 @@ public class DebitNoteController extends TreasuryBaseController {
 
         try {
             final byte[] contents = ERPExporterManager.downloadCertifiedDocumentPrint(debitNote);
-            
+
             response.setContentType("application/pdf");
             String filename = URLEncoder.encode(StringNormalizer
                     .normalizePreservingCapitalizedLetters((debitNote.getDebtAccount().getFinantialInstitution().getFiscalNumber()
                             + "_" + debitNote.getUiDocumentNumber() + ".pdf").replaceAll("/", "_").replaceAll("\\s", "_")
                                     .replaceAll(" ", "_")),
                     "Windows-1252");
-            
+
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
             response.getOutputStream().write(contents);
-            
+
             return null;
         } catch (final TreasuryDomainException | IOException e) {
             addErrorMessage(e.getLocalizedMessage(), model);

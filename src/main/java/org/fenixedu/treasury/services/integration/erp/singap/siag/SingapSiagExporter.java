@@ -101,6 +101,7 @@ import org.fenixedu.treasury.generated.sources.saft.singap.siag.TaxTableEntry;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.SaftConfig;
+import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.ReimbursementStateBean;
 import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.SIAGExternalService;
 import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.SINGAPWCFExternalService;
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentStatusWS;
@@ -1655,6 +1656,11 @@ public class SingapSiagExporter implements IERPExporter {
 
     @Override
     public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public ReimbursementStateBean checkReimbursementState(SettlementNote reimbursementNote) {
         throw new RuntimeException("not implemented");
     }
 

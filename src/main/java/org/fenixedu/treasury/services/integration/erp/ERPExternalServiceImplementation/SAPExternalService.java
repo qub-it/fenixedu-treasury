@@ -12,6 +12,7 @@ import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
+import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.IERPImporter;
@@ -145,22 +146,55 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
     }
 
-    public void checkReimbursementStateChange(final SettlementNote reimbursementNote) {
+    public ReimbursementStateBean checkReimbursementState(final SettlementNote reimbursementNote,
+            final IntegrationOperationLogBean logBean) {
         final ERPConfiguration erpConfiguration =
                 reimbursementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration();
         final ZULWSFATURACAOCLIENTESBLK client = getClient();
 
+        final SOAPLoggingHandler loggingHandler = SOAPLoggingHandler.createLoggingHandler((BindingProvider) client);
+
+        //Set Timeout for the client
+        Map<String, Object> requestContext = ((BindingProvider) client).getRequestContext();
+        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
+        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
+
         ZulwsReembolsosInput input = new ZulwsReembolsosInput();
         input.setFinantialDocumentNumber(reimbursementNote.getUiDocumentNumber());
         input.setIdProcesso(erpConfiguration.getErpIdProcess());
-        input.setTaxRegistrationNumber(reimbursementNote.getDebtAccount().getCustomer().getFiscalNumber());
+        input.setTaxRegistrationNumber(reimbursementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber());
 
         final ZulwsReembolsosOutput zulwsReembolsos = client.zulwsReembolsos(input);
+        logBean.defineSoapInboundMessage(loggingHandler.getInboundMessage());
+        logBean.defineSoapOutboundMessage(loggingHandler.getOutboundMessage());
+
         final Optional<ReimbursementProcessStatusType> reimbursementStatus =
                 ReimbursementProcessStatusType.findUniqueByCode(zulwsReembolsos.getReimbursementStatusCode());
 
-        reimbursementNote.processReimbursementStateChange(reimbursementStatus.get(), zulwsReembolsos.getExerciseYear(),
-                new DateTime(zulwsReembolsos.getReimbursementStatusDate()));
+        boolean success = true;
+        if (!reimbursementStatus.isPresent()) {
+            success = false;
+            logBean.appendErrorLog(
+                    String.format("Erro na leitura do estado do reembolso: '%s'", zulwsReembolsos.getReimbursementStatusCode()));
+        }
+
+        DateTime reimbursementStatusDate = null;
+        try {
+            reimbursementStatusDate = new DateTime(zulwsReembolsos.getReimbursementStatusDate());
+        } catch (final IllegalArgumentException e) {
+            success = false;
+            logBean.appendErrorLog("Erro na leitura da data: " + zulwsReembolsos.getReimbursementStatusDate());
+        }
+
+        if (Strings.isNullOrEmpty(zulwsReembolsos.getExerciseYear())) {
+            success = false;
+            logBean.appendErrorLog("Erro na leitura do ano de exercicio: " + zulwsReembolsos.getExerciseYear());
+        }
+
+        final ReimbursementStateBean stateBean = new ReimbursementStateBean(reimbursementNote, reimbursementStatus.orElse(null),
+                zulwsReembolsos.getExerciseYear(), reimbursementStatusDate, success);
+        
+        return stateBean;
     }
 
     @Override

@@ -52,9 +52,9 @@ public class SettlementNoteBean implements IBean, Serializable {
     private List<String> settlementNoteStateUrls;
 
     private Stack<Integer> previousStates;
-    
+
     private String finantialTransactionReferenceYear;
-    
+
     private String finantialTransactionReference;
 
     private boolean advancePayment;
@@ -82,6 +82,11 @@ public class SettlementNoteBean implements IBean, Serializable {
             if (invoiceEntry instanceof DebitEntry) {
                 debitEntries.add(new DebitEntryBean((DebitEntry) invoiceEntry));
             } else {
+                if (reimbursementNote
+                        && !(invoiceEntry.getFinantialDocument() != null && invoiceEntry.getFinantialDocument().isPreparing())) {
+                    continue;
+                }
+
                 creditEntries.add(new CreditEntryBean((CreditEntry) invoiceEntry));
             }
         }
@@ -95,7 +100,7 @@ public class SettlementNoteBean implements IBean, Serializable {
                         SettlementNoteController.CHOOSE_INVOICE_ENTRIES_URL, SettlementNoteController.CALCULATE_INTEREST_URL,
                         SettlementNoteController.CREATE_DEBIT_NOTE_URL, SettlementNoteController.INSERT_PAYMENT_URL,
                         SettlementNoteController.SUMMARY_URL);
-        
+
         this.advancePayment = false;
         this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
     }
@@ -334,19 +339,19 @@ public class SettlementNoteBean implements IBean, Serializable {
         return debitEntries.stream().anyMatch(deb -> deb.isIncluded() && deb.getDebitEntry().getFinantialDocument() == null)
                 || interestEntries.stream().anyMatch(deb -> deb.isIncluded());
     }
-    
+
     public String getFinantialTransactionReference() {
         return finantialTransactionReference;
     }
-    
+
     public void setFinantialTransactionReference(String finantialTransactionReference) {
         this.finantialTransactionReference = finantialTransactionReference;
     }
-    
+
     public String getFinantialTransactionReferenceYear() {
         return finantialTransactionReferenceYear;
     }
-    
+
     public void setFinantialTransactionReferenceYear(String finantialTransactionReferenceYear) {
         this.finantialTransactionReferenceYear = finantialTransactionReferenceYear;
     }
@@ -399,18 +404,18 @@ public class SettlementNoteBean implements IBean, Serializable {
         }
 
         public BigDecimal getDebtAmount() {
-            if(debtAmount == null) {
+            if (debtAmount == null) {
                 return null;
             }
-            
+
             return debitEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(debtAmount);
         }
 
         public BigDecimal getDebtAmountWithVat() {
-            if(debtAmount == null) {
+            if (debtAmount == null) {
                 return null;
             }
-            
+
             return debitEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(debtAmount);
         }
 
@@ -475,18 +480,18 @@ public class SettlementNoteBean implements IBean, Serializable {
         }
 
         public BigDecimal getCreditAmount() {
-            if(creditAmount == null) {
+            if (creditAmount == null) {
                 return null;
             }
-            
+
             return creditEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(creditAmount);
         }
 
         public BigDecimal getCreditAmountWithVat() {
-            if(creditAmount == null) {
+            if (creditAmount == null) {
                 return null;
             }
-            
+
             return creditEntry.getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(creditAmount);
         }
 
@@ -563,7 +568,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         private PaymentMethod paymentMethod;
 
         private String paymentMethodId;
-        
+
         public PaymentEntryBean() {
             this.paymentAmount = BigDecimal.ZERO;
         }
@@ -596,7 +601,7 @@ public class SettlementNoteBean implements IBean, Serializable {
         public void setPaymentMethodId(String paymentMethodId) {
             this.paymentMethodId = paymentMethodId;
         }
-        
+
     }
 
     public class VatAmountBean implements IBean, Serializable {

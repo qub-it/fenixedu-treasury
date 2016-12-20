@@ -8,6 +8,8 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
@@ -77,8 +79,8 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
             output.setRequestId(resposta.getChavePrimaria().getValue());
             DocumentStatusWS status = new DocumentStatusWS();
             status.setDocumentNumber(resposta.getChavePrimaria().getValue());
-            status.setErrorDescription(String.format("[STATUS: %s] - %s", resposta.getStatus().getValue(), resposta.getMensagem()
-                    .getValue()));
+            status.setErrorDescription(
+                    String.format("[STATUS: %s] - %s", resposta.getStatus().getValue(), resposta.getMensagem().getValue()));
             status.setIntegrationStatus(covertToStatusType(resposta.getStatus().getValue()));
             output.getDocumentStatus().add(status);
         }
@@ -144,5 +146,11 @@ public class SINGAPWCFExternalService extends BennuWebServiceClient<IWCFServiceW
             final String erpIdProcess) {
         throw new RuntimeException("not implemented");
     }
-    
+
+    @Override
+    public ReimbursementStateBean checkReimbursementState(SettlementNote reimbursementNote,
+            final IntegrationOperationLogBean logBean) {
+        throw new RuntimeException("not implemented");
+    }
+
 }

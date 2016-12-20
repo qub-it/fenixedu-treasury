@@ -174,6 +174,20 @@ ${portal.toolkit()}
                             </pre></td>
                     </tr>
                     <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.ERPExportOperation.soapOutboundMessage" /></th>
+                        <td><a href="${pageContext.request.contextPath}/treasury/integration/erp/erpimportoperation/soapoutboundmessage/${eRPImportOperation.externalId}">
+                        	<spring:message code="label.event.integration.erp.downloadFile" />
+                        </a></td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
+                                code="label.ERPExportOperation.soapInboundMessage" /></th>
+                        <td><a href="${pageContext.request.contextPath}/treasury/integration/erp/erpimportoperation/soapinboundmessage/${eRPImportOperation.externalId}">
+                        	<spring:message code="label.event.integration.erp.downloadFile" />
+                        </a></td>
+                    </tr>
+                    <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.ERPImportOperation.finantialDocuments" /></th>
                         <td>
                             <ul>

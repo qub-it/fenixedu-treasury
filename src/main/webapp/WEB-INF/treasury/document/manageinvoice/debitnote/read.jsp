@@ -404,12 +404,14 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
 					<c:if test="${debitNote.documentToExport}">
+					<c:if test="${validAddress}">
                     <li>
                     	<a id="exportDebitNoteIntegrationOnline" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/read/${debitNote.externalId}/exportintegrationonline">
 	                    	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
 	                    	<spring:message code="label.event.document.manageInvoice.exportDebitNoteIntegrationOnline" />
                     	</a>
                     </li>
+					</c:if>
                     </c:if>
                             
                     <li><a href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/read/${debitNote.externalId}/exportintegrationfile">
@@ -473,6 +475,22 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
             </p>
         </c:forEach>
     </div>
+</c:if>
+
+<c:if test="${not validAddress}">
+	<div class="alert alert-danger" role="alert">
+	    <p>
+	    	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
+			<spring:message code="label.DebtAccountController.incompleteAddress" />
+		</p>
+		
+	<c:forEach items="${addressErrorMessages}" var="m">
+		<p>
+	    	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true">&nbsp;</span>
+			<c:out value="${m}" />
+		</p>
+	</c:forEach>
+	</div>	
 </c:if>
 
 <div class="panel panel-primary">
@@ -650,6 +668,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 
 <p></p>
 <p></p>
+
 <h2>
     <spring:message code="label.DebitNote.debitEntries" />
 </h2>

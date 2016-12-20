@@ -1603,7 +1603,7 @@ class document.reimbursement.ReimbursementProcessStatusType {
 	boolean initialStatus;
 	boolean finalStatus;
 	int orderNumber;
-	boolean annuledStatus;
+	boolean rejectedStatus;
 }
 
 	relation ReimbursementProcessStatusTypeBennu {

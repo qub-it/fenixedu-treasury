@@ -46,6 +46,7 @@ import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
+import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
@@ -69,6 +70,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -106,6 +108,18 @@ public class CreditNoteController extends TreasuryBaseController {
     @RequestMapping(value = _READ_URI + "{oid}")
     public String read(@PathVariable("oid") CreditNote creditNote, Model model) {
         setCreditNote(creditNote, model);
+        
+        final List<String> errorMessages = Lists.newArrayList();
+        boolean validAddress = ERPCustomerFieldsBean.validateAddress(creditNote.getDebtAccount().getCustomer(), errorMessages);
+
+        if (creditNote.getPayorDebtAccount() != null) {
+            validAddress =
+                    ERPCustomerFieldsBean.validateAddress(creditNote.getPayorDebtAccount().getCustomer(), errorMessages);
+        }
+
+        model.addAttribute("validAddress", validAddress);
+        model.addAttribute("addressErrorMessages", errorMessages);
+        
         return "treasury/document/manageinvoice/creditnote/read";
     }
 
