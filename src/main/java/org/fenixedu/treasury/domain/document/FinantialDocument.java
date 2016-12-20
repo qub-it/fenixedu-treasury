@@ -246,6 +246,10 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     public boolean isPreparing() {
         return this.getState().equals(FinantialDocumentStateType.PREPARING);
     }
+    
+    public boolean isExportedInLegacyERP() {
+        return false;
+    }
 
     @Atomic
     public final void closeDocument() {

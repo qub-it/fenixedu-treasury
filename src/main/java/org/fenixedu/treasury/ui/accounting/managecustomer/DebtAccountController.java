@@ -39,7 +39,10 @@ import org.fenixedu.bennu.TupleDataSourceBean;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
+import org.fenixedu.treasury.domain.document.CreditEntry;
+import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
@@ -172,12 +175,12 @@ public class DebtAccountController extends TreasuryBaseController {
 
     private void checkIncompleteAddress(final DebtAccount debtAccount, final Model model) {
         final List<String> errorMessages = Lists.newArrayList();
-        final boolean validAddress = ERPCustomerFieldsBean.validateAddress(debtAccount.getCustomer(), errorMessages);
+        final boolean validAddress = ERPCustomerFieldsBean.checkIncompleteAddressForDebtAccountAndPayors(debtAccount, errorMessages);
 
         model.addAttribute("validAddress", validAddress);
         model.addAttribute("addressErrorMessages", errorMessages);
     }
-
+    
     private boolean isInvalidFiscalCode(final DebtAccount debtAccount) {
         return !Strings.isNullOrEmpty(debtAccount.getCustomer().getFiscalCountry())
                 && Constants.isDefaultCountry(debtAccount.getCustomer().getFiscalCountry())

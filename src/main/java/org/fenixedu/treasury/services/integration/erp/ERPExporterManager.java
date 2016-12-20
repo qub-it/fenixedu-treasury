@@ -3,15 +3,21 @@ package org.fenixedu.treasury.services.integration.erp;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.scheduler.TaskRunner;
 import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStateLog;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
+import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.ReimbursementStateBean;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
+import org.fenixedu.treasury.util.Constants;
 
 import com.google.common.collect.Lists;
 
@@ -59,7 +65,7 @@ public class ERPExporterManager {
 
         if (finantialInstitution.getErpIntegrationConfiguration().getExportOnlyRelatedDocumentsPerExport()) {
             final List<ERPExportOperation> result = Lists.newArrayList();
-            
+
             while (!sortedDocuments.isEmpty()) {
                 final FinantialDocument doc = sortedDocuments.iterator().next();
 
@@ -75,7 +81,6 @@ public class ERPExporterManager {
 
         return Lists.newArrayList(erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, sortedDocuments));
     }
-
 
     public static void scheduleSingleDocument(final FinantialDocument finantialDocument) {
         if (finantialDocument.isCreditNote()) {
@@ -107,25 +112,58 @@ public class ERPExporterManager {
         erpExporter.requestPendingDocumentStatus(finantialInstitution);
 
     }
-    
+
     public static ERPExportOperation retryExportToIntegration(final ERPExportOperation eRPExportOperation) {
-        final IERPExporter erpExporter = eRPExportOperation.getFinantialInstitution().getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
-        
+        final IERPExporter erpExporter = eRPExportOperation.getFinantialInstitution().getErpIntegrationConfiguration()
+                .getERPExternalServiceImplementation().getERPExporter();
+
         ERPExportOperation retryExportOperation = erpExporter.retryExportToIntegration(eRPExportOperation);
-        
+
         return retryExportOperation;
     }
-    
+
     public static byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
         final FinantialInstitution finantialInstitution = finantialDocument.getDebtAccount().getFinantialInstitution();
-        
+
         final IERPExporter erpExporter =
                 finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
 
         if (!finantialInstitution.getErpIntegrationConfiguration().getActive()) {
-            throw new TreasuryDomainException("error.ERPExporterManager.downloadCertifiedDocumentPrint.integration.not.active");
+            throw new TreasuryDomainException("error.ERPExporterManager.integration.not.active");
         }
-        
+
         return erpExporter.downloadCertifiedDocumentPrint(finantialDocument);
     }
+
+    public static void updateReimbursementState(final SettlementNote reimbursementNote) {
+        final FinantialInstitution finantialInstitution = reimbursementNote.getDebtAccount().getFinantialInstitution();
+
+        final IERPExporter erpExporter =
+                finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+
+        if (!finantialInstitution.getErpIntegrationConfiguration().getActive()) {
+            throw new TreasuryDomainException("error.ERPExporterManager.integration.not.active");
+        }
+
+        if (!reimbursementNote.isReimbursement()) {
+            throw new RuntimeException("error");
+        }
+
+        final ReimbursementStateBean reimbursementStateBean = erpExporter.checkReimbursementState(reimbursementNote);
+        if (reimbursementStateBean == null) {
+            throw new TreasuryDomainException("error.ERPExporterManager.reimbursementStatusBean.null");
+        }
+
+        if (reimbursementStateBean.getReimbursementProcessStatus() == null) {
+            throw new TreasuryDomainException("error.ERPExporterManager.reimbursementStatus.unknown");
+        }
+
+        ReimbursementProcessStateLog.create(reimbursementNote, reimbursementStateBean.getReimbursementProcessStatus(),
+                UUID.randomUUID().toString(), reimbursementStateBean.getReimbursementStateDate(),
+                reimbursementStateBean.getExerciseYear());
+
+        reimbursementNote.processReimbursementStateChange(reimbursementStateBean.getReimbursementProcessStatus(),
+                reimbursementStateBean.getExerciseYear(), reimbursementStateBean.getReimbursementStateDate());
+    }
+
 }

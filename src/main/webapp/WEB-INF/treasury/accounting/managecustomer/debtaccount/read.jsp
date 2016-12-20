@@ -252,10 +252,15 @@ ${portal.angularToolkit()}
                         <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp; <spring:message code="label.AcademicActBlockingSuspensionController.link" />
                 </a></li>
             </c:if>
+            <c:if test="${validAddress}">
             <li>
-            	<a id="exportintegrationline" class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/exportintegrationonline"><span
-                    class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.exportintegrationline" /></a> &nbsp;
+            	<a id="exportintegrationline" class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/exportintegrationonline">
+            	<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;
+            	<spring:message code="label.event.accounting.manageCustomer.exportintegrationline" />
+            	</a>
             </li>
+            </c:if>
+            
 			<% if(ForwardPaymentConfiguration.isActive(debtAccount.getFinantialInstitution())) { %>
             <li>
             	<a id="exportintegrationline"
@@ -769,7 +774,9 @@ ${portal.angularToolkit()}
                             <datatables:columnHead>
                                 <spring:message code="label.SettlementNote.paymentDate" />
                             </datatables:columnHead>
-                            <c:out value='${payment.paymentDate.toString("YYYY-MM-dd")}' />
+                            <c:if test="${not payment.reimbursement}">
+	                            <c:out value='${payment.paymentDate.toString("YYYY-MM-dd")}' />
+                            </c:if>
                         </datatables:column>
                         <datatables:column>
                             <datatables:columnHead>

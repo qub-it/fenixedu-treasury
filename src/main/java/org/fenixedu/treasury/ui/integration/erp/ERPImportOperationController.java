@@ -39,6 +39,7 @@ import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.services.integration.erp.IERPImporter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
@@ -99,6 +100,14 @@ public class ERPImportOperationController extends TreasuryBaseController {
                     required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime toExecutionDate,
             @RequestParam(value = "success", required = false) Boolean success,
             @RequestParam(value = "documentnumber", required = false) String documentNumber, Model model) {
+        if(fromExecutionDate != null) {
+            fromExecutionDate = fromExecutionDate.toLocalDate().toDateTimeAtStartOfDay();
+        }
+        
+        if(toExecutionDate != null) {
+            toExecutionDate = toExecutionDate.toLocalDate().plusDays(1).toDateTimeAtStartOfDay().minusSeconds(1);
+        }
+        
         List<ERPImportOperation> searcherpimportoperationResultsDataSet =
                 filterSearchERPImportOperation(finantialInstitution, fromExecutionDate, toExecutionDate, success, documentNumber);
         model.addAttribute("limit_exceeded", searcherpimportoperationResultsDataSet.size() > SEARCH_OPERATION_LIST_LIMIT_SIZE);
@@ -284,8 +293,8 @@ public class ERPImportOperationController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/read/{oid}/retryimport")
-    public String processReadToRetryImport(@PathVariable("oid") ERPImportOperation eRPImportOperation, Model model,
-            RedirectAttributes redirectAttributes) {
+    public String processReadToRetryImport(@PathVariable("oid") final ERPImportOperation eRPImportOperation, final Model model,
+            final RedirectAttributes redirectAttributes) {
         setERPImportOperation(eRPImportOperation, model);
         try {
             assertUserIsFrontOfficeMember(eRPImportOperation.getFinantialInstitution(), model);
@@ -313,4 +322,49 @@ public class ERPImportOperationController extends TreasuryBaseController {
                         erpImportOperation.getFinantialInstitution(), erpImportOperation.getErpOperationId(), new DateTime(), false, false, false);
         return newERPImportOperation;
     }
+    
+    @RequestMapping(value = "/soapoutboundmessage/{oid}")
+    public void soapOutboundMessage(@PathVariable("oid") final ERPImportOperation eRPImportOperation, final Model model,
+            final RedirectAttributes redirectAttributes, HttpServletResponse response) {
+        setERPImportOperation(eRPImportOperation, model);
+        try {
+            assertUserIsFrontOfficeMember(eRPImportOperation.getFinantialInstitution(), model);
+
+            response.setContentType(com.google.common.net.MediaType.XML_UTF_8.toString());
+            response.setHeader("Content-disposition",
+                    String.format("attachment; filename=SOAP_Outbound_Message_%s.xml", eRPImportOperation.getExternalId()));
+            response.getWriter().write(
+                    eRPImportOperation.getSoapOutboundMessage() != null ? eRPImportOperation.getSoapOutboundMessage() : "");
+        } catch (Exception ex) {
+            addErrorMessage(ex.getLocalizedMessage(), model);
+            try {
+                response.sendRedirect(redirect(READ_URL + eRPImportOperation.getExternalId(), model, redirectAttributes));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @RequestMapping(value = "/soapinboundmessage/{oid}")
+    public void soapInboundMessage(@PathVariable("oid") final ERPImportOperation eRPImportOperation, final Model model,
+            final RedirectAttributes redirectAttributes, HttpServletResponse response) {
+        setERPImportOperation(eRPImportOperation, model);
+        try {
+            assertUserIsFrontOfficeMember(eRPImportOperation.getFinantialInstitution(), model);
+
+            response.setContentType(com.google.common.net.MediaType.XML_UTF_8.toString());
+            response.setHeader("Content-disposition",
+                    String.format("attachment; filename=SOAP_Inbound_Message_%s.xml", eRPImportOperation.getExternalId()));
+            response.getWriter().write(
+                    eRPImportOperation.getSoapInboundMessage() != null ? eRPImportOperation.getSoapInboundMessage() : "");
+        } catch (Exception ex) {
+            addErrorMessage(ex.getLocalizedMessage(), model);
+            try {
+                response.sendRedirect(redirect(READ_URL + eRPImportOperation.getExternalId(), model, redirectAttributes));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

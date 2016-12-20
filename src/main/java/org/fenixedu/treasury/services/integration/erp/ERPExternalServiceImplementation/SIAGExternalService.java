@@ -7,7 +7,9 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
@@ -65,8 +67,8 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
             DocumentStatusWS docStatus = new DocumentStatusWS();
             docStatus.setDocumentNumber(siagStatus.getDocumentNumber());
 //            docStatus.setErrorDescription(siagStatus.getErrorDescription());
-            docStatus.setErrorDescription(String.format("[STATUS: %s] - %s", siagStatus.getIntegrationStatus(),
-                    siagStatus.getErrorDescription()));
+            docStatus.setErrorDescription(
+                    String.format("[STATUS: %s] - %s", siagStatus.getIntegrationStatus(), siagStatus.getErrorDescription()));
             docStatus.setIntegrationStatus(StatusType.valueOf(siagStatus.getIntegrationStatus().toString()));
             output.getDocumentStatus().add(docStatus);
 
@@ -118,7 +120,7 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
             return x;
         };
     }
-    
+
     @Override
     public IERPExporter getERPExporter() {
         return new SingapSiagExporter();
@@ -134,5 +136,11 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
             String erpIdProcess) {
         throw new RuntimeException("not implemented");
     }
-    
+
+    @Override
+    public ReimbursementStateBean checkReimbursementState(SettlementNote reimbursementNote,
+            final IntegrationOperationLogBean logBean) {
+        throw new RuntimeException("not implemented");
+    }
+
 }

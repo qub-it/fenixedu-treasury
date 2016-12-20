@@ -8,6 +8,8 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
@@ -69,8 +71,8 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
         // 2016/09/27 Disable it for now
 //        output.setSoapInboundMessage(loggingHandler.getInboundMessage());
 //        output.setSoapOutboundMessage(loggingHandler.getOutboundMessage());
-      output.setSoapInboundMessage("");
-      output.setSoapOutboundMessage("");
+        output.setSoapInboundMessage("");
+        output.setSoapOutboundMessage("");
 
         for (Resposta resposta : carregarSAFTON.getResposta()) {
             output.setRequestId(resposta.getChavePrimaria());
@@ -140,6 +142,12 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
     @Override
     public byte[] downloadCertifiedDocumentPrint(final String finantialInstitution, final String finantialDocumentNumber,
             final String erpIdProcess) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public ReimbursementStateBean checkReimbursementState(SettlementNote reimbursementNote,
+            final IntegrationOperationLogBean logBean) {
         throw new RuntimeException("not implemented");
     }
 

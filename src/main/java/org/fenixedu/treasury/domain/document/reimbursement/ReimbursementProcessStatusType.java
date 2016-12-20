@@ -29,14 +29,14 @@ public class ReimbursementProcessStatusType extends ReimbursementProcessStatusTy
     }
 
     protected ReimbursementProcessStatusType(final String code, final String description, final int orderNumber,
-            final boolean initialStatus, final boolean finalStatus, final boolean annuledStatus) {
+            final boolean initialStatus, final boolean finalStatus, final boolean rejectedStatus) {
         this();
         super.setCode(code);
         super.setDescription(description);
         super.setOrderNumber(orderNumber);
         super.setInitialStatus(initialStatus);
         super.setFinalStatus(finalStatus);
-        super.setAnnuledStatus(annuledStatus);
+        super.setRejectedStatus(rejectedStatus);
 
         checkRules();
     }
@@ -77,8 +77,8 @@ public class ReimbursementProcessStatusType extends ReimbursementProcessStatusTy
         return getFinalStatus();
     }
 
-    public boolean isAnnuledStatus() {
-        return getAnnuledStatus();
+    public boolean isRejectedStatus() {
+        return getRejectedStatus();
     }
 
     public boolean isAfter(final ReimbursementProcessStatusType currentReimbursementProcessStatus) {

@@ -180,6 +180,44 @@ public class SettlementNote extends SettlementNote_Base {
         return getAdvancePaymentSetByUser();
     }
 
+    public boolean isReimbursementPending() {
+        if (!isReimbursement()) {
+            return false;
+        }
+
+        if (getCurrentReimbursementProcessStatus() == null) {
+            return false;
+        }
+
+        return getCurrentReimbursementProcessStatus().isInitialStatus();
+    }
+
+    public boolean isReimbursementConcluded() {
+        if (!isReimbursement()) {
+            return false;
+        }
+
+        final ReimbursementProcessStatusType currentStatus = getCurrentReimbursementProcessStatus();
+        if (currentStatus == null) {
+            return false;
+        }
+
+        return currentStatus.isFinalStatus() && !currentStatus.isRejectedStatus();
+    }
+
+    public boolean isReimbursementRejected() {
+        if (!isReimbursement()) {
+            return false;
+        }
+
+        final ReimbursementProcessStatusType currentStatus = getCurrentReimbursementProcessStatus();
+        if (currentStatus == null) {
+            return false;
+        }
+
+        return currentStatus.isFinalStatus() && currentStatus.isRejectedStatus();
+    }
+
     @Override
     @Atomic
     public void delete(boolean deleteEntries) {
@@ -335,58 +373,6 @@ public class SettlementNote extends SettlementNote_Base {
         }
     }
 
-    @Atomic
-    public static SettlementNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
-            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber,
-            final String finantialTransactionReference) {
-        SettlementNote settlementNote = new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate,
-                originDocumentNumber, finantialTransactionReference);
-
-        return settlementNote;
-    }
-
-    public static Stream<SettlementNote> findAll() {
-        return Bennu.getInstance().getFinantialDocumentsSet().stream().filter(x -> x instanceof SettlementNote)
-                .map(SettlementNote.class::cast);
-    }
-
-    public static Stream<SettlementNote> findByFinantialDocumentType(final FinantialDocumentType finantialDocumentType) {
-        return findAll().filter(i -> finantialDocumentType.equals(i.getFinantialDocumentType()));
-    }
-
-    public static Stream<SettlementNote> findByDebtAccount(final DebtAccount debtAccount) {
-        return findAll().filter(i -> debtAccount.equals(i.getDebtAccount()));
-    }
-
-    public static Stream<SettlementNote> findByDocumentNumberSeries(final DocumentNumberSeries documentNumberSeries) {
-        return findAll().filter(i -> documentNumberSeries.equals(i.getDocumentNumberSeries()));
-    }
-
-    public static Stream<SettlementNote> findByCurrency(final Currency currency) {
-        return findAll().filter(i -> currency.equals(i.getCurrency()));
-    }
-
-    public static Stream<SettlementNote> findByDocumentNumber(final java.lang.String documentNumber) {
-        return findAll().filter(i -> documentNumber.equalsIgnoreCase(i.getDocumentNumber()));
-    }
-
-    public static Stream<SettlementNote> findByDocumentDate(final org.joda.time.DateTime documentDate) {
-        return findAll().filter(i -> documentDate.equals(i.getDocumentDate()));
-    }
-
-    public static Stream<SettlementNote> findByDocumentDueDate(final org.joda.time.DateTime documentDueDate) {
-        return findAll().filter(i -> documentDueDate.equals(i.getDocumentDueDate()));
-    }
-
-    public static Stream<SettlementNote> findByOriginDocumentNumber(final java.lang.String originDocumentNumber) {
-        return findAll().filter(i -> originDocumentNumber.equalsIgnoreCase(i.getOriginDocumentNumber()));
-    }
-
-    public static Stream<SettlementNote> findByState(
-            final org.fenixedu.treasury.domain.document.FinantialDocumentStateType state) {
-        return findAll().filter(i -> state.equals(i.getState()));
-    }
-
     public Stream<SettlementEntry> getSettlemetEntries() {
         return this.getFinantialDocumentEntriesSet().stream().map(SettlementEntry.class::cast);
     }
@@ -503,7 +489,7 @@ public class SettlementNote extends SettlementNote_Base {
 
         if (getCurrentReimbursementProcessStatus() != null
                 && !reimbursementStatus.isAfter(getCurrentReimbursementProcessStatus())) {
-            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.current.status.invalid");
+            throw new TreasuryDomainException("error.integration.erp.invalid.reimbursementNote.next.status.invalid");
         }
 
         if (getCurrentReimbursementProcessStatus() != null && getCurrentReimbursementProcessStatus().isFinalStatus()) {
@@ -512,14 +498,11 @@ public class SettlementNote extends SettlementNote_Base {
 
         setCurrentReimbursementProcessStatus(reimbursementStatus);
 
-        ReimbursementProcessStateLog.create(this, reimbursementStatus, UUID.randomUUID().toString(), reimbursementStatusDate,
-                exerciseYear);
-
         if (getCurrentReimbursementProcessStatus() == null) {
             throw new TreasuryDomainException("error.SettlementNote.currentReimbursementProcessStatus.invalid");
         }
 
-        if (getCurrentReimbursementProcessStatus().isAnnuledStatus() && isClosed()) {
+        if (getCurrentReimbursementProcessStatus().isRejectedStatus() && isClosed()) {
             anullDocument(Constants.bundle("label.ReimbursementProcessStatusType.annuled.reimbursement.by.annuled.process"),
                     false);
         }
@@ -587,4 +570,64 @@ public class SettlementNote extends SettlementNote_Base {
         }
         return this.getFinantialDocumentEntriesSet().isEmpty();
     }
+
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+
+    @Atomic
+    public static SettlementNote create(final DebtAccount debtAccount, final DocumentNumberSeries documentNumberSeries,
+            final DateTime documentDate, final DateTime paymentDate, final String originDocumentNumber,
+            final String finantialTransactionReference) {
+        SettlementNote settlementNote = new SettlementNote(debtAccount, documentNumberSeries, documentDate, paymentDate,
+                originDocumentNumber, finantialTransactionReference);
+
+        return settlementNote;
+    }
+
+    public static Stream<SettlementNote> findAll() {
+        return Bennu.getInstance().getFinantialDocumentsSet().stream().filter(x -> x instanceof SettlementNote)
+                .map(SettlementNote.class::cast);
+    }
+
+    public static Stream<SettlementNote> findByFinantialDocumentType(final FinantialDocumentType finantialDocumentType) {
+        return findAll().filter(i -> finantialDocumentType.equals(i.getFinantialDocumentType()));
+    }
+
+    public static Stream<SettlementNote> findByDebtAccount(final DebtAccount debtAccount) {
+        return findAll().filter(i -> debtAccount.equals(i.getDebtAccount()));
+    }
+
+    public static Stream<SettlementNote> findByDocumentNumberSeries(final DocumentNumberSeries documentNumberSeries) {
+        return findAll().filter(i -> documentNumberSeries.equals(i.getDocumentNumberSeries()));
+    }
+
+    public static Stream<SettlementNote> findByCurrency(final Currency currency) {
+        return findAll().filter(i -> currency.equals(i.getCurrency()));
+    }
+
+    public static Stream<SettlementNote> findByDocumentNumber(final java.lang.String documentNumber) {
+        return findAll().filter(i -> documentNumber.equalsIgnoreCase(i.getDocumentNumber()));
+    }
+
+    public static Stream<SettlementNote> findByDocumentDate(final org.joda.time.DateTime documentDate) {
+        return findAll().filter(i -> documentDate.equals(i.getDocumentDate()));
+    }
+
+    public static Stream<SettlementNote> findByDocumentDueDate(final org.joda.time.DateTime documentDueDate) {
+        return findAll().filter(i -> documentDueDate.equals(i.getDocumentDueDate()));
+    }
+
+    public static Stream<SettlementNote> findByOriginDocumentNumber(final java.lang.String originDocumentNumber) {
+        return findAll().filter(i -> originDocumentNumber.equalsIgnoreCase(i.getOriginDocumentNumber()));
+    }
+
+    public static Stream<SettlementNote> findByState(
+            final org.fenixedu.treasury.domain.document.FinantialDocumentStateType state) {
+        return findAll().filter(i -> state.equals(i.getState()));
+    }
+
 }
