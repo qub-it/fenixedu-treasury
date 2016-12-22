@@ -28,6 +28,7 @@
 package org.fenixedu.treasury.domain.document;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +38,7 @@ import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
@@ -74,15 +76,15 @@ public class CreditNote extends CreditNote_Base {
         if (getDebitNote() != null && !getDebitNote().getDebtAccount().equals(getDebtAccount())) {
             throw new TreasuryDomainException("error.CreditNote.invalid.debtaccount.with.debitnote");
         }
-        
-        if(getDebitNote() != null && !getDebitNote().isClosed()) {
+
+        if (getDebitNote() != null && !getDebitNote().isClosed()) {
             throw new TreasuryDomainException("error.CreditNote.debitnote.not.closed");
         }
-        
-        if(!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
+
+        if (!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
             throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
         }
-        
+
         super.checkRules();
     }
 
@@ -95,17 +97,35 @@ public class CreditNote extends CreditNote_Base {
     public boolean isDeletable() {
         return true;
     }
-    
+
     public boolean isAdvancePayment() {
-        if(getFinantialDocumentEntriesSet().isEmpty()) {
+        if (getFinantialDocumentEntriesSet().isEmpty()) {
             return false;
         }
-        
-        if(TreasurySettings.getInstance().getAdvancePaymentProduct() == null) {
+
+        if (TreasurySettings.getInstance().getAdvancePaymentProduct() == null) {
             return false;
         }
-        
+
         return getCreditEntries().iterator().next().getProduct() == TreasurySettings.getInstance().getAdvancePaymentProduct();
+    }
+
+    public boolean isRelatedToReimbursement() {
+        if (!isClosed()) {
+            return false;
+        }
+
+        if (getRelatedSettlementEntries().isEmpty()) {
+            return false;
+        }
+
+        if (getRelatedSettlementEntries().size() != 1) {
+            throw new TreasuryDomainException("error.CreditNote.isRelatedToReimbursement.settlement.entries.not.one.check");
+        }
+
+        final SettlementNote settlementNote =
+                (SettlementNote) getRelatedSettlementEntries().iterator().next().getFinantialDocument();
+        return settlementNote.isReimbursement();
     }
 
     @Override
@@ -160,10 +180,10 @@ public class CreditNote extends CreditNote_Base {
     public void updateCreditNote(String originDocumentNumber, String documentObservations) {
         setOriginDocumentNumber(originDocumentNumber);
         setDocumentObservations(documentObservations);
-        
+
         checkRules();
     }
-    
+
     @Override
     public BigDecimal getOpenAmount() {
         if (this.isAnnulled()) {
@@ -186,7 +206,8 @@ public class CreditNote extends CreditNote_Base {
     }
 
     @Override
-    public Set<FinantialDocument> findRelatedDocuments(Set<FinantialDocument> documentsBaseList, Boolean includeAnulledDocuments) {
+    public Set<FinantialDocument> findRelatedDocuments(Set<FinantialDocument> documentsBaseList,
+            Boolean includeAnulledDocuments) {
         documentsBaseList.add(this);
 
         for (CreditEntry entry : getCreditEntriesSet()) {
@@ -206,8 +227,8 @@ public class CreditNote extends CreditNote_Base {
                 if (settlementEntry.getFinantialDocument() != null && !settlementEntry.getFinantialDocument().isPreparing()) {
                     if (includeAnulledDocuments == true || settlementEntry.getFinantialDocument().isAnnulled() == false) {
                         if (documentsBaseList.contains(settlementEntry.getFinantialDocument()) == false) {
-                            documentsBaseList.addAll(settlementEntry.getFinantialDocument().findRelatedDocuments(
-                                    documentsBaseList, includeAnulledDocuments));
+                            documentsBaseList.addAll(settlementEntry.getFinantialDocument()
+                                    .findRelatedDocuments(documentsBaseList, includeAnulledDocuments));
                         }
                     }
                 }
@@ -220,17 +241,17 @@ public class CreditNote extends CreditNote_Base {
 
     @Atomic
     public void anullDocument(final String reason) {
-        
+
         if (this.isPreparing()) {
-        
+
             if (this.getDocumentNumberSeries().getSeries().getCertificated()) {
                 throw new TreasuryDomainException("error.FinantialDocument.certificatedseris.cannot.anulled");
             }
-            
+
             if (getCreditEntries().anyMatch(ce -> !ce.getSettlementEntriesSet().isEmpty())) {
                 throw new TreasuryDomainException("error.CreditNote.cannot.delete.has.settlemententries");
             }
-            
+
             setState(FinantialDocumentStateType.ANNULED);
 
             if (Authenticate.getUser() != null) {
@@ -239,13 +260,36 @@ public class CreditNote extends CreditNote_Base {
             } else {
                 setAnnulledReason(reason + " - " + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
             }
-            
+
         } else {
-            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE,
-                    "error.FinantialDocumentState.invalid.state.change.request"));
+            throw new TreasuryDomainException(
+                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
         }
-        
+
         checkRules();
+    }
+
+    public CreditNote anullReimbursementCreditNoteAndCopy(final String annuledReason) {
+        if (!isClosed()) {
+            throw new TreasuryDomainException(
+                    "error.CreditNote.anullReimbursementCreditNoteAndCopy.copy.only.on.closed.credit.note");
+        }
+
+        if (!isRelatedToReimbursement()) {
+            throw new TreasuryDomainException("error.CreditNote.creditNote.not.from.reimbursement");
+        }
+
+        setState(FinantialDocumentStateType.ANNULED);
+        setAnnulledReason(annuledReason);
+
+        final CreditNote creditNote = CreditNote.create(getDebtAccount(), getDocumentNumberSeries(), new DateTime(),
+                getDebitNote(), getOriginDocumentNumber());
+
+        final CreditEntry creditEntry = getCreditEntries().findFirst().get();
+        CreditEntry.create(creditNote, creditEntry.getDescription(), creditEntry.getProduct(), creditEntry.getVat(),
+                creditEntry.getAmount(), new DateTime(), creditEntry.getDebitEntry(), creditEntry.getQuantity());
+
+        return creditNote;
     }
 
     @Override
@@ -256,7 +300,7 @@ public class CreditNote extends CreditNote_Base {
         }
 
         final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromCreditNote(this);
-        
+
         setCustomerBusinessId(bean.getCustomerBusinessId());
         setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
         setCustomerNationality(bean.getCustomerNationality());
@@ -271,13 +315,13 @@ public class CreditNote extends CreditNote_Base {
         setCustomerZipCode(bean.getCustomerZipCode());
         setCustomerRegion(bean.getCustomerRegion());
         setCustomerCountry(bean.getCustomerCountry());
-        
+
         setCustomerFieldsUpdateDate(new DateTime());
         setCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
-        
+
         return bean;
     }
-    
+
     @Override
     public ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation() {
         if (!isDocumentToExport()) {
@@ -286,7 +330,7 @@ public class CreditNote extends CreditNote_Base {
         }
 
         final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillPayorFromCreditNote(this);
-        
+
         setPayorCustomerBusinessId(bean.getCustomerBusinessId());
         setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
         setPayorCustomerNationality(bean.getCustomerNationality());
@@ -301,7 +345,7 @@ public class CreditNote extends CreditNote_Base {
         setPayorCustomerZipCode(bean.getCustomerZipCode());
         setPayorCustomerRegion(bean.getCustomerRegion());
         setPayorCustomerCountry(bean.getCustomerCountry());
-        
+
         setPayorCustomerFieldsUpdateDate(new DateTime());
         setPayorCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
 
@@ -314,8 +358,7 @@ public class CreditNote extends CreditNote_Base {
      * ********
      */
     // @formatter:on
-    
-    
+
     public static Stream<? extends CreditNote> findAll() {
         return Invoice.findAll().filter(i -> i instanceof CreditNote).map(CreditNote.class::cast);
     }
@@ -329,5 +372,4 @@ public class CreditNote extends CreditNote_Base {
         return note;
     }
 
-    
 }
