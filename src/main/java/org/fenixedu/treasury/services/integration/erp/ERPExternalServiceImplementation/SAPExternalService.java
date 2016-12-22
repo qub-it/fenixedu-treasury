@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -159,8 +160,11 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
         requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
 
+        final CreditNote creditNote =
+                (CreditNote) reimbursementNote.getSettlemetEntries().findFirst().get().getInvoiceEntry().getFinantialDocument();
+
         ZulwsReembolsosInput input = new ZulwsReembolsosInput();
-        input.setFinantialDocumentNumber(reimbursementNote.getUiDocumentNumber());
+        input.setFinantialDocumentNumber(creditNote.getUiDocumentNumber());
         input.setIdProcesso(erpConfiguration.getErpIdProcess());
         input.setTaxRegistrationNumber(reimbursementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber());
 
@@ -180,7 +184,8 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         DateTime reimbursementStatusDate = null;
         try {
-            reimbursementStatusDate = new DateTime(zulwsReembolsos.getReimbursementStatusDate());
+            reimbursementStatusDate =
+                    new DateTime(zulwsReembolsos.getReimbursementStatusDate()).toLocalDate().toDateTimeAtStartOfDay();
         } catch (final IllegalArgumentException e) {
             success = false;
             logBean.appendErrorLog("Erro na leitura da data: " + zulwsReembolsos.getReimbursementStatusDate());
@@ -193,7 +198,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         final ReimbursementStateBean stateBean = new ReimbursementStateBean(reimbursementNote, reimbursementStatus.orElse(null),
                 zulwsReembolsos.getExerciseYear(), reimbursementStatusDate, success);
-        
+
         return stateBean;
     }
 

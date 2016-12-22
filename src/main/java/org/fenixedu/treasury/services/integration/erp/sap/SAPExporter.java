@@ -1497,7 +1497,7 @@ public class SAPExporter implements IERPExporter {
             if (finantialDocument.isSettlementNote()) {
                 final SettlementNote settlementNote = (SettlementNote) finantialDocument;
 
-                if (settlementNote.isAnnulled()) {
+                if (settlementNote.isAnnulled() && !settlementNote.isReimbursement()) {
                     continue;
                 }
 
@@ -1782,7 +1782,7 @@ public class SAPExporter implements IERPExporter {
     @Atomic(mode = TxMode.WRITE)
     public ReimbursementStateBean checkReimbursementState(final SettlementNote reimbursementNote) {
         if (true) {
-            return new ReimbursementStateBean(reimbursementNote, ReimbursementProcessStatusType.findUniqueByCode("PENDING").get(),
+            return new ReimbursementStateBean(reimbursementNote, ReimbursementProcessStatusType.findUniqueByCode("ANNULED").get(),
                     "2016", new DateTime(), true);
         }
 
