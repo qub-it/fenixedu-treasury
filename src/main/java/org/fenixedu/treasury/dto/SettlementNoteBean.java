@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
+import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
 import org.fenixedu.treasury.ui.document.managepayments.SettlementNoteController;
 import org.joda.time.LocalDate;
 
@@ -103,6 +106,13 @@ public class SettlementNoteBean implements IBean, Serializable {
 
         this.advancePayment = false;
         this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
+    }
+
+    public List<Integer> getFinantialTransactionReferenceYears() {
+        final List<Integer> years = GlobalInterestRate.findAll().map(g -> (Integer) g.getYear()).sorted().collect(Collectors.toList());
+        Collections.reverse(years);
+        
+        return years;
     }
 
     private void setDocumentNumberSeries(DebtAccount debtAccount, boolean reimbursementNote) {

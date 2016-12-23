@@ -28,6 +28,7 @@
 package org.fenixedu.treasury.domain.document;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -115,16 +116,24 @@ public class CreditNote extends CreditNote_Base {
             return false;
         }
 
-        if (getRelatedSettlementEntries().isEmpty()) {
+        final Set<SettlementEntry> settlementEntries = new HashSet<SettlementEntry>();
+        for (FinantialDocumentEntry entry : this.getFinantialDocumentEntriesSet()) {
+            for (SettlementEntry settlementEntry : ((InvoiceEntry) entry).getSettlementEntriesSet()) {
+                settlementEntries.add(settlementEntry);
+            }
+        }
+        
+        if (settlementEntries.isEmpty()) {
             return false;
         }
 
-        if (getRelatedSettlementEntries().size() != 1) {
+        if (settlementEntries.size() != 1) {
             throw new TreasuryDomainException("error.CreditNote.isRelatedToReimbursement.settlement.entries.not.one.check");
         }
 
         final SettlementNote settlementNote =
                 (SettlementNote) getRelatedSettlementEntries().iterator().next().getFinantialDocument();
+        
         return settlementNote.isReimbursement();
     }
 

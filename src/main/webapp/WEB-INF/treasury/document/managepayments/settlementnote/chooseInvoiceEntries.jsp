@@ -188,9 +188,9 @@ ${portal.angularToolkit()}
             	</div>
            		<div class="col-sm-1">
             		<select class="form-control" ng-model="object.finantialTransactionReferenceYear">
-            			<option>2016</option>
-            			<option>2015</option>
-            			<option>2014</option>
+            			<c:forEach var="year" items="${settlementNoteBean.finantialTransactionReferenceYears}">
+	            			<option value="${year}"><c:out value="${year}" /></option>
+            			</c:forEach>
             		</select>
            		</div>
             	<div class="col-sm-3">
@@ -240,8 +240,24 @@ ${portal.angularToolkit()}
                         	<span class="glyphicon glyphicon-remove-circle" ng-show="object.debitEntries[${ loop.index }].isNotValid"></span> 
                         	<input class="form-control" ng-model="object.debitEntries[${ loop.index }].isIncluded" type="checkbox" />
                         </td>
-                        <td><c:out value="${ debitEntryBean.debitEntry.finantialDocument.uiDocumentNumber }" /></td>
-                        <td><c:out value="${ debitEntryBean.debitEntry.description }" /></td>
+                        <td>
+                        	<p><c:out value="${ debitEntryBean.debitEntry.finantialDocument.uiDocumentNumber }" /></p>
+                        </td>
+                        <td>
+                        	<p><c:out value="${ debitEntryBean.debitEntry.description }" /></p>
+                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument != null}">
+                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument.forPayorDebtAccount}">
+                        		<p>
+                        			<em>
+                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+                        				&nbsp;-&nbsp;
+                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+                        			</em>
+                        	</c:if>
+                        	</c:if>
+                        	
+                        </td>
                         <td><c:out value="${ debitEntryBean.documentDueDate }" /></td>
                         <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debitEntry.amountWithVat ) }" /></td>
                         <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debitEntry.openAmount ) }" /></td>

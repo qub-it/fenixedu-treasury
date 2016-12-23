@@ -36,24 +36,20 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
-import org.fenixedu.bennu.core.security.Authenticate;
-import org.fenixedu.bennu.scheduler.TaskRunner;
-import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
-import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
-
-import pt.ist.fenixframework.Atomic;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
+
+import pt.ist.fenixframework.Atomic;
 
 public abstract class FinantialDocument extends FinantialDocument_Base {
 
@@ -247,10 +243,6 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         return this.getState().equals(FinantialDocumentStateType.PREPARING);
     }
     
-    public boolean isExportedInLegacyERP() {
-        return false;
-    }
-
     @Atomic
     public final void closeDocument() {
         closeDocument(true);
@@ -275,7 +267,8 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
                     BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
 
         }
-
+        
+        setCloseDate(new DateTime());
         checkRules();
     }
 
@@ -299,6 +292,10 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
 
     public boolean isDocumentToExport() {
         return getInstitutionForExportation() != null;
+    }
+    
+    public boolean isExportedInLegacyERP() {
+        return getExportedInLegacyERP();
     }
 
     @Atomic
