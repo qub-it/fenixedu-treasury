@@ -551,6 +551,10 @@
 										<xs:element minOccurs="0" ref="EACCode" />
 										<xs:element ref="SystemEntryDate" />
 										<xs:element ref="CustomerID" />
+										<!-- QUB-IT: Extension -->
+										<xs:element name="ForceCertification" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+										<!-- QUB-IT: Extension -->
+										<xs:element name="CertificationDate" minOccurs="0" maxOccurs="1" type="SAFdateType" />
 <!--                                    QUB-IT This is used for registering indicate AdvancedPayment for Credit on this credit -->
                                         <xs:element maxOccurs="1" minOccurs="0" name="AdvancedPayment">
                                                         <xs:complexType>

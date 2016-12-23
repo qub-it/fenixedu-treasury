@@ -200,5 +200,9 @@ public abstract class Invoice extends Invoice_Base {
         
         return !getRelatedSettlementEntries().stream().map(e -> !((SettlementNote) e.getFinantialDocument()).getPaymentEntriesSet().isEmpty()).reduce((a, c) -> a || c).orElse(false);
     }
+    
+    public boolean isForPayorDebtAccount() {
+        return getPayorDebtAccount() != null;
+    }
 
 }

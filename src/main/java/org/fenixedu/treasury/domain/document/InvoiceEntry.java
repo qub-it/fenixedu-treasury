@@ -228,7 +228,7 @@ public abstract class InvoiceEntry extends InvoiceEntry_Base {
         }
         return this.getOpenAmount().compareTo(BigDecimal.ZERO) != 0;
     }
-
+    
     public boolean hasPreparingSettlementEntries() {
         return getSettlementEntriesSet().stream().anyMatch(se -> se.getFinantialDocument().isPreparing());
     }

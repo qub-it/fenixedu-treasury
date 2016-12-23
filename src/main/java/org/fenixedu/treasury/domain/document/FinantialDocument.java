@@ -44,7 +44,6 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
-import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
@@ -246,10 +245,6 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         return this.getState().equals(FinantialDocumentStateType.PREPARING);
     }
     
-    public boolean isExportedInLegacyERP() {
-        return false;
-    }
-
     @Atomic
     public final void closeDocument() {
         closeDocument(true);

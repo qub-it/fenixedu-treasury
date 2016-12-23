@@ -113,6 +113,7 @@ import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOu
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,6 +136,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
+    private static final DateTime DECEMBER_31 = new LocalDate(2016, 12, 31).toDateTimeAtStartOfDay();
     private static final int MAX_REASON = 50;
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
     private static final int MAX_STREET_NAME = 90;
@@ -679,6 +681,17 @@ public class SAPExporter implements IERPExporter {
             // CustomerID
             workDocument.setCustomerID(document.getDebtAccount().getCustomer().getCode());
 
+            if (document.isCreditNote()) {
+                final CreditNote creditNote = (CreditNote) document;
+                if (creditNote.getDebitNote() == null || creditNote.getDebitNote().isExportedInLegacyERP()) {
+                    workDocument.setForceCertification(true);
+                }
+            }
+
+            if (document.isExportedInLegacyERP()) {
+                workDocument.setCertificationDate(convertToXMLDate(dataTypeFactory, document.getCloseDate()));
+            }
+
             //PayorID
             if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
                 workDocument.setPayorCustomerID(document.getPayorDebtAccount().getCustomer().getCode());
@@ -826,8 +839,17 @@ public class SAPExporter implements IERPExporter {
                 line.setMetadata(metadata);
 
                 OrderReferences reference = new OrderReferences();
+                
                 reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
                 reference.setOrderDate(documentDateCalendar);
+
+                if(((DebitNote) creditEntry.getDebitEntry().getFinantialDocument()).isExportedInLegacyERP()) {
+                    final DebitNote debitNote = (DebitNote) creditEntry.getDebitEntry().getFinantialDocument();
+                    if(!Strings.isNullOrEmpty(debitNote.getLegacyERPCertificateDocumentReference())) {
+                        reference.setOriginatingON(debitNote.getLegacyERPCertificateDocumentReference());
+                    }
+                }
+                
                 reference.setLineNumber(BigInteger.ONE);
 
                 orderReferences.add(reference);

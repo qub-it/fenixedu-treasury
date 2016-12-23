@@ -115,7 +115,6 @@ public class CreditEntry extends CreditEntry_Base {
         if(Strings.isNullOrEmpty(getDescription())) {
             throw new TreasuryDomainException("error.CreditEntry.description.required");
         }
-
     }
 
     public boolean isFromExemption() {

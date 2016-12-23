@@ -228,6 +228,7 @@ class document.FinantialDocument {
 	String clearDocumentToExportReason;
 	DateTime closeDate;
 	boolean exportedInLegacyERP;
+	String legacyERPCertificateDocumentReference;
 }
 
 	class document.Invoice extends document.FinantialDocument {

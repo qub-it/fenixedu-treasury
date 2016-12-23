@@ -134,17 +134,6 @@ public class SettlementNote extends SettlementNote_Base {
                 }
             }
         }
-
-        if (isReimbursement()) {
-            // Ensure only one settlement entry with credit entry
-            if (getSettlemetEntries().count() != 1) {
-                throw new TreasuryDomainException("error.SettlementNote.reimbursement.supports.only.one.settlement.entry");
-            }
-
-            if (!getSettlemetEntries().findFirst().get().getInvoiceEntry().getFinantialDocument().isCreditNote()) {
-                throw new TreasuryDomainException("error.SettlementNote.reimbursement.invoice.entry.not.from.credit.note.");
-            }
-        }
     }
 
     @Atomic
@@ -273,6 +262,17 @@ public class SettlementNote extends SettlementNote_Base {
         processAdvancePayments(bean);
 
         setAdvancePaymentSetByUser(bean.isAdvancePayment());
+        
+        if (isReimbursement()) {
+            // Ensure only one settlement entry with credit entry
+            if (getSettlemetEntries().count() != 1) {
+                throw new TreasuryDomainException("error.SettlementNote.reimbursement.supports.only.one.settlement.entry");
+            }
+
+            if (!getSettlemetEntries().findFirst().get().getInvoiceEntry().getFinantialDocument().isCreditNote()) {
+                throw new TreasuryDomainException("error.SettlementNote.reimbursement.invoice.entry.not.from.credit.note.");
+            }
+        }
     }
 
     private void processAdvancePayments(SettlementNoteBean bean) {
@@ -516,10 +516,12 @@ public class SettlementNote extends SettlementNote_Base {
             final CreditNote creditNote =
                     (CreditNote) getSettlemetEntries().findFirst().get().getInvoiceEntry().getFinantialDocument();
 
-            anullDocument(Constants.bundle("label.ReimbursementProcessStatusType.annuled.reimbursement.by.annuled.process"),
-                    false);
             creditNote
                     .anullReimbursementCreditNoteAndCopy(Constants.bundle("error.SettlementNote.reimbursement.rejected.reason"));
+            anullDocument(Constants.bundle("label.ReimbursementProcessStatusType.annuled.reimbursement.by.annuled.process"),
+                    false);
+            
+            markDocumentToExport();
         }
     }
 
