@@ -27,11 +27,15 @@
  */
 package org.fenixedu.treasury.domain;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
+import org.fenixedu.treasury.domain.event.TreasuryEvent;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+
+import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -96,6 +100,21 @@ public class AdhocCustomer extends AdhocCustomer_Base {
 
         checkRules();
     }
+    
+    @Override
+    public Set<? extends TreasuryEvent> getTreasuryEventsSet() {
+        return Sets.newHashSet();
+    }
+    
+    @Override
+    public boolean isUiOtherRelatedCustomerActive() {
+        return false;
+    }
+    
+    @Override
+    public String uiRedirectToActiveCustomer(final String url) {
+        return url + "/" + getExternalId();
+    }
 
     @Override
     public boolean isDeletable() {
@@ -118,6 +137,57 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         }
 
         deleteDomainObject();
+    }
+
+    @Override
+    public String getFirstNames() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public String getLastNames() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public String getBusinessIdentification() {
+        return this.getIdentificationNumber();
+    }
+
+    @Override
+    public String getDistrict() {
+        return getDistrictSubdivision();
+    }
+
+    @Override
+    public String getNationalityCountryCode() {
+        return null;
+    }
+
+    @Override
+    public String getFiscalCountry() {
+        return getCountryCode();
+    }
+
+    @Override
+    public String getEmail() {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        throw new RuntimeException("not supported");
+    }
+    
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+    
+    public static CustomerType getDefaultCustomerType() {
+        return CustomerType.findByCode("ADHOC").findFirst().orElse(null);
     }
 
     @Atomic
@@ -159,50 +229,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
 
     public static Stream<AdhocCustomer> findByCode(final String code) {
         return findAll().filter(i -> code.equalsIgnoreCase(i.getCode()));
-    }
-
-    public static CustomerType getDefaultCustomerType() {
-        return CustomerType.findByCode("ADHOC").findFirst().orElse(null);
-    }
-
-    @Override
-    public String getFirstNames() {
-        throw new RuntimeException("not supported");
-    }
-
-    @Override
-    public String getLastNames() {
-        throw new RuntimeException("not supported");
-    }
-
-    @Override
-    public String getBusinessIdentification() {
-        return this.getIdentificationNumber();
-    }
-
-    @Override
-    public String getDistrict() {
-        return getDistrictSubdivision();
-    }
-
-    @Override
-    public String getNationalityCountryCode() {
-        return null;
-    }
-
-    @Override
-    public String getFiscalCountry() {
-        return getCountryCode();
-    }
-
-    @Override
-    public String getEmail() {
-        throw new RuntimeException("not supported");
-    }
-
-    @Override
-    public String getPhoneNumber() {
-        throw new RuntimeException("not supported");
     }
 
 }

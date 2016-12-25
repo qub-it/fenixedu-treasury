@@ -121,6 +121,40 @@ ${portal.toolkit()}
 <!-- </div>/.modal -->
 
 
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <spring:message code="label.details" />
+        </h3>
+    </div>
+    <div class="panel-body">
+        <form method="post" class="form-horizontal">
+            <table class="table">
+                <tbody>
+                    <c:if test='${ debtAccount.getClosed() }'>
+                        <tr>
+                            <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.closed" /></th>
+                            <td><span class="label label-warning"><spring:message code="warning.DebtAccount.is.closed" /></span></td>
+                        </tr>
+                    </c:if>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
+                        <td><c:out value='${debtAccount.customer.fiscalNumber}' /></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.customer" /></th>
+                        <td><c:out value='${debtAccount.customer.businessIdentification}' /> - <c:out value='${debtAccount.customer.name}' /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.finantialInstitution" /></th>
+                        <td><c:out value='${debtAccount.finantialInstitution.name}' /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
 
 <c:choose>
     <c:when test="${not empty searchtreasuryeventsResultsDataSet}">
@@ -165,7 +199,7 @@ ${portal.toolkit()}
 "description" : "<c:out value='${searchResult.description.content}'/>",
 "treasuryEventDate" : "<c:out value='${searchResult.treasuryEventDate.toString()}'/>", 
 "actions" :
-" <a  class=\"btn btn-default btn-xs\" href=\"${pageContext.request.contextPath}/treasury/accounting/managecustomer/treasuryevent/search/view/${searchResult.externalId}\"><spring:message code='label.view'/></a>" +
+" <a  class=\"btn btn-default btn-xs\" href=\"${pageContext.request.contextPath}/treasury/accounting/managecustomer/treasuryevent/search/view/${debtAccount.externalId}/${searchResult.externalId}\"><spring:message code='label.view'/></a>" +
 				"" 
 			},
             </c:forEach>

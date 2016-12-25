@@ -260,7 +260,8 @@ public class DebitEntryBean implements IBean {
             this.applyInterests = true;
             this.setInterestRate(new FixedTariffInterestRateBean(debitEntry.getInterestRate()));
         }
-        this.setTreasuryEventDataSource(Lists.<TreasuryEvent> newArrayList().stream().collect(Collectors.toList()));
+        this.setTreasuryEventDataSource(
+                TreasuryEvent.find(debitEntry.getDebtAccount().getCustomer()).collect(Collectors.<TreasuryEvent> toList()));
 
         this.setAcademicalActBlockingSuspension(!debitEntry.isAcademicalActBlockingSuspension());
         this.setBlockAcademicActsOnDebt(debitEntry.isBlockAcademicActsOnDebt());

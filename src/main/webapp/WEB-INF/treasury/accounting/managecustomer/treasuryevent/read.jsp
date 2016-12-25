@@ -68,7 +68,7 @@ ${portal.toolkit()}
          <h4 class="modal-title"><spring:message code="label.TreasuryEvent.annul.all.debit.entries.title"/></h4>
        </div> 
 
-     <form id ="annulDebitEntriesModalForm" action="${pageContext.request.contextPath}<%= TreasuryEventController.ANNULALLDEBITENTRIES_URL %>${treasuryEvent.externalId}"  method="POST">
+     <form id ="annulDebitEntriesModalForm" action="${pageContext.request.contextPath}<%= TreasuryEventController.ANNULALLDEBITENTRIES_URL %>${debtAccount.externalId}/${treasuryEvent.externalId}"  method="POST">
 
 	       <div class="modal-body"> 
        
@@ -95,106 +95,12 @@ ${portal.toolkit()}
    </div> 
  </div>
 
-<div class="modal fade" id="transferTreasuryEventModal"> 
-   <div class="modal-dialog"> 
-     <div class="modal-content">
-
-       <div class="modal-header">
-         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> 
-         <h4 class="modal-title"><spring:message code="label.TreasuryEvent.transfer.to.other.debt.account.title"/></h4>
-       </div> 
-
-     <form id ="transferTreasuryEventModalForm" action="${pageContext.request.contextPath}<%= TreasuryEventController.TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URL %>/${treasuryEvent.externalId}"  method="POST">
-
-	       <div class="modal-body"> 
-       
-		        <p><em><spring:message code = "label.TreasuryEvent.transfer.to.other.debt.account.confirmation"/></em></p>
-	            <p>&nbsp;</p>
-	            <div class="form-group row">
-	                <div class="col-sm-10">
-						<select id="debtAccountId" name="debtAccountId" class="form-control">
-							<c:forEach items="${treasuryEvent.debtAccount.customer.debtAccountsSet}" var="debtAccount">
-								<c:if test="${debtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && debtAccount != treasuryEvent.debtAccount}">
-									<option value="${debtAccount.externalId}"><c:out value="${debtAccount.finantialInstitution.name}" /></option>
-								</c:if>
-							</c:forEach>
-							
-							<c:if test="${treasuryEvent.debtAccount.customer.personCustomer}">
-								<c:forEach items="${treasuryEvent.debtAccount.customer.personForInactivePersonCustomer.personCustomer.debtAccountsSet}" var="debtAccount">
-									<c:if test="${debtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && debtAccount != treasuryEvent.debtAccount}">
-										<option value="${debtAccount.externalId}"><c:out value="${debtAccount.finantialInstitution.name}" /></option>
-									</c:if>
-								</c:forEach>
-								
-								<c:forEach items="${treasuryEvent.debtAccount.customer.person.inactivePersonCustomersSet}" var="inactiveCustomer">
-									<c:forEach items="${inactiveCustomer.debtAccountsSet}" var="inactiveDebtAccount">
-										<c:if test="${inactiveDebtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && inactiveDebtAccount != treasuryEvent.debtAccount}">
-											<option value="${inactiveDebtAccount.externalId}"><c:out value="${inactiveDebtAccount.finantialInstitution.name} - Inactivo" /></option>
-										</c:if>
-									</c:forEach>
-								</c:forEach>
-
-								<c:forEach items="${treasuryEvent.debtAccount.customer.personForInactivePersonCustomer.inactivePersonCustomers}" var="inactiveCustomer">
-									<c:forEach items="${inactiveCustomer.debtAccountsSet}" var="inactiveDebtAccount">
-										<c:if test="${inactiveDebtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && inactiveDebtAccount != treasuryEvent.debtAccount}">
-											<option value="${inactiveDebtAccount.externalId}"><c:out value="${inactiveDebtAccount.finantialInstitution.name} - Inactivo" /></option>
-										</c:if>
-									</c:forEach>
-								</c:forEach>
-							</c:if>
-						</select>
-	                </div>
-	            </div>
-			</div> 
-		       
-	       <div class="modal-footer"> 
-	         <button type="button" class="btn btn-default" data-dismiss="modal"><spring:message code = "label.close"/></button>
-	         <button id="transferButton" class ="btn btn-danger" type="submit"><spring:message code = "label.transfer"/></button>
-	       </div>
-       </form> 
-       
-     </div> 
-   </div> 
- </div>
-
-<% int debtAccountsCount = 1; %>
-<c:forEach items="${treasuryEvent.debtAccount.customer.debtAccountsSet}" var="debtAccount">
-<c:if test="${debtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && debtAccount != treasuryEvent.debtAccount}">
-	<% debtAccountsCount += 1; %>
-</c:if>
-</c:forEach>
-
-<c:if test="${treasuryEvent.debtAccount.customer.personCustomer}">
-<c:forEach items="${treasuryEvent.debtAccount.customer.personForInactivePersonCustomer.personCustomer.debtAccountsSet}" var="debtAccount">
-	<c:if test="${debtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && debtAccount != treasuryEvent.debtAccount}">
-		<% debtAccountsCount += 1; %>
-	</c:if>
-</c:forEach>
-
-<c:forEach items="${treasuryEvent.debtAccount.customer.person.inactivePersonCustomersSet}" var="inactiveCustomer">
-	<c:forEach items="${inactiveCustomer.debtAccountsSet}" var="inactiveDebtAccount">
-		<c:if test="${inactiveDebtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && inactiveDebtAccount != treasuryEvent.debtAccount}">
-			<% debtAccountsCount += 1; %>
-		</c:if>
-	</c:forEach>
-</c:forEach>
-
-<c:forEach items="${treasuryEvent.debtAccount.customer.personForInactivePersonCustomer.inactivePersonCustomers}" var="inactiveCustomer">
-	<c:forEach items="${inactiveCustomer.debtAccountsSet}" var="inactiveDebtAccount">
-		<c:if test="${inactiveDebtAccount.finantialInstitution == treasuryEvent.debtAccount.finantialInstitution && inactiveDebtAccount != treasuryEvent.debtAccount}">
-			<% debtAccountsCount += 1; %>
-		</c:if>
-	</c:forEach>
-</c:forEach>
-</c:if>
-
-
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
     <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
 	&nbsp;
 	<a class=""
-		href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/treasuryevent/?debtaccount=${treasuryEvent.debtAccount.externalId}">
+		href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/treasuryevent/?debtaccount=${debtAccount.externalId}">
 		<spring:message code="label.event.back" />
 	</a>
 	&nbsp;|&nbsp;
@@ -203,13 +109,6 @@ ${portal.toolkit()}
        	<spring:message code="label.event.anull.all.debit.entries" />
     </a>
 
-<% if(debtAccountsCount > 1) { %>
-	&nbsp;|&nbsp;
-    <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp; 
-   	<a class="" href="#" data-toggle="modal" data-target="#transferTreasuryEventModal"> 
-       	<spring:message code="label.TreasuryEvent.transfer.to.other.debt.account" />
-    </a>
-<% } %>
 </div>
 
 <c:if test="${not empty infoMessages}">
@@ -256,6 +155,26 @@ ${portal.toolkit()}
         <form method="post" class="form-horizontal">
             <table class="table">
                 <tbody>
+                <c:if test='${ debtAccount.getClosed() }'>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.closed" /></th>
+                        <td><span class="label label-warning"><spring:message code="warning.DebtAccount.is.closed" /></span></td>
+                    </tr>
+                </c:if>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
+                        <td><c:out value='${debtAccount.customer.fiscalNumber}' /></td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.customer" /></th>
+                        <td><c:out value='${debtAccount.customer.businessIdentification}' /> - <c:out value='${debtAccount.customer.name}' /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.DebtAccount.finantialInstitution" /></th>
+                        <td><c:out value='${debtAccount.finantialInstitution.name}' /></td>
+                    </tr>
+                
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message
                                 code="label.TreasuryEvent.description" /></th>
@@ -267,7 +186,7 @@ ${portal.toolkit()}
                                 code="label.TreasuryEvent.amountToPay" />
                         </th>
                         <td><c:out
-                                value='${treasuryEvent.debtAccount.finantialInstitution.currency.getValueFor(treasuryEvent.amountToPay)}' /></td>
+                                value='${debtAccount.finantialInstitution.currency.getValueFor(treasuryEvent.amountToPay)}' /></td>
                     </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message
@@ -275,6 +194,14 @@ ${portal.toolkit()}
                         </th>
                         <td>
                         	<joda:format value="${treasuryEvent.treasuryEventDate}" style="S-" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3">
+                        	Nome do aluno
+                        </th>
+                        <td>
+                        	<c:out value="${treasuryEvent.person.name}" />
                         </td>
                     </tr>
                </tbody>
@@ -288,7 +215,7 @@ ${portal.toolkit()}
 </h2>
 
 <p>
-	<a class="btn btn-default" href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>/${treasuryEvent.externalId}">
+	<a class="btn btn-default" href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>/${debtAccount.externalId}/${treasuryEvent.externalId}">
 		<span class="glyphicon glyphicon-plus-sign" aria-hidden="true">&nbsp;</span>
 		<spring:message code="label.event.create" />
 	</a>
@@ -297,17 +224,11 @@ ${portal.toolkit()}
 
     <script type="text/javascript">
 		function processDelete(externalId) {
-			url = '${pageContext.request.contextPath}<%=TreasuryExemptionController.SEARCH_TO_DELETE_ACTION_URL%>' + externalId;
+			url = '${pageContext.request.contextPath}<%=TreasuryExemptionController.SEARCH_TO_DELETE_ACTION_URL%>${debtAccount.externalId}/' + externalId;
 			$("#deleteForm").attr("action", url);
 			$('#deleteModal').modal('toggle')
 		}
-	  
-	  function processTransfer(externalId) {
-			url = '${pageContext.request.contextPath}<%=TreasuryEventController.TRANSFER_EVENT_OTHER_DEBT_ACCOUNT_URL %>' + externalId;
-			$("#transferTreasuryEventModalForm").attr("action", url);
-			$('#transferTreasuryEventModal').modal('toggle')
-	  }
-	  
+  
 	</script>
 
     <div class="modal fade" id="deleteModal">
@@ -385,7 +306,7 @@ ${portal.toolkit()}
 
             <c:if test="${not exemption.exemptByPercentage}">
                 <c:out
-                    value="${treasuryEvent.debtAccount.finantialInstitution.currency.getValueFor(exemption.valueToExempt)}" />
+                    value="${debtAccount.finantialInstitution.currency.getValueFor(exemption.valueToExempt)}" />
             </c:if>
         </datatables:column>
         <datatables:column cssStyle="width:30%">
@@ -442,13 +363,13 @@ ${portal.toolkit()}
         
         <script type="text/javascript">
         function processAnnul(externalId) {
-            url = '${pageContext.request.contextPath}<%=TreasuryEventController.ANNULDEBITENTRY_URL%>' + externalId;
+            url = '${pageContext.request.contextPath}<%=TreasuryEventController.ANNULDEBITENTRY_URL%>${debtAccount.externalId}/' + externalId;
                             $("#annulForm").attr("action", url);
                             $('#annulModal').modal('toggle')
                         }
         
         function processRevert(externalId) {
-            url = '${pageContext.request.contextPath}<%=TreasuryEventController.REVERTANNULDEBITENTRY_URL%>' + externalId;
+            url = '${pageContext.request.contextPath}<%=TreasuryEventController.REVERTANNULDEBITENTRY_URL%>${debtAccount.externalId}/' + externalId;
                             $("#revertForm").attr("action", url);
                             $('#revertModal').modal('toggle')
                         }
@@ -562,7 +483,9 @@ ${portal.toolkit()}
                     <p>
                         <c:out value="${debitEntry.description}" />
                     </p>
-
+                    <p>
+                    	<em><c:out value="${debitEntry.debtAccount.customer.fiscalCountry} - ${debitEntry.debtAccount.customer.fiscalNumber}" /></em>
+                    </p>
 					<p>
 	                    <c:if test="${debitEntry.eventAnnuled}">
 	                        <span class="label label-danger"><spring:message code="label.TreasuryExemption.removedFromEvent" /></span>
@@ -576,7 +499,7 @@ ${portal.toolkit()}
                     </datatables:columnHead>
                     <p align=right>
                         <c:out
-                            value="${debitEntry.debtAccount.finantialInstitution.currency.getValueFor(debitEntry.amount)}" />
+                            value="${debtAccount.finantialInstitution.currency.getValueFor(debitEntry.amount)}" />
                     </p>
                 </datatables:column>
                 <datatables:column cssStyle="width:10%">
@@ -586,7 +509,7 @@ ${portal.toolkit()}
                     </datatables:columnHead>
                     <p align=right>
                         <c:out
-                            value="${debitEntry.debtAccount.finantialInstitution.currency.getValueFor(debitEntry.exemptedAmount)}" />
+                            value="${debtAccount.finantialInstitution.currency.getValueFor(debitEntry.exemptedAmount)}" />
                     </p>
                 </datatables:column>
                 <datatables:column cssStyle="width:10%">

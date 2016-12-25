@@ -1303,7 +1303,7 @@ relation TreasuryEventProduct {
 relation TreasuryEventDebtAccount {
 	
 	debt.DebtAccount playsRole debtAccount {
-		multiplicity 1..1;
+		multiplicity 0..1;
 	}
 	
 	event.TreasuryEvent playsRole treasuryEvents {

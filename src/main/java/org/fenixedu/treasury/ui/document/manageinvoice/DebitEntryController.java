@@ -184,8 +184,8 @@ public class DebitEntryController extends TreasuryBaseController {
             }
             this.setDebitEntryBean(bean, model);
 
-//            model.addAttribute("DebitEntry_event_options",
-//                    TreasuryEvent.findActiveBy(debtAccount).collect(Collectors.<TreasuryEvent> toList()));
+            model.addAttribute("DebitEntry_event_options",
+                    TreasuryEvent.find(debtAccount.getCustomer()).collect(Collectors.<TreasuryEvent> toList()));
 
             if (debitNote == null) {
                 addInfoMessage(BundleUtil.getString(Constants.BUNDLE,
@@ -206,7 +206,7 @@ public class DebitEntryController extends TreasuryBaseController {
             Model model) {
 
         bean.refreshProductsDataSource();
-        
+
         Product product = bean.getProduct();
         if (product != null) {
             bean.setVat(bean.getDebtAccount().getFinantialInstitution().getActiveVat(product.getVatType(), new DateTime()));

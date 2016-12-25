@@ -119,7 +119,11 @@ public class CustomerController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = READ_URI + "{oid}")
-    public String read(@PathVariable("oid") Customer customer, Model model, RedirectAttributes redirectAttributes) {
+    public String read(@PathVariable("oid") final Customer customer, final Model model, final RedirectAttributes redirectAttributes) {
+        if(!customer.isActive() && customer.isUiOtherRelatedCustomerActive()) {
+            return redirect(customer.uiRedirectToActiveCustomer(READ_URL), model, redirectAttributes);
+        }
+        
         setCustomer(customer, model);
 
 //        //If the customer has only one debtAccount, redirect to the Read Of DebtAccount
