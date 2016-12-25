@@ -187,7 +187,7 @@ public class TreasuryExemption extends TreasuryExemption_Base {
 
     public static Stream<TreasuryExemption> findByDebtAccount(final DebtAccount debtAccount) {
         return Bennu.getInstance().getTreasuryExemptionsSet().stream()
-                .filter(t -> t.getTreasuryEvent().getDebtAccount() == debtAccount);
+                .filter(t -> t.getDebitEntry().getDebtAccount() == debtAccount);
     }
 
     @Atomic

@@ -44,6 +44,8 @@ import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.collect.Lists;
+
 public class DebitEntryBean implements IBean {
 
     private DebitEntry debitEntry;
@@ -128,9 +130,8 @@ public class DebitEntryBean implements IBean {
                 value.stream().sorted((x, y) -> x.getName().getContent().compareToIgnoreCase(y.getName().getContent())).map(x -> {
                     TupleDataSourceBean tuple = new TupleDataSourceBean();
                     tuple.setId(x.getExternalId());
-                    tuple.setText(
-                            String.format("%s", x.getName().getContent().replace("\"", "").replace("'", ""))
-                                    + (!x.isActive() ? inactiveDescription : ""));
+                    tuple.setText(String.format("%s", x.getName().getContent().replace("\"", "").replace("'", ""))
+                            + (!x.isActive() ? inactiveDescription : ""));
                     return tuple;
                 }).collect(Collectors.toList());
     }
@@ -259,10 +260,7 @@ public class DebitEntryBean implements IBean {
             this.applyInterests = true;
             this.setInterestRate(new FixedTariffInterestRateBean(debitEntry.getInterestRate()));
         }
-        this.setTreasuryEventDataSource(debitEntry.getDebtAccount().getTreasuryEventsSet().stream()
-                .sorted((x, y) -> (x.getTreasuryEventDate() != null ? x.getTreasuryEventDate() : new LocalDate())
-                        .compareTo((y.getTreasuryEventDate() != null ? y.getTreasuryEventDate() : new LocalDate())))
-                .collect(Collectors.toList()));
+        this.setTreasuryEventDataSource(Lists.<TreasuryEvent> newArrayList().stream().collect(Collectors.toList()));
 
         this.setAcademicalActBlockingSuspension(!debitEntry.isAcademicalActBlockingSuspension());
         this.setBlockAcademicActsOnDebt(debitEntry.isBlockAcademicActsOnDebt());
