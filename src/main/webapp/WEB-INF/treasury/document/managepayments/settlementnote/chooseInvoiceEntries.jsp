@@ -47,7 +47,8 @@ ${portal.angularToolkit()}
                     - ${settlementNoteBean.debtAccount.customer.name}</a>
             </p>
             <p>
-                <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>${ settlementNoteBean.debtAccount.customer.fiscalNumber }</p>
+                <strong><spring:message code="label.Customer.fiscalNumber" />:</strong>&nbsp;<c:out value="${settlementNoteBean.debtAccount.customer.countryCode}:${settlementNoteBean.debtAccount.customer.fiscalNumber}" />
+            </p>
         </div>
     </div>
 </div>

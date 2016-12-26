@@ -37,6 +37,8 @@ import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 
+import com.google.common.base.Strings;
+
 import pt.ist.fenixframework.Atomic;
 
 public class DocumentNumberSeries extends DocumentNumberSeries_Base {
@@ -62,6 +64,8 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
         setCounter(0);
         setFinantialDocumentType(finantialDocumentType);
         setSeries(series);
+        setReplacePrefix(false);
+        setReplacingPrefix(null);
 
         checkRules();
     }
@@ -73,6 +77,14 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
 
         if (getSeries() == null) {
             throw new TreasuryDomainException("error.DocumentNumberSeries.series.required");
+        }
+        
+        if(isReplacePrefix() && Strings.isNullOrEmpty(getReplacingPrefix())) {
+            throw new TreasuryDomainException("error.DocumentNumberSeries.replacePrefix.wrong.arguments");
+        }
+        
+        if(!isReplacePrefix() && !Strings.isNullOrEmpty(getReplacingPrefix())) {
+            throw new TreasuryDomainException("error.DocumentNumberSeries.replacePrefix.wrong.arguments");
         }
 
         find(getFinantialDocumentType(), getSeries());
@@ -93,11 +105,22 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
 
         return count;
     }
+    
+    public boolean isReplacePrefix() {
+        return getReplacePrefix();
+    }
 
     public boolean isDeletable() {
         return getFinantialDocumentsSet().isEmpty() && getPaymentCodePoolPaymentSeriesSet().isEmpty();
     }
 
+    public void editReplacingPrefix(final boolean replacePrefix, final String replacingPrefix) {
+        setReplacePrefix(false);
+        setReplacingPrefix(null);
+        
+        checkRules();
+    }
+    
     @Atomic
     public void delete() {
         if (!isDeletable()) {
@@ -163,6 +186,14 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
     public static Stream<DocumentNumberSeries> applyActiveSelectableAndDefaultSorting(Stream<DocumentNumberSeries> stream) {
 
         return stream.filter(x -> x.getSeries().getActive()).filter(d -> d.getSeries().isSelectable()).sorted(COMPARE_BY_DEFAULT.thenComparing(COMPARE_BY_NAME));
+    }
+
+    public String documentNumberSeriesPrefix() {
+        if(isReplacePrefix()) {
+            return getReplacingPrefix();
+        }
+        
+        return getFinantialDocumentType().getDocumentNumberSeriesPrefix();
     }
 
 }

@@ -123,6 +123,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
             throw new TreasuryDomainException("error.Customer.cannot.delete");
         }
 
+        setCustomerType(null);
         setBennu(null);
 
         deleteDomainObject();

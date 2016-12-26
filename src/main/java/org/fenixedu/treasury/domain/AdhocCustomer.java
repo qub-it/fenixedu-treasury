@@ -119,7 +119,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     @Override
     public boolean isDeletable() {
         return getDebtAccountsSet().stream().allMatch(da -> da.isDeletable());
-
     }
 
     @Override

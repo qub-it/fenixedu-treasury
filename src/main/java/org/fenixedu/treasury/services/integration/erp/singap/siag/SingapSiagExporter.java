@@ -132,6 +132,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SingapSiagExporter implements IERPExporter {
 
+    private static final String WINDOWS_1252 = "Windows-1252";
     private static Logger logger = LoggerFactory.getLogger(SingapSiagExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
 
@@ -1029,12 +1030,12 @@ public class SingapSiagExporter implements IERPExporter {
             StringWriter writer = new StringWriter();
 
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, "Windows-1252");
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, WINDOWS_1252);
             marshaller.marshal(auditFile, writer);
 
-            Charset charset = Charset.forName("Windows-1252");
+            Charset charset = Charset.forName(WINDOWS_1252);
 
-            String xml = new String(charset.encode(writer.toString()).array(), "Windows-1252");
+            String xml = new String(charset.encode(writer.toString()).array(), WINDOWS_1252);
             xml = xml.replace(cleanXMLAnotations, "");
             xml = xml.replace(cleanXMLAnotations2, "");
             xml = xml.replace(cleanDateTimeMiliseconds, "<");
@@ -1042,7 +1043,7 @@ public class SingapSiagExporter implements IERPExporter {
 
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA1");
-                md.update(("SALTING WITH QUB:" + xml).getBytes("Windows-1252"));
+                md.update(("SALTING WITH QUB:" + xml).getBytes(WINDOWS_1252));
                 byte[] output = md.digest();
                 String digestAscii = bytesToHex(output);
                 xml = xml + "<!-- QUB-IT (remove this line,add the qubSALT, save with Windows-1252 encode): " + digestAscii
@@ -1378,7 +1379,7 @@ public class SingapSiagExporter implements IERPExporter {
         return operation;
     }
 
-    private static final String SAFT_PT_ENCODING = "Windows-1252";
+    private static final String SAFT_PT_ENCODING = WINDOWS_1252;
     
     // SERVICE
     @Atomic
@@ -1662,6 +1663,11 @@ public class SingapSiagExporter implements IERPExporter {
     @Override
     public ReimbursementStateBean checkReimbursementState(SettlementNote reimbursementNote) {
         throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public String saftEncoding() {
+        return WINDOWS_1252;
     }
 
 }

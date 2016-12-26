@@ -182,8 +182,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     }
 
     public String getUiDocumentNumber() {
-        return String.format("%s %s/%s",
-                this.getDocumentNumberSeries().getFinantialDocumentType().getDocumentNumberSeriesPrefix(),
+        return String.format("%s %s/%s", this.getDocumentNumberSeries().documentNumberSeriesPrefix(),
                 this.getDocumentNumberSeries().getSeries().getCode(), Strings.padStart(this.getDocumentNumber(), 7, '0'));
     }
 

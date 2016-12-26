@@ -112,7 +112,6 @@ import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationIn
 import org.fenixedu.treasury.services.integration.erp.dto.DocumentsInformationOutput;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,14 +135,16 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
-    private static final DateTime DECEMBER_31 = new LocalDate(2016, 12, 31).toDateTimeAtStartOfDay();
+    private static final DateTime ERP_INTEGRATION_START_DATE = new LocalDate(2016, 12, 24).toDateTimeAtStartOfDay();
+
     private static final int MAX_REASON = 50;
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
     private static final int MAX_STREET_NAME = 90;
 
     public static final String SAFT_PT_ENCODING = "UTF-8";
-    private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
     public final static String ERP_HEADER_VERSION_1_00_00 = "1.0.3";
+
+    private static Logger logger = LoggerFactory.getLogger(SAPExporter.class);
 
     private String generateERPFile(final FinantialInstitution institution, final DateTime fromDate, final DateTime toDate,
             final List<? extends FinantialDocument> allDocuments, final boolean generateAllCustomers,
@@ -366,6 +367,13 @@ public class SAPExporter implements IERPExporter {
         return xml;
     }
 
+    // @formatter:off
+    /* ***********************
+     * CONVERT SETTLEMENT NOTE
+     * ***********************
+     */
+    // @formatter:on
+
     private Payment convertToSAFTPaymentDocument(final SettlementNote document,
             final Map<String, ERPCustomerFieldsBean> baseCustomers,
             Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> productMap) {
@@ -576,20 +584,12 @@ public class SAPExporter implements IERPExporter {
         return payment;
     }
 
-    public static XMLGregorianCalendar convertToXMLDateTime(DatatypeFactory dataTypeFactory, DateTime documentDate) {
-        return dataTypeFactory.newXMLGregorianCalendar(documentDate.getYear(), documentDate.getMonthOfYear(),
-                documentDate.getDayOfMonth(), documentDate.getHourOfDay(), documentDate.getMinuteOfHour(),
-                documentDate.getSecondOfMinute(), 0, DatatypeConstants.FIELD_UNDEFINED);
-    }
-
-    public static XMLGregorianCalendar convertToXMLDate(DatatypeFactory dataTypeFactory, DateTime date) {
-        return dataTypeFactory.newXMLGregorianCalendarDate(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(),
-                DatatypeConstants.FIELD_UNDEFINED);
-    }
-
-    private String convertToSAFTPaymentMechanism(org.fenixedu.treasury.domain.PaymentMethod paymentMethod) {
-        return paymentMethod.getCode();
-    }
+    // @formatter:off
+    /* ******************************
+     * CONVERT DEBIT AND CREDIT NOTES
+     * ******************************
+     */
+    // @formatter:on
 
     private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
             final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
@@ -663,7 +663,6 @@ public class SAPExporter implements IERPExporter {
             dataTypeFactory = DatatypeFactory.newInstance();
             DateTime documentDate = document.getDocumentDate();
 
-            /* Anil: 14/06/2016: Fill with 0's the Hash element */
             workDocument.setDueDate(convertToXMLDate(dataTypeFactory, document.getDocumentDueDate().toDateTimeAtStartOfDay()));
 
             /* Anil: 14/06/2016: Fill with 0's the Hash element */
@@ -681,16 +680,15 @@ public class SAPExporter implements IERPExporter {
             // CustomerID
             workDocument.setCustomerID(document.getDebtAccount().getCustomer().getCode());
 
-            if (document.isCreditNote()) {
+            if (document.isCreditNote() && !((CreditNote) document).isAdvancePayment()
+                    && !((CreditNote) document).isExportedInLegacyERP()) {
                 final CreditNote creditNote = (CreditNote) document;
                 if (creditNote.getDebitNote() == null || creditNote.getDebitNote().isExportedInLegacyERP()) {
                     workDocument.setForceCertification(true);
                 }
             }
 
-            if (document.isExportedInLegacyERP()) {
-                workDocument.setCertificationDate(convertToXMLDate(dataTypeFactory, document.getCloseDate()));
-            }
+            workDocument.setCertificationDate(convertToXMLDate(dataTypeFactory, document.getCloseDate()));
 
             //PayorID
             if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
@@ -738,6 +736,16 @@ public class SAPExporter implements IERPExporter {
             docTotals.setNetTotal(document.getTotalNetAmount().setScale(2, RoundingMode.HALF_EVEN));
             docTotals.setTaxPayable(
                     document.getTotalAmount().subtract(document.getTotalNetAmount()).setScale(2, RoundingMode.HALF_EVEN));
+
+            if (document.isExportedInLegacyERP()) {
+                final BigDecimal totalAmount = SAPExporterUtils.amountAtDate(document, ERP_INTEGRATION_START_DATE);
+                final BigDecimal netAmount = SAPExporterUtils.netAmountAtDate(document, ERP_INTEGRATION_START_DATE);
+
+                docTotals.setGrossTotal(totalAmount.setScale(2, RoundingMode.HALF_EVEN));
+                docTotals.setNetTotal(netAmount.setScale(2, RoundingMode.HALF_EVEN));
+                docTotals.setTaxPayable(totalAmount.subtract(netAmount).setScale(2, RoundingMode.HALF_EVEN));
+            }
+
             workDocument.setDocumentTotals(docTotals);
 
             // WorkType
@@ -803,6 +811,7 @@ public class SAPExporter implements IERPExporter {
             currentProduct = convertProductToSAFTProduct(product);
             baseProducts.put(currentProduct.getProductCode(), currentProduct);
         }
+
         XMLGregorianCalendar documentDateCalendar = null;
         try {
             DatatypeFactory dataTypeFactory = DatatypeFactory.newInstance();
@@ -812,7 +821,6 @@ public class SAPExporter implements IERPExporter {
             documentDateCalendar = convertToXMLDate(dataTypeFactory, documentDate);
 
         } catch (DatatypeConfigurationException e) {
-
             e.printStackTrace();
         }
 
@@ -823,6 +831,17 @@ public class SAPExporter implements IERPExporter {
             line.setCreditAmount(entry.getAmount().setScale(2, RoundingMode.HALF_EVEN));
         } else if (entry.isDebitNoteEntry()) {
             line.setDebitAmount(entry.getAmount().setScale(2, RoundingMode.HALF_EVEN));
+        }
+
+        // If document was exported in legacy ERP than the amount is open amount when integration started
+        if (entry.getFinantialDocument().isExportedInLegacyERP()) {
+            if (entry.isCreditNoteEntry()) {
+                line.setCreditAmount(
+                        SAPExporterUtils.openAmountAtDate(entry, ERP_INTEGRATION_START_DATE).setScale(2, RoundingMode.HALF_EVEN));
+            } else if (entry.isDebitNoteEntry()) {
+                line.setDebitAmount(
+                        SAPExporterUtils.openAmountAtDate(entry, ERP_INTEGRATION_START_DATE).setScale(2, RoundingMode.HALF_EVEN));
+            }
         }
 
         // Description
@@ -839,17 +858,19 @@ public class SAPExporter implements IERPExporter {
                 line.setMetadata(metadata);
 
                 OrderReferences reference = new OrderReferences();
-                
+
                 reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
                 reference.setOrderDate(documentDateCalendar);
 
-                if(((DebitNote) creditEntry.getDebitEntry().getFinantialDocument()).isExportedInLegacyERP()) {
+                if (((DebitNote) creditEntry.getDebitEntry().getFinantialDocument()).isExportedInLegacyERP()) {
                     final DebitNote debitNote = (DebitNote) creditEntry.getDebitEntry().getFinantialDocument();
-                    if(!Strings.isNullOrEmpty(debitNote.getLegacyERPCertificateDocumentReference())) {
+                    if (!Strings.isNullOrEmpty(debitNote.getLegacyERPCertificateDocumentReference())) {
                         reference.setOriginatingON(debitNote.getLegacyERPCertificateDocumentReference());
+                    } else {
+                        reference.setOriginatingON("");
                     }
                 }
-                
+
                 reference.setLineNumber(BigInteger.ONE);
 
                 orderReferences.add(reference);
@@ -903,6 +924,11 @@ public class SAPExporter implements IERPExporter {
         line.setUnitOfMeasure(product.getUnitOfMeasure().getContent());
         // UnitPrice
         line.setUnitPrice(entry.getAmount().setScale(2, RoundingMode.HALF_EVEN));
+
+        if (entry.getFinantialDocument().isExportedInLegacyERP()) {
+            line.setUnitPrice(
+                    SAPExporterUtils.openAmountAtDate(entry, ERP_INTEGRATION_START_DATE).setScale(2, RoundingMode.HALF_EVEN));
+        }
 
         return line;
     }
@@ -1786,6 +1812,21 @@ public class SAPExporter implements IERPExporter {
         };
     }
 
+    public static XMLGregorianCalendar convertToXMLDateTime(DatatypeFactory dataTypeFactory, DateTime documentDate) {
+        return dataTypeFactory.newXMLGregorianCalendar(documentDate.getYear(), documentDate.getMonthOfYear(),
+                documentDate.getDayOfMonth(), documentDate.getHourOfDay(), documentDate.getMinuteOfHour(),
+                documentDate.getSecondOfMinute(), 0, DatatypeConstants.FIELD_UNDEFINED);
+    }
+
+    public static XMLGregorianCalendar convertToXMLDate(DatatypeFactory dataTypeFactory, DateTime date) {
+        return dataTypeFactory.newXMLGregorianCalendarDate(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth(),
+                DatatypeConstants.FIELD_UNDEFINED);
+    }
+
+    private String convertToSAFTPaymentMechanism(org.fenixedu.treasury.domain.PaymentMethod paymentMethod) {
+        return paymentMethod.getCode();
+    }
+
     // Service
     @Override
     public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument) {
@@ -1858,5 +1899,10 @@ public class SAPExporter implements IERPExporter {
                     logBean.getSoapOutboundMessage());
         }
 
+    }
+
+    @Override
+    public String saftEncoding() {
+        return SAFT_PT_ENCODING;
     }
 }

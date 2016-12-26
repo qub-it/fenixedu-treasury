@@ -209,6 +209,8 @@ class document.Series {
 
 class document.DocumentNumberSeries {
 	int counter;
+	boolean replacePrefix;
+	String replacingPrefix;
 }
 
 class event.TreasuryEvent {
@@ -886,6 +888,16 @@ relation TreasurySettingsCurrency {
 	}
 	
 	Currency playsRole defaultCurrency {
+		multiplicity 0..1;
+	}
+}
+
+relation TreasurySettingsRegulationSeries {
+	settings.TreasurySettings playsRole treasurySettings {
+		multiplicity 0..1;
+	}
+	
+	document.Series playsRole regulationSeries {
 		multiplicity 0..1;
 	}
 }

@@ -507,10 +507,10 @@ public class SettlementNoteController extends TreasuryBaseController {
         setSettlementNote(settlementNote, model);
 
         try {
-            if(settlementNote.isReimbursement()) {
+            if (settlementNote.isReimbursement()) {
                 throw new TreasuryDomainException("error.SettlementNote.reimbursement.must.be.rejected.in.erp");
             }
-            
+
             assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
             anullReason = anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
                     + new DateTime().toString("YYYY-MM-dd HH:mm");
@@ -528,26 +528,21 @@ public class SettlementNoteController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
-            IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                    .getERPExternalServiceImplementation().getERPExporter();
+            final String saftEncoding =
+                    ERPExporterManager.saftEncoding(settlementNote.getDebtAccount().getFinantialInstitution());
 
-            String output =
-                    erpExporter.exportFinantialDocumentToXML(settlementNote.getDebtAccount().getFinantialInstitution(),
-                            settlementNote
-                                    .findRelatedDocuments(new HashSet<FinantialDocument>(),
-                                            settlementNote.getDebtAccount().getFinantialInstitution()
-                                                    .getErpIntegrationConfiguration().getExportAnnulledRelatedDocuments())
-                                    .stream().collect(Collectors.toList()));
+            final String output = ERPExporterManager.exportFinantialDocumentToXML(settlementNote);
+
             response.setContentType("text/xml");
-            response.setCharacterEncoding("Windows-1252");
+            response.setCharacterEncoding(saftEncoding);
             String filename = URLEncoder.encode(StringNormalizer.normalizePreservingCapitalizedLetters(
                     (settlementNote.getDebtAccount().getFinantialInstitution().getFiscalNumber() + "_"
                             + settlementNote.getUiDocumentNumber() + ".xml").replaceAll("/", "_").replaceAll("\\s", "_")
                                     .replaceAll(" ", "_")),
-                    "Windows-1252");
+                    saftEncoding);
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
 
-            response.getOutputStream().write(output.getBytes("Windows-1252"));
+            response.getOutputStream().write(output.getBytes(saftEncoding));
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
             try {
@@ -820,11 +815,11 @@ public class SettlementNoteController extends TreasuryBaseController {
         try {
             ERPExporterManager.updateReimbursementState(settlementNote);
             return redirect(READ_URL + settlementNote.getExternalId(), model, redirectAttributes);
-        } catch(final DomainException e) {
+        } catch (final DomainException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
             return read(settlementNote, model);
         }
-        
+
     }
 
 }

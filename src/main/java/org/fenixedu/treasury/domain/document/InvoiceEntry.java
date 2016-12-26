@@ -238,7 +238,25 @@ public abstract class InvoiceEntry extends InvoiceEntry_Base {
         return this.getAmountWithVat();
     }
 
-    public abstract BigDecimal getOpenAmount();
+    public BigDecimal getPayedAmount() {
+        BigDecimal amount = BigDecimal.ZERO;
+        for (SettlementEntry entry : this.getSettlementEntriesSet()) {
+            if (entry.getFinantialDocument() != null && entry.getFinantialDocument().isClosed()) {
+                amount = amount.add(entry.getTotalAmount());
+            }
+        }
+        return amount;
+    }
+    
+    public BigDecimal getOpenAmount() {
+        if (isAnnulled()) {
+            return BigDecimal.ZERO;
+        }
+
+        final BigDecimal openAmount = this.getAmountWithVat().subtract(getPayedAmount());
+
+        return getCurrency().getValueWithScale(isPositive(openAmount) ? openAmount : BigDecimal.ZERO);
+    }
 
     public abstract BigDecimal getOpenAmountWithInterests();
 

@@ -2,6 +2,7 @@ package org.fenixedu.treasury.services.integration.erp;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,6 +45,22 @@ public class ERPExporterManager {
             return 0;
         }
     };
+
+    public static String saftEncoding(final FinantialInstitution finantialInstitution) {
+        final IERPExporter erpExporter = finantialInstitution
+                .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+
+        return erpExporter.saftEncoding();
+    }
+
+    @Atomic
+    public static String exportFinantialDocumentToXML(final FinantialDocument finantialDocument) {
+        final FinantialInstitution finantialInstitution = finantialDocument.getDebtAccount().getFinantialInstitution();
+        final IERPExporter erpExporter = finantialDocument.getDebtAccount().getFinantialInstitution()
+                .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+
+        return erpExporter.exportFinantialDocumentToXML(finantialInstitution, Lists.newArrayList(finantialDocument));
+    }
 
     public static List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution(
             final FinantialInstitution finantialInstitution) {

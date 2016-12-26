@@ -144,23 +144,6 @@ public class CreditEntry extends CreditEntry_Base {
     }
 
     @Override
-    public BigDecimal getOpenAmount() {
-        final BigDecimal openAmount = this.getAmountWithVat().subtract(getPayedAmount());
-
-        return getCurrency().getValueWithScale(isPositive(openAmount) ? openAmount : BigDecimal.ZERO);
-    }
-
-    public BigDecimal getPayedAmount() {
-        BigDecimal amount = BigDecimal.ZERO;
-        for (SettlementEntry entry : this.getSettlementEntriesSet()) {
-            if (entry.getFinantialDocument() != null && entry.getFinantialDocument().isClosed()) {
-                amount = amount.add(entry.getTotalAmount());
-            }
-        }
-        return amount;
-    }
-
-    @Override
     public LocalDate getDueDate() {
         return getEntryDateTime().toLocalDate();
     }

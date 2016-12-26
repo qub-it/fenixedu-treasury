@@ -491,38 +491,29 @@ public class DebitNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/read/{oid}/exportintegrationfile", produces = "text/xml;charset=Windows-1252")
-    public void processReadToExportIntegrationFile(@PathVariable("oid") DebitNote debitNote, Model model,
-            RedirectAttributes redirectAttributes, HttpServletResponse response) {
+    public void processReadToExportIntegrationFile(@PathVariable("oid") final DebitNote debitNote, final Model model,
+            final RedirectAttributes redirectAttributes, final HttpServletResponse response) {
         try {
             assertUserIsFrontOfficeMember(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-            final IERPExporter erpExporter = debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                    .getERPExternalServiceImplementation().getERPExporter();
 
-            String output =
-                    erpExporter
-                            .exportFinantialDocumentToXML(debitNote.getDebtAccount().getFinantialInstitution(),
-                                    debitNote
-                                            .findRelatedDocuments(new HashSet<FinantialDocument>(),
-                                                    debitNote.getDebtAccount().getFinantialInstitution()
-                                                            .getErpIntegrationConfiguration().getExportAnnulledRelatedDocuments())
-                                            .stream().collect(Collectors.toList()));
+            final String saftEncoding = ERPExporterManager.saftEncoding(debitNote.getDebtAccount().getFinantialInstitution());
+            final String output = ERPExporterManager.exportFinantialDocumentToXML(debitNote);
 
             response.setContentType("text/xml");
-            response.setCharacterEncoding("Windows-1252");
+            response.setCharacterEncoding(saftEncoding);
             String filename = URLEncoder.encode(StringNormalizer
                     .normalizePreservingCapitalizedLetters((debitNote.getDebtAccount().getFinantialInstitution().getFiscalNumber()
                             + "_" + debitNote.getUiDocumentNumber() + ".xml").replaceAll("/", "_").replaceAll("\\s", "_")
                                     .replaceAll(" ", "_")),
-                    "Windows-1252");
+                    saftEncoding);
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
 
-            response.getOutputStream().write(output.getBytes("Windows-1252"));
+            response.getOutputStream().write(output.getBytes(saftEncoding));
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
             try {
                 response.sendRedirect(redirect(READ_URL + debitNote.getExternalId(), model, redirectAttributes));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -782,7 +773,7 @@ public class DebitNoteController extends TreasuryBaseController {
             return null;
         } catch (final TreasuryDomainException | IOException e) {
             addErrorMessage(e.getLocalizedMessage(), model);
-            return redirect(READ_URL + "/" + debitNote.getExternalId(), model, redirectAttributes);
+            return read(debitNote, model, redirectAttributes);
         }
     }
 

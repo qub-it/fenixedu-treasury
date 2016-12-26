@@ -33,5 +33,7 @@ public interface IERPExporter {
     public byte[] downloadCertifiedDocumentPrint(final FinantialDocument finantialDocument);
     
     public ReimbursementStateBean checkReimbursementState(final SettlementNote reimbursementNote);
+    
+    public String saftEncoding();
 
 }

@@ -182,7 +182,7 @@ ${portal.toolkit()}
 			                       <tr>
 			                           <th scope="row" class="col-xs-4"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
 			                           <td class="col-xs-2">
-			                           		<c:out value="${debtAccount.customer.countryCode}" />&nbsp;-&nbsp;<c:out value="${debtAccount.customer.fiscalNumber}" />
+			                           		<c:out value="${debtAccount.customer.countryCode}" />:<c:out value="${debtAccount.customer.fiscalNumber}" />
 			                           </td>
 			                           <td >
 			                               <div class="col-xs-3">

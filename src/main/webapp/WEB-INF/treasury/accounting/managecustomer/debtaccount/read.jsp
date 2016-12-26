@@ -349,7 +349,7 @@ ${portal.angularToolkit()}
                     </c:if>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
-                        <td><c:out value='${debtAccount.customer.fiscalNumber}' /></td>
+                        <td><c:out value="${debtAccount.customer.countryCode}" />:<c:out value='${debtAccount.customer.fiscalNumber}' /></td>
                     </tr>
 
                     <tr>
@@ -494,7 +494,21 @@ ${portal.angularToolkit()}
                                 <spring:message code="label.InvoiceEntry.description" />
                                 
                             </datatables:columnHead>
-                            <p><c:out value="${pendingEntry.description}" /></p>
+                            <p>
+                            	<c:out value="${pendingEntry.description}" />
+                            </p>
+                        	<c:if test="${pendingEntry.finantialDocument != null}">
+                        	<c:if test="${pendingEntry.finantialDocument.forPayorDebtAccount}">
+                        		<p>
+                        			<em>
+                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+                        				<span><c:out value="${pendingEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+                        				&nbsp;-&nbsp;
+                        				<span><c:out value="${pendingEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+                        			</em>
+                        	</c:if>
+                        	</c:if>
+                            
 							<c:if test="${pendingEntry.isDebitNoteEntry() && pendingEntry.academicalActBlockingSuspension }">
 							<p><span class="label label-warning"><spring:message code="label.DebitEntry.academicalActBlockingOff" /></span></p>
 							</c:if>
@@ -648,7 +662,21 @@ ${portal.angularToolkit()}
                             <datatables:columnHead>
                                 <spring:message code="label.InvoiceEntry.description" />
                             </datatables:columnHead>
-                            <p><c:out value="${entry.description}" /></p>
+                            <p>
+                            	<c:out value="${entry.description}" />
+                            </p>
+                        	<c:if test="${entry.finantialDocument != null}">
+                        	<c:if test="${entry.finantialDocument.forPayorDebtAccount}">
+                        		<p>
+                        			<em>
+                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+                        				<span><c:out value="${entry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+                        				&nbsp;-&nbsp;
+                        				<span><c:out value="${entry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+                        			</em>
+                        	</c:if>
+                        	</c:if>
+							
 							<c:if test="${entry.isDebitNoteEntry() && entry.academicalActBlockingSuspension}">
 							<p><span class="label label-warning"><spring:message code="label.DebitEntry.academicalActBlockingOff" /></span></p>
 							</c:if>

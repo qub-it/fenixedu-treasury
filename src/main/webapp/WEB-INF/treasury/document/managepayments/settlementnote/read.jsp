@@ -327,7 +327,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         </div>
     </c:if>
     
-	<c:if test="${settlementNote.isClosed() and not settlementNote.documentToExport}">
+	<c:if test="${settlementNote.isClosed() && not settlementNote.exportedInLegacyERP && not settlementNote.documentToExport}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= SettlementNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${settlementNote.externalId}">
@@ -446,6 +446,10 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                     </tr>
                     </c:if>
                     <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.closeDate" /></th>
+                        <td><joda:format value="${settlementNote.closeDate}" style="S-" /></td>
+                    </tr>
+                    <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.originDocumentNumber" /></th>
                         <td><c:out value='${settlementNote.originDocumentNumber}' /></td>
                     </tr>
@@ -484,6 +488,10 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                             <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.totalReimbursementAmount" /></th>
                             <td><c:out value='${settlementNote.currency.getValueFor(settlementNote.totalReimbursementAmount)}' /></td>
                         </c:if>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.SettlementNote.exportedInLegacyERP" /></th>
+                        <td><spring:message code="label.${settlementNote.exportedInLegacyERP}" /></td>
                     </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Versioning.creator" /></th>
