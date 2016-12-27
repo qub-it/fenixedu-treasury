@@ -7,14 +7,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
-import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
+import org.fenixedu.treasury.domain.document.Invoice;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.fenixedu.treasury.domain.document.PaymentEntry;
 import org.fenixedu.treasury.domain.document.SettlementEntry;
@@ -79,7 +79,6 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
         BigDecimal availableAmount = amount;
 
         List<DebitEntry> interestRateEntries = new ArrayList<DebitEntry>();
-        DebitNote debitNoteForInterests = null;
         DebtAccount referenceDebtAccount = this.getDebtAccount();
         DocumentNumberSeries docNumberSeries = this.getDocumentSeriesForPayments();
         SettlementNote settlementNote =
@@ -89,99 +88,101 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
         //1. Find the InvoiceEntries
         //2. Create the SEttlementEntries and the SEttlementNote
         //######################################
-        for (InvoiceEntry entry : sortedInvoiceEntriesToPay) {
-            if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                break;
-            }
-
-            BigDecimal amountToPay = entry.getOpenAmount();
-            if (amountToPay.compareTo(BigDecimal.ZERO) > 0) {
-                if (entry.isDebitNoteEntry()) {
-                    DebitEntry debitEntry = (DebitEntry) entry;
-
-                    if (debitEntry.getFinantialDocument() == null) {
-                        final DocumentNumberSeries documentNumberSeries =
-                                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
-                                        getPaymentReferenceCode().getPaymentCodePool().getFinantialInstitution()).get();
-                        final DebitNote debitNote = DebitNote.create(debitEntry.getDebtAccount(), documentNumberSeries, new DateTime());
-                        debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
-                    }
-
-                    if (debitEntry.getFinantialDocument().isPreparing()) {
-                        debitEntry.getFinantialDocument().closeDocument();
-                    }
-
-                    //check if the amount to pay in the Debit Entry 
-                    if (amountToPay.compareTo(availableAmount) > 0) {
-                        amountToPay = availableAmount;
-                    }
-
-                    if (debitEntry.getOpenAmount().equals(amountToPay)) {
-                        //######################################
-                        //2.1 create the "InterestRate entries"
-                        //######################################
-                        InterestRateBean calculateUndebitedInterestValue =
-                                debitEntry.calculateUndebitedInterestValue(whenRegistered.toLocalDate());
-                        if (Constants.isPositive(calculateUndebitedInterestValue.getInterestAmount())) {
-                            DebitEntry interestDebitEntry = debitEntry.createInterestRateDebitEntry(
-                                    calculateUndebitedInterestValue, whenRegistered, Optional.<DebitNote> empty());
-                            interestRateEntries.add(interestDebitEntry);
+        
+        if(getReferencedCustomers().size() == 1) {
+            for (InvoiceEntry entry : sortedInvoiceEntriesToPay) {
+                if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                    break;
+                }
+    
+                BigDecimal amountToPay = entry.getOpenAmount();
+                if (amountToPay.compareTo(BigDecimal.ZERO) > 0) {
+                    if (entry.isDebitNoteEntry()) {
+                        DebitEntry debitEntry = (DebitEntry) entry;
+    
+                        if (debitEntry.getFinantialDocument() == null) {
+                            final DocumentNumberSeries documentNumberSeries =
+                                    DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(),
+                                            getPaymentReferenceCode().getPaymentCodePool().getFinantialInstitution()).get();
+                            final DebitNote debitNote = DebitNote.create(debitEntry.getDebtAccount(), documentNumberSeries, new DateTime());
+                            debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
                         }
+    
+                        if (debitEntry.getFinantialDocument().isPreparing()) {
+                            debitEntry.getFinantialDocument().closeDocument();
+                        }
+    
+                        //check if the amount to pay in the Debit Entry 
+                        if (amountToPay.compareTo(availableAmount) > 0) {
+                            amountToPay = availableAmount;
+                        }
+    
+                        if (debitEntry.getOpenAmount().equals(amountToPay)) {
+                            //######################################
+                            //2.1 create the "InterestRate entries"
+                            //######################################
+                            InterestRateBean calculateUndebitedInterestValue =
+                                    debitEntry.calculateUndebitedInterestValue(whenRegistered.toLocalDate());
+                            if (Constants.isPositive(calculateUndebitedInterestValue.getInterestAmount())) {
+                                DebitEntry interestDebitEntry = debitEntry.createInterestRateDebitEntry(
+                                        calculateUndebitedInterestValue, whenRegistered, Optional.<DebitNote> empty());
+                                interestRateEntries.add(interestDebitEntry);
+                            }
+                        }
+    
+                        SettlementEntry newSettlementEntry = SettlementEntry.create(entry, settlementNote, amountToPay,
+                                entry.getDescription(), whenRegistered, true);
+    
+                        //Update the amount to Pay
+                        availableAmount = availableAmount.subtract(amountToPay);
+    
+                    } else if (entry.isCreditNoteEntry()) {
+                        SettlementEntry newSettlementEntry = SettlementEntry.create(entry, settlementNote, entry.getOpenAmount(),
+                                entry.getDescription(), whenRegistered, true);
+                        //update the amount to Pay
+                        availableAmount = availableAmount.add(amountToPay);
                     }
-
-                    SettlementEntry newSettlementEntry = SettlementEntry.create(entry, settlementNote, amountToPay,
-                            entry.getDescription(), whenRegistered, true);
-
-                    //Update the amount to Pay
-                    availableAmount = availableAmount.subtract(amountToPay);
-
-                } else if (entry.isCreditNoteEntry()) {
-                    SettlementEntry newSettlementEntry = SettlementEntry.create(entry, settlementNote, entry.getOpenAmount(),
-                            entry.getDescription(), whenRegistered, true);
-                    //update the amount to Pay
-                    availableAmount = availableAmount.add(amountToPay);
+                } else {
+                    //Ignore since the "open amount" is ZERO
                 }
-            } else {
-                //Ignore since the "open amount" is ZERO
             }
-        }
-
-        //######################################
-        //2.2 if there is pending amount, pay the interest rate
-        //######################################
-        //if we created interestRateEntries then we must close them in a document and try to pay with availableAmount
-        if (interestRateEntries.size() > 0) {
-            //Create a DebitNote for the Interests DebitEntries
-            DebitNote interestNote =
-                    DebitNote.create(referenceDebtAccount, this.getDocumentSeriesInterestDebits(), whenRegistered);
-            for (DebitEntry interestEntry : interestRateEntries) {
-                interestEntry.setFinantialDocument(interestNote);
-            }
-            interestNote.closeDocument();
-
-            //if "availableAmount" still exists, then we must check if there is any InterestRate to pay
-            if (availableAmount.compareTo(BigDecimal.ZERO) > 0) {
+    
+            //######################################
+            //2.2 if there is pending amount, pay the interest rate
+            //######################################
+            //if we created interestRateEntries then we must close them in a document and try to pay with availableAmount
+            if (interestRateEntries.size() > 0) {
+                //Create a DebitNote for the Interests DebitEntries
+                DebitNote interestNote =
+                        DebitNote.create(referenceDebtAccount, this.getDocumentSeriesInterestDebits(), whenRegistered);
                 for (DebitEntry interestEntry : interestRateEntries) {
-                    //Check if there is enough amount to Pay
-                    if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                        break;
-                    }
-
-                    BigDecimal amountToPay = interestEntry.getOpenAmount();
-                    //check if the amount to pay in the Debit Entry 
-                    if (amountToPay.compareTo(availableAmount) > 0) {
-                        amountToPay = availableAmount;
-                    }
-
-                    SettlementEntry newSettlementEntry = SettlementEntry.create(interestEntry, settlementNote, amountToPay,
-                            interestEntry.getDescription(), whenRegistered, true);
-                    //Update the amount to Pay
-                    availableAmount = availableAmount.subtract(amountToPay);
+                    interestEntry.setFinantialDocument(interestNote);
                 }
+                interestNote.closeDocument();
+    
+                //if "availableAmount" still exists, then we must check if there is any InterestRate to pay
+                if (availableAmount.compareTo(BigDecimal.ZERO) > 0) {
+                    for (DebitEntry interestEntry : interestRateEntries) {
+                        //Check if there is enough amount to Pay
+                        if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                            break;
+                        }
+    
+                        BigDecimal amountToPay = interestEntry.getOpenAmount();
+                        //check if the amount to pay in the Debit Entry 
+                        if (amountToPay.compareTo(availableAmount) > 0) {
+                            amountToPay = availableAmount;
+                        }
+    
+                        SettlementEntry newSettlementEntry = SettlementEntry.create(interestEntry, settlementNote, amountToPay,
+                                interestEntry.getDescription(), whenRegistered, true);
+                        //Update the amount to Pay
+                        availableAmount = availableAmount.subtract(amountToPay);
+                    }
+                }
+                interestRateEntries.clear();
             }
-            interestRateEntries.clear();
         }
-
 
         //######################################
         //4. If there is money for more, create a "pending" payment (CreditNote) for being used later
@@ -214,7 +215,23 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
     protected abstract DocumentNumberSeries getDocumentSeriesInterestDebits();
 
     protected abstract DocumentNumberSeries getDocumentSeriesForPayments();
+    
+    protected abstract Set<InvoiceEntry> getInvoiceEntries();
 
     public abstract LocalDate getDueDate();
+
+    public Set<Customer> getReferencedCustomers() {
+        final Set<Customer> result = Sets.newHashSet();
+        for (final InvoiceEntry entry : getInvoiceEntries()) {
+            if (entry.getFinantialDocument() != null && ((Invoice) entry.getFinantialDocument()).isForPayorDebtAccount()) {
+                result.add(((Invoice) entry.getFinantialDocument()).getPayorDebtAccount().getCustomer());
+                continue;
+            }
+
+            result.add(entry.getDebtAccount().getCustomer());
+        }
+
+        return result;
+    }
 
 }

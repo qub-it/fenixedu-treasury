@@ -361,14 +361,6 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 	        </li>
 	        --%>
         
-        <c:if test="${debitNote.isPreparing() || debitNote.isClosed()}">
-			<li>            
-	            <a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/debitnote/viewerpcustomerfields/${debitNote.externalId}">
-	            	<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;
-	            	<spring:message code="label.Invoice.erpCustomerFields.title" />
-	            </a>
-            </li>
-		</c:if>        
 </ul>
 
         </div>

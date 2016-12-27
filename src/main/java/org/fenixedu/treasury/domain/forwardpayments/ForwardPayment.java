@@ -6,26 +6,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
-import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.Product;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
-import org.fenixedu.treasury.domain.document.AdvancedPaymentCreditNote;
-import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
+import org.fenixedu.treasury.domain.document.Invoice;
 import org.fenixedu.treasury.domain.document.PaymentEntry;
 import org.fenixedu.treasury.domain.document.SettlementEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
-import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
@@ -60,12 +57,12 @@ public class ForwardPayment extends ForwardPayment_Base {
         setWhenOccured(new DateTime());
 
         // Verify that all debitEntries have open amount greater than zero
-        for(final DebitEntry debitEntry : debitEntriesSet) {
-            if(!Constants.isPositive(debitEntry.getOpenAmount())) {
+        for (final DebitEntry debitEntry : debitEntriesSet) {
+            if (!Constants.isPositive(debitEntry.getOpenAmount())) {
                 throw new TreasuryDomainException("error.ForwardPayment.open.amount.debit.entry.not.positive");
             }
         }
-        
+
         final BigDecimal amount = debitEntriesSet.stream().map(DebitEntry::getOpenAmountWithInterests).reduce((a, c) -> a.add(c))
                 .orElse(BigDecimal.ZERO);
         setAmount(debtAccount.getFinantialInstitution().getCurrency().getValueWithScale(amount));
@@ -156,7 +153,7 @@ public class ForwardPayment extends ForwardPayment_Base {
         if (isInPayedState()) {
             throw new TreasuryDomainException("error.ForwardPayment.already.payed");
         }
-        
+
         setTransactionId(transactionId);
         setAuthorizationId(authorizationNumber);
         setTransactionDate(transactionDate);
@@ -182,43 +179,57 @@ public class ForwardPayment extends ForwardPayment_Base {
 
         PaymentEntry.create(getForwardPaymentConfiguration().getPaymentMethod(), getSettlementNote(), amountToConsume, null);
 
-        for (final DebitEntry debitEntry : orderedEntries) {
+        if (referencedCustomers(orderedEntries).size() == 1) {
+            for (final DebitEntry debitEntry : orderedEntries) {
 
-            if (debitEntry.getFinantialDocument() == null) {
-                final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
-                debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
-            }
-            
-            if(debitEntry.getFinantialDocument().isPreparing()) {
-                debitEntry.getFinantialDocument().closeDocument();
-            }
+                if (debitEntry.isAnnulled()) {
+                    continue;
+                }
 
-            if (org.fenixedu.treasury.util.Constants.isGreaterThan(debitEntry.getOpenAmount(), amountToConsume)) {
-                break;
-            }
+                if (debitEntry.getFinantialDocument() == null) {
+                    final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
+                    debitNote.addDebitNoteEntries(Lists.newArrayList(debitEntry));
+                }
 
-            amountToConsume = amountToConsume.subtract(debitEntry.getOpenAmount());
+                if (debitEntry.getFinantialDocument().isPreparing()) {
+                    debitEntry.getFinantialDocument().closeDocument();
+                }
 
-            SettlementEntry.create(debitEntry, getSettlementNote(), debitEntry.getOpenAmount(), debitEntry.getDescription(),
-                    transactionDate, true);
-        }
-
-        // settle interest debit entries
-        for (final DebitEntry de : orderedEntries) {
-            for (DebitEntry interestDebitEntry : de.getInterestDebitEntriesSet()) {
-                if (org.fenixedu.treasury.util.Constants.isGreaterThan(interestDebitEntry.getOpenAmount(), amountToConsume)) {
+                if (org.fenixedu.treasury.util.Constants.isGreaterThan(debitEntry.getOpenAmount(), amountToConsume)) {
                     break;
                 }
 
-                if (interestDebitEntry.getFinantialDocument() == null) {
-                    final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
-                    debitNote.addDebitNoteEntries(Lists.newArrayList(interestDebitEntry));
-                    debitNote.closeDocument();
+                amountToConsume = amountToConsume.subtract(debitEntry.getOpenAmount());
+
+                SettlementEntry.create(debitEntry, getSettlementNote(), debitEntry.getOpenAmount(), debitEntry.getDescription(),
+                        transactionDate, true);
+            }
+
+            // settle interest debit entries
+            for (final DebitEntry de : orderedEntries) {
+                if (de.isAnnulled()) {
+                    continue;
                 }
 
-                amountToConsume = amountToConsume.subtract(interestDebitEntry.getOpenAmount());
-                SettlementEntry.create(interestDebitEntry, getSettlementNote(), interestDebitEntry.getOpenAmount(),
-                        interestDebitEntry.getDescription(), transactionDate, true);
+                for (DebitEntry interestDebitEntry : de.getInterestDebitEntriesSet()) {
+                    if (interestDebitEntry.isAnnulled()) {
+                        continue;
+                    }
+
+                    if (org.fenixedu.treasury.util.Constants.isGreaterThan(interestDebitEntry.getOpenAmount(), amountToConsume)) {
+                        break;
+                    }
+
+                    if (interestDebitEntry.getFinantialDocument() == null) {
+                        final DebitNote debitNote = DebitNote.create(getDebtAccount(), debitNoteSeries, new DateTime());
+                        debitNote.addDebitNoteEntries(Lists.newArrayList(interestDebitEntry));
+                        debitNote.closeDocument();
+                    }
+
+                    amountToConsume = amountToConsume.subtract(interestDebitEntry.getOpenAmount());
+                    SettlementEntry.create(interestDebitEntry, getSettlementNote(), interestDebitEntry.getOpenAmount(),
+                            interestDebitEntry.getDescription(), transactionDate, true);
+                }
             }
         }
 
@@ -231,8 +242,23 @@ public class ForwardPayment extends ForwardPayment_Base {
         getSettlementNote().closeDocument();
 
         setJustification(justification);
-        
+
         checkRules();
+    }
+
+    private Set<Customer> referencedCustomers(final List<DebitEntry> orderedEntries) {
+        final Set<Customer> result = Sets.newHashSet();
+        for (final DebitEntry debitEntry : orderedEntries) {
+            if (debitEntry.getFinantialDocument() != null
+                    && ((Invoice) debitEntry.getFinantialDocument()).isForPayorDebtAccount()) {
+                result.add(((Invoice) debitEntry.getFinantialDocument()).getPayorDebtAccount().getCustomer());
+                continue;
+            }
+
+            result.add(debitEntry.getDebtAccount().getCustomer());
+        }
+
+        return result;
     }
 
     public boolean isActive() {
@@ -262,7 +288,7 @@ public class ForwardPayment extends ForwardPayment_Base {
     public String getReferenceNumber() {
         return String.valueOf(getOrderNumber());
     }
-    
+
     public List<ForwardPaymentLog> getOrderedForwardPaymentLogs() {
         return getForwardPaymentLogsSet().stream().sorted(ForwardPaymentLog.COMPARATOR_BY_ORDER).collect(Collectors.toList());
     }
@@ -271,6 +297,26 @@ public class ForwardPayment extends ForwardPayment_Base {
         if (isInPayedState() && getSettlementNote() == null) {
             throw new TreasuryDomainException("error.ForwardPayment.settlementNote.required");
         }
+        
+        if(referencedCustomers().size() > 1) {
+            throw new TreasuryDomainException("error.ForwardPayment.referencedCustomers.only.one.allowed");
+        }
+    }
+
+    private Set<Customer> referencedCustomers() {
+        final Set<Customer> result = Sets.newHashSet();
+
+        for (final DebitEntry debitEntry : getDebitEntriesSet()) {
+            if (debitEntry.getFinantialDocument() != null
+                    && ((Invoice) debitEntry.getFinantialDocument()).isForPayorDebtAccount()) {
+                result.add(((Invoice) debitEntry.getFinantialDocument()).getPayorDebtAccount().getCustomer());
+                continue;
+            }
+            
+            result.add(debitEntry.getDebtAccount().getCustomer());
+        }
+        
+        return result;
     }
 
     public ForwardPaymentLog log(final String statusCode, final String statusMessage, final String requestBody,

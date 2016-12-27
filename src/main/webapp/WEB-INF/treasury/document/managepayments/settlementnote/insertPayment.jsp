@@ -249,8 +249,20 @@ ${portal.angularToolkit()}
                                 test="${ debitEntryBean.included && empty debitEntryBean.debitEntry.finantialDocument  }">
                                 <tr>
                                     <td>---</td>
-                                    <td><c:out
-                                            value="${ debitEntryBean.debitEntry.description }" /></td>
+                                    <td>
+                                    	<p><c:out value="${ debitEntryBean.debitEntry.description }" /></p>
+			                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument != null}">
+			                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument.forPayorDebtAccount}">
+			                        		<p>
+			                        			<em>
+			                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+			                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+			                        				&nbsp;-&nbsp;
+			                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+			                        			</em>
+			                        	</c:if>
+			                        	</c:if>
+                                    </td>
                                     <td><c:out
                                             value='${ debitNoteDate }' /></td>
                                     <td><c:out
@@ -267,10 +279,20 @@ ${portal.angularToolkit()}
                                 test="${ interestEntryBean.included  }">
                                 <tr>
                                     <td>---</td>
-                                    <td><spring:message
-                                            code="label.InterestEntry.interest" />
-                                        &nbsp; <c:out
-                                            value="${ interestEntryBean.debitEntry.description }" /></td>
+                                    <td>
+                                    	<p><spring:message code="label.InterestEntry.interest" /> &nbsp; <c:out value="${ interestEntryBean.debitEntry.description }" /></p>
+			                        	<c:if test="${interestEntryBean.debitEntry.finantialDocument != null}">
+			                        	<c:if test="${interestEntryBean.debitEntry.finantialDocument.forPayorDebtAccount}">
+			                        		<p>
+			                        			<em>
+			                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+			                        				<span><c:out value="${interestEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+			                        				&nbsp;-&nbsp;
+			                        				<span><c:out value="${interestEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+			                        			</em>
+			                        	</c:if>
+			                        	</c:if>
+                                    </td>
                                     <td><c:out
                                             value='${ debitNoteDate }' /></td>
                                     <td>0.00</td>
@@ -313,8 +335,20 @@ ${portal.angularToolkit()}
                             <tr>
                                 <td><c:out
                                         value="${ debitEntryBean.debitEntry.finantialDocument.uiDocumentNumber }" /></td>
-                                <td><c:out
-                                        value="${ debitEntryBean.debitEntry.description }" /></td>
+                                <td>
+                                	<p><c:out value="${ debitEntryBean.debitEntry.description }" /></p>
+		                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument != null}">
+		                        	<c:if test="${debitEntryBean.debitEntry.finantialDocument.forPayorDebtAccount}">
+		                        		<p>
+		                        			<em>
+		                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+		                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+		                        				&nbsp;-&nbsp;
+		                        				<span><c:out value="${debitEntryBean.debitEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+		                        			</em>
+		                        	</c:if>
+		                        	</c:if>
+                                </td>
                                 <td><c:out
                                         value="${ debitEntryBean.documentDueDate }" /></td>
                                 <td><c:out
@@ -330,10 +364,21 @@ ${portal.angularToolkit()}
                         var="creditEntryBean" varStatus="loop">
                         <c:if test="${ creditEntryBean.included }">
                             <tr>
-                                <td><c:out
-                                        value="${ creditEntryBean.creditEntry.finantialDocument.uiDocumentNumber }" /></td>
-                                <td><c:out
-                                        value="${ creditEntryBean.creditEntry.description }" /></td>
+                                <td><c:out value="${ creditEntryBean.creditEntry.finantialDocument.uiDocumentNumber }" /></td>
+                                <td>
+                                	<p><c:out value="${ creditEntryBean.creditEntry.description }" /></p>
+		                        	<c:if test="${creditEntryBean.creditEntry.finantialDocument != null}">
+		                        	<c:if test="${creditEntryBean.creditEntry.finantialDocument.forPayorDebtAccount}">
+		                        		<p>
+		                        			<em>
+		                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+		                        				<span><c:out value="${creditEntryBean.creditEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+		                        				&nbsp;-&nbsp;
+		                        				<span><c:out value="${creditEntryBean.creditEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+		                        			</em>
+		                        	</c:if>
+		                        	</c:if>
+                                </td>
                                 <td><c:out
                                         value="${ creditEntryBean.documentDueDate }" /></td>
                                 <td><c:out
@@ -507,6 +552,5 @@ ${portal.angularToolkit()}
 
 <script>
 	$(document).ready(function() {
-
 	});
 </script>

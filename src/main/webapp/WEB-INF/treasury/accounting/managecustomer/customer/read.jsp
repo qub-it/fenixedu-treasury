@@ -212,7 +212,7 @@ ${portal.toolkit()}
 			                               </c:if>
 				                           </th>
 				                           <td class="col-xs-2">
-				                           		<c:out value="${debtAccount.customer.countryCode}" />&nbsp;-&nbsp;<c:out value="${debtAccount.customer.fiscalNumber}" />
+				                           		<c:out value="${debtAccount.customer.fiscalCountry}:${debtAccount.customer.fiscalNumber}" />
 				                           </td>
 				                           <td>
 				                               <div class="col-xs-3">

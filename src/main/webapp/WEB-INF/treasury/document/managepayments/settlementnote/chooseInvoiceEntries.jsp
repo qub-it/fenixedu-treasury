@@ -257,7 +257,6 @@ ${portal.angularToolkit()}
                         			</em>
                         	</c:if>
                         	</c:if>
-                        	
                         </td>
                         <td><c:out value="${ debitEntryBean.documentDueDate }" /></td>
                         <td><c:out value="${ settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor( debitEntryBean.debitEntry.amountWithVat ) }" /></td>
@@ -325,7 +324,20 @@ ${portal.angularToolkit()}
                                     	<input class="form-control" ng-model="object.creditEntries[${ loop.index }].isIncluded" type="checkbox" />
                                     </td>
                                     <td><c:out value="${ creditEntryBean.creditEntry.finantialDocument.uiDocumentNumber }" /></td>
-                                    <td><c:out value="${ creditEntryBean.creditEntry.description }" /></td>
+                                    <td>
+                                    	<p><c:out value="${ creditEntryBean.creditEntry.description }" /></p>
+			                        	<c:if test="${creditEntryBean.creditEntry.finantialDocument != null}">
+			                        	<c:if test="${creditEntryBean.creditEntry.finantialDocument.forPayorDebtAccount}">
+			                        		<p>
+			                        			<em>
+			                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+			                        				<span><c:out value="${creditEntryBean.creditEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+			                        				&nbsp;-&nbsp;
+			                        				<span><c:out value="${creditEntryBean.creditEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+			                        			</em>
+			                        	</c:if>
+			                        	</c:if>
+                                    </td>
                                     <td><c:out value="${ creditEntryBean.documentDueDate }" /></td>
                                     <td><c:out value="${ creditEntryBean.creditEntry.vat.taxRate }" /></td>
 

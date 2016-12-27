@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.FinantialInstitution;
-import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
@@ -25,6 +24,8 @@ import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.collect.Sets;
+
 import pt.ist.fenixframework.Atomic;
 
 public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_Base {
@@ -35,10 +36,9 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
     public SettlementNote processPayment(final User person, final BigDecimal amountToPay, final DateTime whenRegistered,
             final String sibsTransactionId, final String comments) {
 
-        Set<InvoiceEntry> invoiceEntriesToPay =
-                this.getFinantialDocument().getFinantialDocumentEntriesSet().stream().filter(x -> x instanceof InvoiceEntry)
-                        .map(InvoiceEntry.class::cast).sorted((x, y) -> y.getOpenAmount().compareTo(x.getOpenAmount()))
-                        .collect(Collectors.toSet());
+        final Set<InvoiceEntry> invoiceEntriesToPay = getInvoiceEntries().stream()
+                .sorted((x, y) -> y.getOpenAmount().compareTo(x.getOpenAmount())).collect(Collectors.toSet());
+
         return internalProcessPayment(person, amountToPay, whenRegistered, sibsTransactionId, comments, invoiceEntriesToPay);
     }
 
@@ -91,8 +91,8 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
         if (getPaymentReferenceCode() == null) {
             throw new TreasuryDomainException("error.FinantialDocumentPaymentCode.paymentReferenceCode.required");
         }
-        
-        if(getDebtAccount() == null) {
+
+        if (getDebtAccount() == null) {
             throw new TreasuryDomainException("error.FinantialDocumentPaymentCode.debtAccount.required");
         }
 
@@ -203,13 +203,13 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
     }
 
     public static Stream<FinantialDocumentPaymentCode> findNewByFinantialDocument(final FinantialDocument finantialDocument) {
-        return findByFinantialDocument(finantialDocument.getDebtAccount().getFinantialInstitution(), finantialDocument).filter(
-                p -> p.getPaymentReferenceCode().isNew());
+        return findByFinantialDocument(finantialDocument.getDebtAccount().getFinantialInstitution(), finantialDocument)
+                .filter(p -> p.getPaymentReferenceCode().isNew());
     }
 
     public static Stream<FinantialDocumentPaymentCode> findUsedByFinantialDocument(final FinantialDocument finantialDocument) {
-        return findByFinantialDocument(finantialDocument.getDebtAccount().getFinantialInstitution(), finantialDocument).filter(
-                p -> p.getPaymentReferenceCode().isUsed());
+        return findByFinantialDocument(finantialDocument.getDebtAccount().getFinantialInstitution(), finantialDocument)
+                .filter(p -> p.getPaymentReferenceCode().isUsed());
     }
 
     public static Stream<FinantialDocumentPaymentCode> findByValid(final FinantialInstitution finantialInstitution,
@@ -224,13 +224,27 @@ public class FinantialDocumentPaymentCode extends FinantialDocumentPaymentCode_B
 
     @Override
     protected DocumentNumberSeries getDocumentSeriesInterestDebits() {
-        return DocumentNumberSeries.find(FinantialDocumentType.findForDebitNote(), this.getPaymentReferenceCode()
-                .getPaymentCodePool().getDocumentSeriesForPayments().getSeries());
+        return DocumentNumberSeries.find(FinantialDocumentType.findForDebitNote(),
+                this.getPaymentReferenceCode().getPaymentCodePool().getDocumentSeriesForPayments().getSeries());
     }
 
     @Override
     public LocalDate getDueDate() {
         return getFinantialDocument().getDocumentDueDate();
     }
-    
+
+    @Override
+    protected Set<InvoiceEntry> getInvoiceEntries() {
+        final Set<InvoiceEntry> result = Sets.newHashSet();
+
+        for (final FinantialDocumentEntry entry : getFinantialDocument().getFinantialDocumentEntriesSet()) {
+            if (!(entry instanceof InvoiceEntry)) {
+                continue;
+            }
+
+            result.add((InvoiceEntry) entry);
+        }
+
+        return result;
+    }
 }

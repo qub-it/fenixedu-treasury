@@ -97,6 +97,10 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
                         debitEntry.getDescription());
             }
         }
+        
+        if(getReferencedCustomers().size() > 1) {
+            throw new TreasuryDomainException("error.MultipleEntriesPaymentCode.referencedCustomers.only.one.allowed");
+        }
     }
 
     @Override
@@ -121,10 +125,7 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     @Override
     public SettlementNote processPayment(final User person, final BigDecimal amountToPay, final DateTime whenRegistered,
             final String sibsTransactionId, final String comments) {
-
-        Set<InvoiceEntry> invoiceEntriesToPay = this.getInvoiceEntriesSet();
-
-        return internalProcessPayment(person, amountToPay, whenRegistered, sibsTransactionId, comments, invoiceEntriesToPay);
+        return internalProcessPayment(person, amountToPay, whenRegistered, sibsTransactionId, comments, getInvoiceEntriesSet());
     }
 
     public TreeSet<DebitEntry> getOrderedInvoiceEntries() {
@@ -144,6 +145,11 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     public boolean isPaymentCodeFor(final TreasuryEvent event) {
         return getInvoiceEntriesSet().stream().map(DebitEntry.class::cast)
                 .anyMatch(x -> x.getTreasuryEvent() != null && x.getTreasuryEvent().equals(event));
+    }
+
+    @Override
+    protected Set<InvoiceEntry> getInvoiceEntries() {
+        return this.getInvoiceEntriesSet();
     }
 
     @Override
@@ -208,16 +214,16 @@ public class MultipleEntriesPaymentCode extends MultipleEntriesPaymentCode_Base 
     public static Stream<MultipleEntriesPaymentCode> findWithDebitEntries(final Set<DebitEntry> debitEntries) {
         final Set<MultipleEntriesPaymentCode> paymentCodes =
                 debitEntries.stream().map(d -> d.getPaymentCodesSet()).flatMap(p -> p.stream()).collect(Collectors.toSet());
-        
+
         final Set<MultipleEntriesPaymentCode> result = Sets.newHashSet();
-        for(final MultipleEntriesPaymentCode code : paymentCodes) {
-            if(!Sets.symmetricDifference(code.getInvoiceEntriesSet(), debitEntries).isEmpty()) {
+        for (final MultipleEntriesPaymentCode code : paymentCodes) {
+            if (!Sets.symmetricDifference(code.getInvoiceEntriesSet(), debitEntries).isEmpty()) {
                 continue;
             }
-            
+
             result.add(code);
         }
-        
+
         return result.stream();
     }
 

@@ -32,15 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.treasury.domain.Currency;
+import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
-import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStateLog;
 import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.dto.SettlementNoteBean;
@@ -50,6 +49,8 @@ import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.PaymentEntryBean;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
+
+import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -416,6 +417,10 @@ public class SettlementNote extends SettlementNote_Base {
         if (this.isPreparing()) {
             this.delete(true);
         } else if (this.isClosed()) {
+            if(isExportedInLegacyERP()) {
+                throw new TreasuryDomainException("error.SettlementNote.cannot.anull.settlement.exported.in.legacy.erp");
+            }
+            
             setState(FinantialDocumentStateType.ANNULED);
             setAnnulledReason(anulledReason);
 
@@ -459,8 +464,12 @@ public class SettlementNote extends SettlementNote_Base {
             }
         }
 
-        if (Constants.isZero(checkDiferenceInAmount()) == false) {
+        if (!Constants.isZero(checkDiferenceInAmount())) {
             throw new TreasuryDomainException("error.SettlementNote.invalid.amounts.in.settlement.note");
+        }
+        
+        if(getReferencedCustomers().size() > 1) {
+            throw new TreasuryDomainException("error.SettlementNote.referencedCustomers.only.one.allowed");
         }
 
         if (this.getAdvancedPaymentCreditNote() != null) {
@@ -586,6 +595,22 @@ public class SettlementNote extends SettlementNote_Base {
             return this.getAdvancedPaymentCreditNote().isDocumentEmpty() && this.getFinantialDocumentEntriesSet().isEmpty();
         }
         return this.getFinantialDocumentEntriesSet().isEmpty();
+    }
+    
+    private Set<Customer> getReferencedCustomers() {
+        final Set<Customer> result = Sets.newHashSet();
+
+        for (final SettlementEntry settlementEntry : getSettlemetEntriesSet()) {
+            final Invoice invoice = (Invoice) settlementEntry.getInvoiceEntry().getFinantialDocument();
+            
+            if(invoice.isForPayorDebtAccount()) {
+                result.add(invoice.getPayorDebtAccount().getCustomer());
+            } else {
+                result.add(invoice.getDebtAccount().getCustomer());
+            }
+        }
+        
+        return result;
     }
 
     // @formatter:off

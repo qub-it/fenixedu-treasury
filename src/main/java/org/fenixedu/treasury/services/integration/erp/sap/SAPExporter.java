@@ -593,10 +593,6 @@ public class SAPExporter implements IERPExporter {
 
     private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
             final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
-        if (document.isDocumentToExport()) {
-            document.saveCustomerDataBeforeExportation();
-        }
-
         ERPCustomerFieldsBean customerBean = null;
 
         if (document.isDebitNote()) {
@@ -632,10 +628,6 @@ public class SAPExporter implements IERPExporter {
 
         //check the PayorDebtAccount
         if (document.getPayorDebtAccount() != null && document.getPayorDebtAccount() != document.getDebtAccount()) {
-            if (document.isDocumentToExport()) {
-                document.savePayorCustomerDataBeforeExportation();
-            }
-
             ERPCustomerFieldsBean payorCustomerBean = null;
 
             if (document.isDebitNote()) {
@@ -687,7 +679,7 @@ public class SAPExporter implements IERPExporter {
                     workDocument.setForceCertification(true);
                 }
             }
-
+            
             workDocument.setCertificationDate(convertToXMLDate(dataTypeFactory, document.getCloseDate()));
 
             //PayorID

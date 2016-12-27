@@ -730,26 +730,6 @@ public class DebitNoteController extends TreasuryBaseController {
         return updatepayordebtaccount(debitNote, model, redirectAttributes);
     }
 
-    private static final String VIEW_ERP_CUSTOMER_DATA_URI = "/viewerpcustomerfields";
-    public static final String VIEW_ERP_CUSTOMER_DATA_URL = CONTROLLER_URL + VIEW_ERP_CUSTOMER_DATA_URI;
-
-    @RequestMapping(value = VIEW_ERP_CUSTOMER_DATA_URI + "/{oid}", method = RequestMethod.GET)
-    public String viewerpcustomerdata(@PathVariable("oid") final DebitNote debitNote, final Model model,
-            final RedirectAttributes redirectAttributes) {
-        try {
-            assertUserIsAllowToModifyInvoices(debitNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
-
-            model.addAttribute("invoice", debitNote);
-            model.addAttribute("backUrl", READ_URL + "/" + debitNote.getExternalId());
-
-            return "treasury/document/manageinvoice/erpcustomerfields/read";
-        } catch (final DomainException e) {
-            addErrorMessage(e.getLocalizedMessage(), model);
-        }
-
-        return redirect(READ_URL + debitNote.getExternalId(), model, redirectAttributes);
-    }
-
     private static final String _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI = "/downloadcertifieddocumentprint";
     public static final String DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL = CONTROLLER_URL + _DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URI;
 

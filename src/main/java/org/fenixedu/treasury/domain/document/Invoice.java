@@ -113,40 +113,13 @@ public abstract class Invoice extends Invoice_Base {
         super.delete(deleteEntries);
     }
 
-    public abstract ERPCustomerFieldsBean saveCustomerDataBeforeExportation();
-    public abstract ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation();
-    
-    public void editCustomerFieldsForIntegration(final ERPCustomerFieldsBean bean) {
-    }
-
-    public void editPayorCustomerFieldsForIntegration(final ERPCustomerFieldsBean bean) {
-        if (!isDocumentToExport()) {
-            throw new TreasuryDomainException(
-                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
-        }
-
-        setPayorCustomerBusinessId(bean.getCustomerBusinessId());
-        setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
-        setPayorCustomerNationality(bean.getCustomerNationality());
-        setPayorCustomerId(bean.getCustomerId());
-        setPayorCustomerAccountId(bean.getCustomerAccountId());
-        setPayorCustomerFiscalNumber(bean.getCustomerFiscalNumber());
-        setPayorCustomerName(bean.getCustomerName());
-        setPayorCustomerStreetName(bean.getCustomerStreetName());
-        setPayorCustomerAddressDetail(bean.getCustomerAddressDetail());
-        setPayorCustomerCity(bean.getCustomerCity());
-        setPayorCustomerZipCode(bean.getCustomerZipCode());
-        setPayorCustomerRegion(bean.getCustomerRegion());
-        setPayorCustomerCountry(bean.getCustomerCountry());
-    }
-    
     // @formatter:off
     /* ********
      * SERVICES
      * ********
      */
     // @formatter:on
-    
+
     public static Stream<? extends Invoice> findAll() {
         return FinantialDocument.findAll().filter(x -> x instanceof Invoice).map(Invoice.class::cast);
     }
@@ -184,25 +157,26 @@ public abstract class Invoice extends Invoice_Base {
     }
 
     public InvoiceEntry getEntryInOrder(Integer lineNumber) {
-        FinantialDocumentEntry entry =
-                this.getFinantialDocumentEntriesSet().stream().filter(x -> x.getEntryOrder().equals(lineNumber)).findFirst()
-                        .orElse(null);
+        FinantialDocumentEntry entry = this.getFinantialDocumentEntriesSet().stream()
+                .filter(x -> x.getEntryOrder().equals(lineNumber)).findFirst().orElse(null);
         if (entry != null) {
             return (InvoiceEntry) entry;
         }
         return null;
     }
-    
+
     public boolean isTotalSettledWithoutPaymentEntries() {
-        if(isAnnulled() || Constants.isPositive(getOpenAmount())) {
+        if (isAnnulled() || Constants.isPositive(getOpenAmount())) {
             return false;
         }
-        
-        return !getRelatedSettlementEntries().stream().map(e -> !((SettlementNote) e.getFinantialDocument()).getPaymentEntriesSet().isEmpty()).reduce((a, c) -> a || c).orElse(false);
+
+        return !getRelatedSettlementEntries().stream()
+                .map(e -> !((SettlementNote) e.getFinantialDocument()).getPaymentEntriesSet().isEmpty()).reduce((a, c) -> a || c)
+                .orElse(false);
     }
-    
+
     public boolean isForPayorDebtAccount() {
-        return getPayorDebtAccount() != null;
+        return getPayorDebtAccount() != null && getPayorDebtAccount() != getDebtAccount();
     }
 
 }

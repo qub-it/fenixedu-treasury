@@ -71,7 +71,7 @@ ${portal.toolkit()}
         <div class="well well-sm">
             <p>
                 <strong><spring:message code="label.DebtAccount.finantialInstitution" />: </strong>
-                ${settlementNote.debtAccount.finantialInstitution.name}
+                <c:out value="${settlementNote.debtAccount.finantialInstitution.name}" />
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
@@ -79,7 +79,7 @@ ${portal.toolkit()}
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
-                <c:out value='${settlementNote.debtAccount.customer.fiscalNumber}' />
+                <c:out value='${settlementNote.debtAccount.customer.fiscalCountry}:${settlementNote.debtAccount.customer.fiscalNumber}' />
             </p>
             <p>
             	<strong><spring:message code="label.Customer.address" />: </strong>

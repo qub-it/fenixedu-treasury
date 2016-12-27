@@ -306,8 +306,12 @@ public class SIBSPaymentsImporter {
                 }
             }
         }
+        
+        if(codeToProcess.getTargetPayment().getReferencedCustomers().size() > 1) {
+            result.addMessage("warning.manager.SIBS.referenced.multiple.payor.entities", codeToProcess.getReferenceCode());
+        }
 
-        SettlementNote settlementNote = codeToProcess.processPayment(person, detailLine.getAmount(),
+        final SettlementNote settlementNote = codeToProcess.processPayment(person, detailLine.getAmount(),
                 detailLine.getWhenOccuredTransaction(), detailLine.getSibsTransactionId(), sibsImportationFile,
                 whenProcessedBySibs.toLocalDate().toDateTimeAtStartOfDay(), reportFile);
 

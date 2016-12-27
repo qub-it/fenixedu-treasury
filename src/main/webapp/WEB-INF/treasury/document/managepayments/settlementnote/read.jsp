@@ -539,7 +539,19 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                 <datatables:columnHead>
                     <spring:message code="label.SettlementEntry.description" />
                 </datatables:columnHead>
-                <c:out value="${settlementEntry.description}" />
+                <p><c:out value="${settlementEntry.description}" /></p>
+               	<c:if test="${settlementEntry.invoiceEntry.finantialDocument != null}">
+               	<c:if test="${settlementEntry.invoiceEntry.finantialDocument.forPayorDebtAccount}">
+               		<p>
+               			<em>
+               				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+               				<span><c:out value="${settlementEntry.invoiceEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+               				&nbsp;-&nbsp;
+               				<span><c:out value="${settlementEntry.invoiceEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+               			</em>
+               	</c:if>
+               	</c:if>
+                
             </datatables:column>
             <datatables:column cssStyle="width:10%">
                 <datatables:columnHead>

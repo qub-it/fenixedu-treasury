@@ -60,7 +60,7 @@ ${portal.angularToolkit()}
         <div class="well well-sm">
             <p>
                 <strong><spring:message code="label.DebtAccount.finantialInstitution" />:</strong>
-                ${forwardPayment.debtAccount.finantialInstitution.name}
+                <c:out value="${forwardPayment.debtAccount.finantialInstitution.name}" />
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
@@ -68,7 +68,7 @@ ${portal.angularToolkit()}
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
-                <c:out value='${forwardPayment.debtAccount.customer.fiscalNumber}' />
+                <c:out value='${forwardPayment.debtAccount.customer.fiscalCountry}:${forwardPayment.debtAccount.customer.fiscalNumber}' />
             </p>
             <p>
             	<strong><spring:message code="label.Customer.address" />: </strong>

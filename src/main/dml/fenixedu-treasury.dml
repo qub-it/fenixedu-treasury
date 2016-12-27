@@ -207,6 +207,16 @@ class document.Series {
 	boolean selectable;
 }
 
+	relation FinantialInstitutionRegulationSeries {
+		FinantialInstitution playsRole finantialInstitutionForRegulationSeries {
+			multiplicity 0..1;
+		}
+		
+		document.Series playsRole regulationSeries {
+			multiplicity 0..1;
+		}
+	}
+
 class document.DocumentNumberSeries {
 	int counter;
 	boolean replacePrefix;
@@ -234,43 +244,6 @@ class document.FinantialDocument {
 }
 
 	class document.Invoice extends document.FinantialDocument {
-		/* SAFT client data snapshot */
-		String customerBusinessId;
-		String customerFiscalCountry;
-		String customerNationality;
-		String customerId;
-		String customerAccountId;
-		String customerFiscalNumber;
-		String customerName;
-		String customerContact;
-		String customerStreetName;
-		String customerAddressDetail;
-		String customerCity;
-		String customerZipCode;
-		String customerRegion;
-		String customerCountry;
-		
-		String customerFieldsUpdateUser;
-		DateTime customerFieldsUpdateDate;
-
-		/* SAFT payor client data snapshot */
-		String payorCustomerBusinessId;
-		String payorCustomerFiscalCountry;
-		String payorCustomerNationality;
-		String payorCustomerId;
-		String payorCustomerAccountId;
-		String payorCustomerFiscalNumber;
-		String payorCustomerName;
-		String payorCustomerContact;
-		String payorCustomerStreetName;
-		String payorCustomerAddressDetail;
-		String payorCustomerCity;
-		String payorCustomerZipCode;
-		String payorCustomerRegion;
-		String payorCustomerCountry;
-		
-		String payorCustomerFieldsUpdateUser;
-		DateTime payorCustomerFieldsUpdateDate;
 	}
 
 		class document.DebitNote extends document.Invoice {
@@ -888,16 +861,6 @@ relation TreasurySettingsCurrency {
 	}
 	
 	Currency playsRole defaultCurrency {
-		multiplicity 0..1;
-	}
-}
-
-relation TreasurySettingsRegulationSeries {
-	settings.TreasurySettings playsRole treasurySettings {
-		multiplicity 0..1;
-	}
-	
-	document.Series playsRole regulationSeries {
 		multiplicity 0..1;
 	}
 }

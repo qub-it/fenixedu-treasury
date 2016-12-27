@@ -159,7 +159,20 @@ ${portal.angularToolkit()}
 	                        		ng-click="toggleDebitEntries('${debitEntry.externalId}')" type="checkbox" />
 	                        </td>
 	                        <td><c:out value="${ debitEntry.finantialDocument.uiDocumentNumber }" /></td>
-	                        <td><c:out value="${ debitEntry.description }" /></td>
+	                        <td>
+	                        	<p><c:out value="${ debitEntry.description }" /></p>
+	                        	<c:if test="${debitEntry.finantialDocument != null}">
+	                        	<c:if test="${debitEntry.finantialDocument.forPayorDebtAccount}">
+	                        		<p>
+	                        			<em>
+	                        				<strong><spring:message code="label.Invoice.payorDebtAccount" />:</strong> 
+	                        				<span><c:out value="${debitEntry.finantialDocument.payorDebtAccount.customer.fiscalNumber}" /></span>
+	                        				&nbsp;-&nbsp;
+	                        				<span><c:out value="${debitEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
+	                        			</em>
+	                        	</c:if>
+	                        	</c:if>
+	                        </td>
 	                        <td><c:out value="${ debtAccount.finantialInstitution.currency.getValueFor(debitEntry.openAmount) }" /></td>
                         </tr>
                     </c:forEach>

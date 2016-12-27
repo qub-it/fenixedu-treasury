@@ -210,23 +210,7 @@ ${portal.angularToolkit()}
         <%
             }
         %>
-        <%
-            if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
-        %>
-        <div class="btn-group">
-            <button type="button" class=" btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;
-                <spring:message code="label.event.accounting.manageCustomer.credits" />
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="" href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}/createcreditnote"><span
-                        class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;<spring:message code="label.event.accounting.manageCustomer.createCreditNote" /></a></li>
-            </ul>
-        </div>
-        <%
-            }
-        %>
+
     </c:if>
     <c:if test='${debtAccount.getClosed() }'>
      |&nbsp;
@@ -506,6 +490,7 @@ ${portal.angularToolkit()}
                         				&nbsp;-&nbsp;
                         				<span><c:out value="${pendingEntry.finantialDocument.payorDebtAccount.customer.name}" /></span>
                         			</em>
+                        		</p>
                         	</c:if>
                         	</c:if>
                             

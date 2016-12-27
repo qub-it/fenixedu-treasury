@@ -151,7 +151,7 @@ public class SettlementNoteController extends TreasuryBaseController {
             @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model) {
         assertUserIsAllowToModifySettlements(debtAccount.getFinantialInstitution(), model);
         if (bean == null) {
-            bean = new SettlementNoteBean(debtAccount, reimbursementNote);
+            bean = new SettlementNoteBean(debtAccount, reimbursementNote, false);
         }
         setSettlementNoteBean(bean, model);
         return "treasury/document/managepayments/settlementnote/chooseInvoiceEntries";
@@ -213,29 +213,40 @@ public class SettlementNoteController extends TreasuryBaseController {
                 creditEntryBean.setNotValid(false);
             }
         }
+
         if (bean.isReimbursementNote() && creditSum.compareTo(debitSum) < 0) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.positive.payment.value"), model);
+            addErrorMessage(Constants.bundle("error.SettlementNote.positive.payment.value"), model);
         }
+
         if (!bean.isReimbursementNote() && creditSum.compareTo(debitSum) > 0) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.negative.payment.value"), model);
+            addErrorMessage(Constants.bundle("error.SettlementNote.negative.payment.value"), model);
         }
+
         if (bean.isReimbursementNote() && creditSum.compareTo(BigDecimal.ZERO) == 0) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.CreditEntry.no.creditEntries.selected"), model);
+            addErrorMessage(Constants.bundle("error.CreditEntry.no.creditEntries.selected"), model);
         }
+
         if (!bean.isReimbursementNote() && !bean.isAdvancePayment() && debitSum.compareTo(BigDecimal.ZERO) == 0) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.DebiEntry.no.debitEntries.selected"), model);
+            addErrorMessage(Constants.bundle("error.DebiEntry.no.debitEntries.selected"), model);
         }
+
         if (bean.getDate().isAfter(new LocalDate())) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.date.is.after"), model);
+            addErrorMessage(Constants.bundle("error.SettlementNote.date.is.after"), model);
         }
+
         if (bean.getDocNumSeries() == null) {
             error = true;
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.SettlementNote.need.documentSeries"), model);
+            addErrorMessage(Constants.bundle("error.SettlementNote.need.documentSeries"), model);
+        }
+        
+        if(bean.getReferencedCustomers().size() > 1) {
+            error = true;
+            addErrorMessage(Constants.bundle("error.SettlementNote.referencedCustomers.only.one.allowed"), model);
         }
 
         if (error) {
@@ -514,8 +525,8 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
             anullReason = anullReason + " - [" + Authenticate.getUser().getUsername() + "] "
                     + new DateTime().toString("YYYY-MM-dd HH:mm");
-            settlementNote.anullDocument(anullReason, true);
 
+            settlementNote.anullDocument(anullReason, true);
             addInfoMessage(Constants.bundle("label.document.managepayments.SettlementNote.document.anulled.sucess"), model);
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
@@ -571,7 +582,7 @@ public class SettlementNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/read/{oid}/closesettlementnote", method = RequestMethod.POST)
-    public String processReadToCloseDebitNote(@PathVariable("oid") SettlementNote settlementNote, Model model,
+    public String processReadToCloseSettlementtNote(@PathVariable("oid") SettlementNote settlementNote, Model model,
             RedirectAttributes redirectAttributes) {
         setSettlementNote(settlementNote, model);
 

@@ -65,7 +65,10 @@ public class CreditNote extends CreditNote_Base {
         super.init(debtAccount, documentNumberSeries, documentDate);
 
         this.setDebitNote(debitNote);
-        this.setPayorDebtAccount(debitNote.getPayorDebtAccount());
+        
+        if(debitNote != null) {
+            this.setPayorDebtAccount(debitNote.getPayorDebtAccount());
+        }
     }
 
     @Override
@@ -164,6 +167,16 @@ public class CreditNote extends CreditNote_Base {
     public BigDecimal getCreditAmount() {
         return this.getTotalAmount();
     }
+    
+    @Override
+    // Ensure payor debt account of associated debit note is returned
+    public DebtAccount getPayorDebtAccount() {
+        if(super.getPayorDebtAccount() == null && getDebitNote() != null) {
+            return getDebitNote().getPayorDebtAccount();
+        }
+        
+        return super.getPayorDebtAccount();
+    };
 
     @Atomic
     public void edit(final DebitNote debitNote, final DebtAccount payorDebtAccount,
@@ -301,66 +314,7 @@ public class CreditNote extends CreditNote_Base {
         return creditNote;
     }
 
-    @Override
-    public ERPCustomerFieldsBean saveCustomerDataBeforeExportation() {
-        if (!isDocumentToExport()) {
-            throw new TreasuryDomainException(
-                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
-        }
-
-        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillFromCreditNote(this);
-
-        setCustomerBusinessId(bean.getCustomerBusinessId());
-        setCustomerFiscalCountry(bean.getCustomerFiscalCountry());
-        setCustomerNationality(bean.getCustomerNationality());
-        setCustomerId(bean.getCustomerId());
-        setCustomerAccountId(bean.getCustomerAccountId());
-        setCustomerFiscalNumber(bean.getCustomerFiscalNumber());
-        setCustomerName(bean.getCustomerName());
-        setCustomerContact(bean.getCustomerContact());
-        setCustomerStreetName(bean.getCustomerStreetName());
-        setCustomerAddressDetail(bean.getCustomerAddressDetail());
-        setCustomerCity(bean.getCustomerCity());
-        setCustomerZipCode(bean.getCustomerZipCode());
-        setCustomerRegion(bean.getCustomerRegion());
-        setCustomerCountry(bean.getCustomerCountry());
-
-        setCustomerFieldsUpdateDate(new DateTime());
-        setCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
-
-        return bean;
-    }
-
-    @Override
-    public ERPCustomerFieldsBean savePayorCustomerDataBeforeExportation() {
-        if (!isDocumentToExport()) {
-            throw new TreasuryDomainException(
-                    "error.FinantialDocument.editCustomerFieldsForIntegration.document.not.pending.for.exportation");
-        }
-
-        final ERPCustomerFieldsBean bean = ERPCustomerFieldsBean.fillPayorFromCreditNote(this);
-
-        setPayorCustomerBusinessId(bean.getCustomerBusinessId());
-        setPayorCustomerFiscalCountry(bean.getCustomerFiscalCountry());
-        setPayorCustomerNationality(bean.getCustomerNationality());
-        setPayorCustomerId(bean.getCustomerId());
-        setPayorCustomerAccountId(bean.getCustomerAccountId());
-        setPayorCustomerFiscalNumber(bean.getCustomerFiscalNumber());
-        setPayorCustomerName(bean.getCustomerName());
-        setPayorCustomerContact(bean.getCustomerContact());
-        setPayorCustomerStreetName(bean.getCustomerStreetName());
-        setPayorCustomerAddressDetail(bean.getCustomerAddressDetail());
-        setPayorCustomerCity(bean.getCustomerCity());
-        setPayorCustomerZipCode(bean.getCustomerZipCode());
-        setPayorCustomerRegion(bean.getCustomerRegion());
-        setPayorCustomerCountry(bean.getCustomerCountry());
-
-        setPayorCustomerFieldsUpdateDate(new DateTime());
-        setPayorCustomerFieldsUpdateUser(Authenticate.getUser() != null ? Authenticate.getUser().getUsername() : null);
-
-        return bean;
-    }
-
+    
     // @formatter:off
     /* ********
      * SERVICES

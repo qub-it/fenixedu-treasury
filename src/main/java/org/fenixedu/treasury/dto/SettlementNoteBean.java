@@ -5,15 +5,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.IBean;
 import org.fenixedu.bennu.TupleDataSourceBean;
+import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.VatType;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -21,10 +22,13 @@ import org.fenixedu.treasury.domain.document.CreditEntry;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
+import org.fenixedu.treasury.domain.document.Invoice;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
 import org.fenixedu.treasury.ui.document.managepayments.SettlementNoteController;
 import org.joda.time.LocalDate;
+
+import com.google.common.collect.Sets;
 
 public class SettlementNoteBean implements IBean, Serializable {
 
@@ -75,7 +79,8 @@ public class SettlementNoteBean implements IBean, Serializable {
         this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
     }
 
-    public SettlementNoteBean(DebtAccount debtAccount, boolean reimbursementNote) {
+    public SettlementNoteBean(DebtAccount debtAccount, final boolean reimbursementNote,
+            final boolean excludeDebtsForPayorAccount) {
         this();
         this.debtAccount = debtAccount;
         this.reimbursementNote = reimbursementNote;
@@ -83,8 +88,22 @@ public class SettlementNoteBean implements IBean, Serializable {
                 .filter(ie -> ie.hasPreparingSettlementEntries() == false)
                 .sorted((x, y) -> x.getDueDate().compareTo(y.getDueDate())).collect(Collectors.<InvoiceEntry> toList())) {
             if (invoiceEntry instanceof DebitEntry) {
-                debitEntries.add(new DebitEntryBean((DebitEntry) invoiceEntry));
+                final DebitEntry debitEntry = (DebitEntry) invoiceEntry;
+
+                if (excludeDebtsForPayorAccount && debitEntry.getFinantialDocument() != null
+                        && ((Invoice) debitEntry.getFinantialDocument()).isForPayorDebtAccount()) {
+                    continue;
+                }
+
+                debitEntries.add(new DebitEntryBean(debitEntry));
             } else {
+                final CreditEntry creditEntry = (CreditEntry) invoiceEntry;
+
+                if (excludeDebtsForPayorAccount && creditEntry.getFinantialDocument() != null
+                        && ((Invoice) creditEntry.getFinantialDocument()).isForPayorDebtAccount()) {
+                    continue;
+                }
+
                 if (reimbursementNote
                         && !(invoiceEntry.getFinantialDocument() != null && invoiceEntry.getFinantialDocument().isPreparing())) {
                     continue;
@@ -108,10 +127,56 @@ public class SettlementNoteBean implements IBean, Serializable {
         this.finantialTransactionReferenceYear = String.valueOf((new LocalDate()).getYear());
     }
 
+    public Set<Customer> getReferencedCustomers() {
+        final Set<Customer> result = Sets.newHashSet();
+
+        for (final DebitEntryBean debitEntryBean : debitEntries) {
+            if (!debitEntryBean.isIncluded()) {
+                continue;
+            }
+
+            final DebitEntry debitEntry = debitEntryBean.getDebitEntry();
+
+            if (debitEntry.getFinantialDocument() != null
+                    && ((Invoice) debitEntry.getFinantialDocument()).getPayorDebtAccount() != null) {
+                result.add(((Invoice) debitEntry.getFinantialDocument()).getPayorDebtAccount().getCustomer());
+                continue;
+            }
+
+            result.add(debitEntry.getDebtAccount().getCustomer());
+        }
+
+        for (final CreditEntryBean creditEntryBean : creditEntries) {
+            if (!creditEntryBean.isIncluded()) {
+                continue;
+            }
+
+            final CreditEntry creditEntry = creditEntryBean.getCreditEntry();
+
+            if (creditEntry.getFinantialDocument() != null
+                    && ((Invoice) creditEntry.getFinantialDocument()).getPayorDebtAccount() != null) {
+                result.add(((Invoice) creditEntry.getFinantialDocument()).getPayorDebtAccount().getCustomer());
+                continue;
+            }
+
+            result.add(creditEntry.getDebtAccount().getCustomer());
+        }
+
+        return result;
+    }
+
+    // @formatter:off
+    /* *****************
+     * GETTERS & SETTERS
+     * *****************
+     */
+    // @formatter:on
+
     public List<Integer> getFinantialTransactionReferenceYears() {
-        final List<Integer> years = GlobalInterestRate.findAll().map(g -> (Integer) g.getYear()).sorted().collect(Collectors.toList());
+        final List<Integer> years =
+                GlobalInterestRate.findAll().map(g -> (Integer) g.getYear()).sorted().collect(Collectors.toList());
         Collections.reverse(years);
-        
+
         return years;
     }
 
@@ -365,6 +430,13 @@ public class SettlementNoteBean implements IBean, Serializable {
     public void setFinantialTransactionReferenceYear(String finantialTransactionReferenceYear) {
         this.finantialTransactionReferenceYear = finantialTransactionReferenceYear;
     }
+
+    // @formatter:off
+    /* ************
+     * HELPER BEANS
+     * ************
+     */
+    // @formatter:on
 
     public class DebitEntryBean implements IBean, Serializable {
 

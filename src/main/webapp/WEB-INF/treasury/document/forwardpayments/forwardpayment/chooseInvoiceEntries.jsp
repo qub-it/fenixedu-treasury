@@ -41,15 +41,15 @@ ${portal.angularToolkit()}
 		<div class="well well-sm">
 			<p>
 				<strong><spring:message code="label.DebtAccount.finantialInstitution" />:</strong>
-				${settlementNoteBean.debtAccount.finantialInstitution.name}
+				<c:out value="${settlementNoteBean.debtAccount.finantialInstitution.name}" />
 			</p>
 			<p>
 				<strong><spring:message code="label.DebtAccount.customer" />:</strong>
-				${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}
+				<c:out value="${settlementNoteBean.debtAccount.customer.businessIdentification} - ${settlementNoteBean.debtAccount.customer.name}" />
 			</p>
 			<p>
 				<strong><spring:message code="label.Customer.fiscalNumber" />:</strong>
-				${ settlementNoteBean.debtAccount.customer.fiscalNumber }
+				<c:out value="${settlementNoteBean.debtAccount.customer.fiscalCountry}:${settlementNoteBean.debtAccount.customer.fiscalNumber}" />
 			</p>
 		</div>
 	</div>
@@ -198,7 +198,14 @@ ${portal.angularToolkit()}
 							<input class="form-control" ng-model="object.debitEntries[${ loop.index }].isIncluded" type="checkbox" />
 						</td>
 						<td>
-							<c:out value="${ debitEntryBean.debitEntry.finantialDocument.uiDocumentNumber }" />
+							<c:if test="${not empty debitEntryBean.debitEntry.finantialDocument}">
+								<p><c:out value="${debitEntryBean.debitEntry.finantialDocument.uiDocumentNumber }" /></p>
+							</c:if>
+							<c:if test="${empty debitEntryBean.debitEntry.finantialDocument}">
+								<p>---</p>
+							</c:if>
+							<c:set var="c" value="${debitEntryBean.debitEntry.debtAccount.customer}" />
+							<p><em><c:out value="${c.fiscalCountry}:${c.fiscalNumber}" /></em></p>						
 						</td>
 						<td>
 							<c:out value="${ debitEntryBean.debitEntry.description }" />

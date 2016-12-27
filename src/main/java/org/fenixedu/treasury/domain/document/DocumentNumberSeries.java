@@ -115,8 +115,11 @@ public class DocumentNumberSeries extends DocumentNumberSeries_Base {
     }
 
     public void editReplacingPrefix(final boolean replacePrefix, final String replacingPrefix) {
-        setReplacePrefix(false);
-        setReplacingPrefix(null);
+        setReplacePrefix(replacePrefix);
+        
+        if(isReplacePrefix()) {
+            setReplacingPrefix(replacingPrefix);
+        }
         
         checkRules();
     }

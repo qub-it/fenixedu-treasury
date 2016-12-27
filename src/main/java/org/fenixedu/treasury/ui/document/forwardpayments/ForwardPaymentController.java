@@ -107,7 +107,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
             @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model) {
         checkPermissions(debtAccount, model);
         if (bean == null) {
-            bean = new SettlementNoteBean(debtAccount, false);
+            bean = new SettlementNoteBean(debtAccount, false, true);
         }
 
         setSettlementNoteBean(bean, model);
@@ -279,7 +279,6 @@ public class ForwardPaymentController extends TreasuryBaseController {
 
     @Atomic
     private ForwardPayment processForwardPaymentCreation(SettlementNoteBean bean) {
-        final DateTime now = new DateTime();
         final DebtAccount debtAccount = bean.getDebtAccount();
         final ForwardPaymentConfiguration forwardPaymentConfiguration =
                 bean.getDebtAccount().getFinantialInstitution().getForwardPaymentConfigurationsSet().iterator().next();

@@ -60,7 +60,7 @@ ${portal.angularToolkit()}
         <div class="well well-sm">
             <p>
                 <strong><spring:message code="label.DebtAccount.finantialInstitution" />: </strong>
-                ${settlementNoteBean.debtAccount.finantialInstitution.name}
+                <c:out value="${settlementNoteBean.debtAccount.finantialInstitution.name}" />
             </p>
             <p>
                 <strong><spring:message code="label.DebtAccount.customer" />: </strong>
