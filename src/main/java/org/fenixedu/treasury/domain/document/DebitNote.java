@@ -67,7 +67,7 @@ public class DebitNote extends DebitNote_Base {
     public boolean isDebitNote() {
         return true;
     }
-
+    
     @Override
     protected void checkRules() {
         if (!getDocumentNumberSeries().getFinantialDocumentType().getType().equals(FinantialDocumentTypeEnum.DEBIT_NOTE)) {

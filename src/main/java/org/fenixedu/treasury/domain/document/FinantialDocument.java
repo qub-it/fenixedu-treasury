@@ -358,6 +358,10 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
     public boolean isDocumentSeriesNumberSet() {
         return Long.parseLong(getDocumentNumber()) != 0;
     }
+    
+    public boolean isCertifiedPrintedDocumentAvailable() {
+        return isClosed() && !isExportedInLegacyERP() && !isDocumentToExport();
+    }
 
     public Optional<ERPExportOperation> getLastERPExportOperation() {
         if (getErpExportOperationsSet().isEmpty()) {

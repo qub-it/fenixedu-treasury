@@ -1,6 +1,7 @@
 package org.fenixedu.treasury.domain.document;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.fenixedu.treasury.domain.AdhocCustomer;
@@ -8,11 +9,11 @@ import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.util.Constants;
-import org.springframework.ui.Model;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class ERPCustomerFieldsBean {
 
@@ -333,28 +334,23 @@ public class ERPCustomerFieldsBean {
 
     public static boolean checkIncompleteAddressForDebtAccountAndPayors(final DebtAccount debtAccount,
             final List<String> errorMessages) {
-        boolean validAddress = ERPCustomerFieldsBean.validateAddress(debtAccount.getCustomer(), errorMessages);
-
+        final Set<Customer> referencedCustomers = Sets.newHashSet(debtAccount.getCustomer());
+        
         for (final InvoiceEntry invoiceEntry : debtAccount.getActiveInvoiceEntries().collect(Collectors.toSet())) {
             if (invoiceEntry.getFinantialDocument() == null) {
                 continue;
             }
+            
+            final Invoice invoice = (Invoice) invoiceEntry.getFinantialDocument();
 
-            if (invoiceEntry.isDebitNoteEntry()) {
-                final DebitNote debitNote = (DebitNote) invoiceEntry.getFinantialDocument();
-
-                if (debitNote.getPayorDebtAccount() != null) {
-                    validAddress =
-                            ERPCustomerFieldsBean.validateAddress(debitNote.getPayorDebtAccount().getCustomer(), errorMessages);
-                }
-            } else if (invoiceEntry.isCreditNoteEntry()) {
-                final CreditNote creditNote = (CreditNote) invoiceEntry.getFinantialDocument();
-
-                if (creditNote.getPayorDebtAccount() != null) {
-                    validAddress =
-                            ERPCustomerFieldsBean.validateAddress(creditNote.getPayorDebtAccount().getCustomer(), errorMessages);
-                }
+            if (invoice.isForPayorDebtAccount()) {
+                referencedCustomers.add(invoice.getPayorDebtAccount().getCustomer());
             }
+        }
+        
+        boolean validAddress = true;
+        for (final Customer customer : referencedCustomers) {
+            validAddress &= ERPCustomerFieldsBean.validateAddress(customer, errorMessages);
         }
 
         return validAddress;

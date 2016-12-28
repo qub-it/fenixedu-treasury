@@ -147,7 +147,7 @@ public class DebitNoteController extends TreasuryBaseController {
             final List<String> errorMessages = Lists.newArrayList();
             boolean validAddress = ERPCustomerFieldsBean.validateAddress(debitNote.getDebtAccount().getCustomer(), errorMessages);
 
-            if (debitNote.getPayorDebtAccount() != null) {
+            if (debitNote.isForPayorDebtAccount()) {
                 validAddress =
                         ERPCustomerFieldsBean.validateAddress(debitNote.getPayorDebtAccount().getCustomer(), errorMessages);
             }
