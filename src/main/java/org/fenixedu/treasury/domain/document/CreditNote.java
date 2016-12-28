@@ -103,15 +103,7 @@ public class CreditNote extends CreditNote_Base {
     }
 
     public boolean isAdvancePayment() {
-        if (getFinantialDocumentEntriesSet().isEmpty()) {
-            return false;
-        }
-
-        if (TreasurySettings.getInstance().getAdvancePaymentProduct() == null) {
-            return false;
-        }
-
-        return getCreditEntries().iterator().next().getProduct() == TreasurySettings.getInstance().getAdvancePaymentProduct();
+        return false;
     }
 
     public boolean isRelatedToReimbursement() {

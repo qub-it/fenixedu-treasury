@@ -54,6 +54,8 @@ import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 
+import static org.fenixedu.treasury.util.Constants.bundle;
+
 public class SettlementNote extends SettlementNote_Base {
 
     protected SettlementNote() {
@@ -263,7 +265,7 @@ public class SettlementNote extends SettlementNote_Base {
         processAdvancePayments(bean);
 
         setAdvancePaymentSetByUser(bean.isAdvancePayment());
-        
+
         if (isReimbursement()) {
             // Ensure only one settlement entry with credit entry
             if (getSettlemetEntries().count() != 1) {
@@ -417,10 +419,14 @@ public class SettlementNote extends SettlementNote_Base {
         if (this.isPreparing()) {
             this.delete(true);
         } else if (this.isClosed()) {
-            if(isExportedInLegacyERP()) {
+            if (isExportedInLegacyERP()) {
                 throw new TreasuryDomainException("error.SettlementNote.cannot.anull.settlement.exported.in.legacy.erp");
             }
-            
+
+            if (getAdvancedPaymentCreditNote() != null && getAdvancedPaymentCreditNote().hasValidSettlementEntries()) {
+                throw new TreasuryDomainException("error.SettlementNote.cannot.anull.settlement.due.to.advanced.payment.settled");
+            }
+
             setState(FinantialDocumentStateType.ANNULED);
             setAnnulledReason(anulledReason);
 
@@ -429,17 +435,13 @@ public class SettlementNote extends SettlementNote_Base {
                 this.markDocumentToExport();
             }
 
-            //if we have advanced payments, we must "anull" the "advanced payments"
             if (this.getAdvancedPaymentCreditNote() != null) {
-                //only "disconnect" the advanced payment credit note
-                this.setAdvancedPaymentCreditNote(null);
-                // this.getAdvancedPaymentCreditNote().anullDocument(freeEntries, anulledReason);
+                this.getAdvancedPaymentCreditNote().anullDocument(anulledReason);
             }
 
             checkRules();
         } else {
-            throw new TreasuryDomainException(
-                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
+            throw new TreasuryDomainException(bundle("error.FinantialDocumentState.invalid.state.change.request"));
         }
 
     }
@@ -467,8 +469,8 @@ public class SettlementNote extends SettlementNote_Base {
         if (!Constants.isZero(checkDiferenceInAmount())) {
             throw new TreasuryDomainException("error.SettlementNote.invalid.amounts.in.settlement.note");
         }
-        
-        if(getReferencedCustomers().size() > 1) {
+
+        if (getReferencedCustomers().size() > 1) {
             throw new TreasuryDomainException("error.SettlementNote.referencedCustomers.only.one.allowed");
         }
 
@@ -529,7 +531,7 @@ public class SettlementNote extends SettlementNote_Base {
                     .anullReimbursementCreditNoteAndCopy(Constants.bundle("error.SettlementNote.reimbursement.rejected.reason"));
             anullDocument(Constants.bundle("label.ReimbursementProcessStatusType.annuled.reimbursement.by.annuled.process"),
                     false);
-            
+
             markDocumentToExport();
         }
     }
@@ -596,20 +598,20 @@ public class SettlementNote extends SettlementNote_Base {
         }
         return this.getFinantialDocumentEntriesSet().isEmpty();
     }
-    
+
     private Set<Customer> getReferencedCustomers() {
         final Set<Customer> result = Sets.newHashSet();
 
         for (final SettlementEntry settlementEntry : getSettlemetEntriesSet()) {
             final Invoice invoice = (Invoice) settlementEntry.getInvoiceEntry().getFinantialDocument();
-            
-            if(invoice.isForPayorDebtAccount()) {
+
+            if (invoice.isForPayorDebtAccount()) {
                 result.add(invoice.getPayorDebtAccount().getCustomer());
             } else {
                 result.add(invoice.getDebtAccount().getCustomer());
             }
         }
-        
+
         return result;
     }
 

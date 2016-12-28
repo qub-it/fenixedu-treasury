@@ -3,6 +3,7 @@ package org.fenixedu.treasury.domain.document;
 import java.math.BigDecimal;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.Product;
 import org.fenixedu.treasury.domain.Vat;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -60,6 +61,35 @@ public class AdvancedPaymentCreditNote extends AdvancedPaymentCreditNote_Base {
         return true;
     }
 
+    @Override
+    public boolean isAdvancePayment() {
+        return true;
+    }
+    
+    @Override
+    public void anullDocument(final String reason) {
+        if (this.isClosed()) {
+
+            if (getCreditEntries().anyMatch(ce -> !ce.getSettlementEntriesSet().isEmpty())) {
+                throw new TreasuryDomainException("error.CreditNote.cannot.delete.has.settlemententries");
+            }
+
+            setState(FinantialDocumentStateType.ANNULED);
+
+            if (Authenticate.getUser() != null) {
+                setAnnulledReason(reason + " - [" + Authenticate.getUser().getUsername() + "]"
+                        + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
+            } else {
+                setAnnulledReason(reason + " - " + new DateTime().toString("YYYY-MM-dd HH:mm:ss"));
+            }
+        } else {
+            throw new TreasuryDomainException(
+                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
+        }
+
+        checkRules();
+    }
+    
     @Override
     @Atomic
     public void delete(boolean deleteEntries) {
