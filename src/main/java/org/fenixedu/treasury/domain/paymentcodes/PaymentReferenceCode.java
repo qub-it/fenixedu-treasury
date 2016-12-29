@@ -72,8 +72,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
     }
 
     public Interval getValidInterval() {
-        return new Interval(getBeginDate().toDateTimeAtStartOfDay(), getEndDate().plusDays(1).toDateTimeAtStartOfDay()
-                .minusSeconds(1));
+        return new Interval(getBeginDate().toDateTimeAtStartOfDay(),
+                getEndDate().plusDays(1).toDateTimeAtStartOfDay().minusSeconds(1));
 
     }
 
@@ -136,32 +136,32 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
 
     private static Stream<PaymentReferenceCode> findByReferenceCode(String entityReferenceCode, String referenceCode,
             FinantialInstitution finantialInstitution) {
-        return findByReferenceCode(referenceCode, finantialInstitution).filter(
-                x -> x.getPaymentCodePool().getEntityReferenceCode().equals(entityReferenceCode));
+        return findByReferenceCode(referenceCode, finantialInstitution)
+                .filter(x -> x.getPaymentCodePool().getEntityReferenceCode().equals(entityReferenceCode));
     }
 
     public static Stream<PaymentReferenceCode> findByReferenceCode(final String referenceCode,
             FinantialInstitution finantialInstitution) {
-        return findAll().filter(i -> referenceCode.equalsIgnoreCase(i.getReferenceCode())).filter(
-                x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
+        return findAll().filter(i -> referenceCode.equalsIgnoreCase(i.getReferenceCode()))
+                .filter(x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
     }
 
     public static Stream<PaymentReferenceCode> findByBeginDate(final LocalDate beginDate,
             FinantialInstitution finantialInstitution) {
-        return findAll().filter(i -> beginDate.equals(i.getBeginDate())).filter(
-                x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
+        return findAll().filter(i -> beginDate.equals(i.getBeginDate()))
+                .filter(x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
     }
 
     public static Stream<PaymentReferenceCode> findByEndDate(final LocalDate endDate, FinantialInstitution finantialInstitution) {
-        return findAll().filter(i -> endDate.equals(i.getEndDate())).filter(
-                x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
+        return findAll().filter(i -> endDate.equals(i.getEndDate()))
+                .filter(x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
     }
 
     public static Stream<PaymentReferenceCode> findByState(
             final org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType state,
             FinantialInstitution finantialInstitution) {
-        return findAll().filter(i -> state.equals(i.getState())).filter(
-                x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
+        return findAll().filter(i -> state.equals(i.getState()))
+                .filter(x -> x.getPaymentCodePool().getFinantialInstitution().equals(finantialInstitution));
     }
 
     public String getFormattedCode() {
@@ -231,7 +231,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         return !isNew();
     }
 
-    public void update(final LocalDate startDate, final LocalDate endDate, final BigDecimal minAmount, final BigDecimal maxAmount) {
+    public void update(final LocalDate startDate, final LocalDate endDate, final BigDecimal minAmount,
+            final BigDecimal maxAmount) {
         super.setBeginDate(startDate);
         super.setEndDate(endDate);
         super.setMinAmount(minAmount);
@@ -243,9 +244,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
     public SettlementNote processPayment(User responsibleUser, BigDecimal amountToPay, DateTime whenRegistered,
             String sibsTransactionId, String comments, final DateTime whenProcessedBySibs, final SibsReportFile sibsReportFile) {
 
-        if (!isNew()
-                && SibsTransactionDetail.isReferenceProcessingDuplicate(this.getReferenceCode(), this.getPaymentCodePool()
-                        .getEntityReferenceCode(), whenRegistered)) {
+        if (!isNew() && SibsTransactionDetail.isReferenceProcessingDuplicate(this.getReferenceCode(),
+                this.getPaymentCodePool().getEntityReferenceCode(), whenRegistered)) {
             return null;
         }
 
@@ -253,18 +253,18 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
                 this.getTargetPayment().processPayment(responsibleUser, amountToPay, whenRegistered, sibsTransactionId, comments);
 
         final DebtAccount referenceDebtAccount = this.getTargetPayment().getDebtAccount();
-        
+
         final String debtAccountId = referenceDebtAccount.getExternalId();
         final String customerId = referenceDebtAccount.getCustomer().getExternalId();
         final String businessIdentification = referenceDebtAccount.getCustomer().getBusinessIdentification();
-        final String fiscalNumber = referenceDebtAccount.getCustomer().getFiscalNumber();
+        final String fiscalNumber = valueOrEmpty(referenceDebtAccount.getCustomer().getFiscalCountry()) + ":"
+                + valueOrEmpty(referenceDebtAccount.getCustomer().getFiscalNumber());
         final String customerName = referenceDebtAccount.getCustomer().getName();
         final String settlementDocumentNumber = note.getUiDocumentNumber();
-            
+
         SibsTransactionDetail.create(sibsReportFile, comments, whenProcessedBySibs, whenRegistered, amountToPay,
-                getPaymentCodePool().getEntityReferenceCode(), getReferenceCode(), sibsTransactionId, 
-                debtAccountId, customerId, businessIdentification,
-                fiscalNumber, customerName, settlementDocumentNumber);
+                getPaymentCodePool().getEntityReferenceCode(), getReferenceCode(), sibsTransactionId, debtAccountId, customerId,
+                businessIdentification, fiscalNumber, customerName, settlementDocumentNumber);
 
         return note;
 
@@ -280,9 +280,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         }
         PaymentReferenceCode paymentReferenceCode = null;
         for (PaymentCodePool pool : finantialInstitution.getPaymentCodePoolsSet()) {
-            paymentReferenceCode =
-                    pool.getPaymentReferenceCodesSet().stream().filter(y -> y.getReferenceCode().equals(code)).findFirst()
-                            .orElse(null);
+            paymentReferenceCode = pool.getPaymentReferenceCodesSet().stream().filter(y -> y.getReferenceCode().equals(code))
+                    .findFirst().orElse(null);
             if (paymentReferenceCode != null) {
                 break;
             }
@@ -318,13 +317,13 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         this.setPayableAmount(finantialDocument.getOpenAmount());
         checkRules();
     }
-    
+
     @Atomic
     public void createPaymentTargetTo(final Set<DebitEntry> debitNoteEntries, final BigDecimal payableAmount) {
         if (this.getTargetPayment() != null && Boolean.TRUE.equals(this.getTargetPayment().getValid())) {
             throw new TreasuryDomainException("error.PaymentReferenceCode.payment.target.already.exists");
         }
-        
+
         MultipleEntriesPaymentCode target = MultipleEntriesPaymentCode.create(debitNoteEntries, this, true);
         this.setTargetPayment(target);
         this.setState(PaymentReferenceCodeStateType.USED);
@@ -338,5 +337,13 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
             this.setState(PaymentReferenceCodeStateType.ANNULLED);
         }
         checkRules();
+    }
+
+    private String valueOrEmpty(final String value) {
+        if (Strings.isNullOrEmpty(value)) {
+            return "";
+        }
+
+        return value;
     }
 }

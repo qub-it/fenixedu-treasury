@@ -1,15 +1,32 @@
 package org.fenixedu.treasury.util;
 
+import org.fenixedu.treasury.domain.Customer;
+
 import com.google.common.base.Strings;
 
 public class FiscalCodeValidation {
 
     public static boolean isValidFiscalNumber(final String countryCode, final String fiscalNumber) {
-        return (!Strings.isNullOrEmpty(countryCode) && !Constants.isDefaultCountry(countryCode))
-                || FiscalCodeValidation.isValidcontrib(countryCode, fiscalNumber);
+        return FiscalCodeValidation.isValidcontrib(countryCode, fiscalNumber);
     }
 
     public static boolean isValidcontrib(final String countryCode, final String contrib) {
+        if (Strings.isNullOrEmpty(countryCode)) {
+            return false;
+        }
+
+        if (Strings.isNullOrEmpty(contrib)) {
+            return false;
+        }
+
+        if (!Constants.isDefaultCountry(countryCode) && Customer.DEFAULT_FISCAL_NUMBER.equals(contrib)) {
+            return false;
+        }
+        
+        if(!Constants.isDefaultCountry(countryCode)) {
+            return true;
+        }
+
         boolean functionReturnValue = false;
         functionReturnValue = false;
         int i = 0;
