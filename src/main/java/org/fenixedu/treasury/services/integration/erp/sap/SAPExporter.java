@@ -679,7 +679,7 @@ public class SAPExporter implements IERPExporter {
                     workDocument.setForceCertification(true);
                 }
             }
-            
+
             workDocument.setCertificationDate(convertToXMLDate(dataTypeFactory, document.getCloseDate()));
 
             //PayorID
@@ -1538,6 +1538,11 @@ public class SAPExporter implements IERPExporter {
             if (finantialDocument.isSettlementNote()) {
                 final SettlementNote settlementNote = (SettlementNote) finantialDocument;
 
+                if (settlementNote.getAdvancedPaymentCreditNote() != null
+                        && !result.contains(settlementNote.getAdvancedPaymentCreditNote())) {
+                    result.add(settlementNote.getAdvancedPaymentCreditNote());
+                }
+
                 if (settlementNote.isAnnulled() && !settlementNote.isReimbursement()) {
                     continue;
                 }
@@ -1550,11 +1555,6 @@ public class SAPExporter implements IERPExporter {
                             result.add(creditNote);
                         }
                     }
-                }
-
-                if (settlementNote.getAdvancedPaymentCreditNote() != null
-                        && !result.contains(settlementNote.getAdvancedPaymentCreditNote())) {
-                    result.add(settlementNote.getAdvancedPaymentCreditNote());
                 }
             }
         }

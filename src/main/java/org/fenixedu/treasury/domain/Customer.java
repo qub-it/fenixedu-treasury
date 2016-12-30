@@ -221,4 +221,11 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public abstract boolean isUiOtherRelatedCustomerActive();
     public abstract String uiRedirectToActiveCustomer(final String url);
     
+    public String getUiFiscalNumber() {
+        final String fiscalCountry = !Strings.isNullOrEmpty(getFiscalCountry()) ? getFiscalCountry() : "";
+        final String fiscalNumber = !Strings.isNullOrEmpty(getFiscalNumber()) ? getFiscalNumber() : "";
+
+        return fiscalCountry + ":" + fiscalNumber;
+    }
+    
 }

@@ -49,7 +49,7 @@ ${portal.angularToolkit()}
 			</p>
 			<p>
 				<strong><spring:message code="label.Customer.fiscalNumber" />:</strong>
-				<c:out value="${settlementNoteBean.debtAccount.customer.fiscalCountry}:${settlementNoteBean.debtAccount.customer.fiscalNumber}" />
+				<c:out value="${settlementNoteBean.debtAccount.customer.uiFiscalNumber}" />
 			</p>
 		</div>
 	</div>
@@ -205,7 +205,7 @@ ${portal.angularToolkit()}
 								<p>---</p>
 							</c:if>
 							<c:set var="c" value="${debitEntryBean.debitEntry.debtAccount.customer}" />
-							<p><em><c:out value="${c.fiscalCountry}:${c.fiscalNumber}" /></em></p>						
+							<p><em><c:out value="${c.uiFiscalNumber}" /></em></p>						
 						</td>
 						<td>
 							<c:out value="${ debitEntryBean.debitEntry.description }" />

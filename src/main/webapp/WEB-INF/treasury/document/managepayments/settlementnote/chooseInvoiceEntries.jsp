@@ -47,7 +47,7 @@ ${portal.angularToolkit()}
                     - ${settlementNoteBean.debtAccount.customer.name}</a>
             </p>
             <p>
-                <strong><spring:message code="label.Customer.fiscalNumber" />:</strong>&nbsp;<c:out value="${settlementNoteBean.debtAccount.customer.countryCode}:${settlementNoteBean.debtAccount.customer.fiscalNumber}" />
+                <strong><spring:message code="label.Customer.fiscalNumber" />:</strong>&nbsp;<c:out value="${settlementNoteBean.debtAccount.customer.uiFiscalNumber}" />
             </p>
         </div>
     </div>
@@ -142,6 +142,7 @@ ${portal.angularToolkit()}
             </p>
         </div>
         <div class="panel-body">
+        	<c:if test="${not settlementNoteBean.reimbursementNote }">
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
                     <spring:message code="label.date" />
@@ -150,6 +151,7 @@ ${portal.angularToolkit()}
                     <input class="form-control" type="text" bennu-date="object.date" />
                 </div>
             </div>
+            </c:if>
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
                     <spring:message code="label.SettlementNote.documentNumberSeries" />

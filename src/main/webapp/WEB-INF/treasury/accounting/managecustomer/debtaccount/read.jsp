@@ -333,7 +333,7 @@ ${portal.angularToolkit()}
                     </c:if>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
-                        <td><c:out value="${debtAccount.customer.countryCode}" />:<c:out value='${debtAccount.customer.fiscalNumber}' /></td>
+                        <td><c:out value='${debtAccount.customer.uiFiscalNumber}' /></td>
                     </tr>
 
                     <tr>

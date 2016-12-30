@@ -79,7 +79,7 @@ ${portal.toolkit()}
             </p>
             <p>
                 <strong><spring:message code="label.Customer.fiscalNumber" />: </strong>
-                <c:out value='${settlementNote.debtAccount.customer.fiscalCountry}:${settlementNote.debtAccount.customer.fiscalNumber}' />
+                <c:out value='${settlementNote.debtAccount.customer.uiFiscalNumber}' />
             </p>
             <p>
             	<strong><spring:message code="label.Customer.address" />: </strong>

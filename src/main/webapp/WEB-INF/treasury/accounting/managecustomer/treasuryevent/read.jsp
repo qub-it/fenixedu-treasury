@@ -215,7 +215,7 @@ ${portal.toolkit()}
 </h2>
 
 <p>
-	<a class="btn btn-default" href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>/${debtAccount.externalId}/${treasuryEvent.externalId}">
+	<a class="btn btn-default" href="${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>${debtAccount.externalId}/${treasuryEvent.externalId}">
 		<span class="glyphicon glyphicon-plus-sign" aria-hidden="true">&nbsp;</span>
 		<spring:message code="label.event.create" />
 	</a>
@@ -224,7 +224,7 @@ ${portal.toolkit()}
 
     <script type="text/javascript">
 		function processDelete(externalId) {
-			url = '${pageContext.request.contextPath}<%=TreasuryExemptionController.SEARCH_TO_DELETE_ACTION_URL%>${debtAccount.externalId}/' + externalId;
+			url = '${pageContext.request.contextPath}<%=TreasuryExemptionController.SEARCH_TO_DELETE_ACTION_URL %>${debtAccount.externalId}/' + externalId;
 			$("#deleteForm").attr("action", url);
 			$('#deleteModal').modal('toggle')
 		}

@@ -134,6 +134,10 @@ ${portal.toolkit()}
                         <td><c:out value='${customer.name}' /></td>
                     </tr>
                     <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.countryCode" /></th>
+                        <td><c:out value='${customer.fiscalCountry}' /></td>
+                    </tr>
+                    <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
                         <td><c:out value='${customer.fiscalNumber}' /></td>
                     </tr>
@@ -157,10 +161,6 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.addressCountryCode" /></th>
                         <td><c:out value='${customer.addressCountryCode}' /></td>
                     </tr>
-                    <tr>
-                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.countryCode" /></th>
-                        <td><c:out value='${customer.fiscalCountry}' /></td>
-                    </tr>
                 </tbody>
             </table>
 
@@ -182,7 +182,7 @@ ${portal.toolkit()}
 			                       <tr>
 			                           <th scope="row" class="col-xs-4"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
 			                           <td class="col-xs-2">
-			                           		<c:out value="${debtAccount.customer.countryCode}" />:<c:out value="${debtAccount.customer.fiscalNumber}" />
+			                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
 			                           </td>
 			                           <td >
 			                               <div class="col-xs-3">
@@ -212,7 +212,7 @@ ${portal.toolkit()}
 			                               </c:if>
 				                           </th>
 				                           <td class="col-xs-2">
-				                           		<c:out value="${debtAccount.customer.fiscalCountry}:${debtAccount.customer.fiscalNumber}" />
+				                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
 				                           </td>
 				                           <td>
 				                               <div class="col-xs-3">

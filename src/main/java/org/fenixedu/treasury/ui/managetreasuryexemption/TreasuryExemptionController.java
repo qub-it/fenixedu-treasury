@@ -27,12 +27,11 @@
 package org.fenixedu.treasury.ui.managetreasuryexemption;
 
 import java.math.BigDecimal;
-import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.core.domain.exceptions.DomainException;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
-import org.fenixedu.treasury.domain.document.DebitEntry;
+import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.event.TreasuryEvent;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
@@ -85,9 +84,9 @@ public class TreasuryExemptionController extends TreasuryBaseController {
     private static final String _SEARCH_TO_DELETE_ACTION_URI = "/search/delete/";
     public static final String SEARCH_TO_DELETE_ACTION_URL = CONTROLLER_URL + _SEARCH_TO_DELETE_ACTION_URI;
 
-    @RequestMapping(value = _SEARCH_TO_DELETE_ACTION_URI + "{oid}", method = RequestMethod.POST)
-    public String processSearchToDeleteAction(@PathVariable("oid") TreasuryExemption treasuryExemption, Model model,
-            RedirectAttributes redirectAttributes) {
+    @RequestMapping(value = _SEARCH_TO_DELETE_ACTION_URI + "{debtAccountId}/{oid}", method = RequestMethod.POST)
+    public String processSearchToDeleteAction(@PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("oid") final TreasuryExemption treasuryExemption, Model model, RedirectAttributes redirectAttributes) {
 
         final TreasuryEvent treasuryEvent = treasuryExemption.getTreasuryEvent();
 
@@ -101,21 +100,32 @@ public class TreasuryExemptionController extends TreasuryBaseController {
             addErrorMessage(ex.getLocalizedMessage(), model);
         }
 
-        return redirect(TreasuryEventController.READ_URL + treasuryEvent.getExternalId(), model, redirectAttributes);
+        return redirect(treasuryEventUrl(debtAccount, treasuryEvent), model, redirectAttributes);
+    }
+
+    private String treasuryEventUrl(final DebtAccount debtAccount, final TreasuryEvent treasuryEvent) {
+        return String.format("%s/%s/%s", TreasuryEventController.READ_URL, debtAccount.getExternalId(),
+                treasuryEvent.getExternalId());
     }
 
     private static final String _CREATE_URI = "/create/";
     public static final String CREATE_URL = CONTROLLER_URL + _CREATE_URI;
 
-    @RequestMapping(value = _CREATE_URI + "{treasuryEventId}", method = RequestMethod.GET)
-    public String create(@PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, final Model model) {
+    @RequestMapping(value = _CREATE_URI + "{debtAccountId}/{treasuryEventId}", method = RequestMethod.GET)
+    public String create(@PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @PathVariable("treasuryEventId") final TreasuryEvent treasuryEvent, final Model model) {
         setTreasuryEvent(treasuryEvent, model);
         setTreasuryExemptionBean(new TreasuryExemptionBean(treasuryEvent), model);
+
+        model.addAttribute("debtAccount", debtAccount);
+
         return jspPage("create");
     }
 
-    @RequestMapping(value = _CREATE_URI, method = RequestMethod.POST)
-    public String create(@RequestParam(value = "bean", required = true) TreasuryExemptionBean bean, final Model model,
+    @RequestMapping(value = _CREATE_URI + "{debtAccountId}", method = RequestMethod.POST)
+    public String create(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @RequestParam(value = "bean", required = true) TreasuryExemptionBean bean, final Model model,
             final RedirectAttributes redirectAttributes) {
         setTreasuryExemptionBean(bean, model);
         try {
@@ -126,32 +136,32 @@ public class TreasuryExemptionController extends TreasuryBaseController {
 
             addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
 
-            return redirect(TreasuryEventController.READ_URL + bean.getTreasuryEvent().getExternalId(), model, redirectAttributes);
+            return redirect(treasuryEventUrl(debtAccount, bean.getTreasuryEvent()), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
         }
-        return create(bean.getTreasuryEvent(), model);
+        
+        return create(debtAccount, bean.getTreasuryEvent(), model);
     }
 
     private static final String _CREATEPOSTBACK_URI = "/createPostBack/";
     public static final String CREATEPOSTBACK_URL = CONTROLLER_URL + _CREATEPOSTBACK_URI;
 
-    @RequestMapping(value = _CREATEPOSTBACK_URI, method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    public @ResponseBody String createpostback(@RequestParam(value = "bean", required = true) TreasuryExemptionBean bean,
-            Model model) {
+    @RequestMapping(value = _CREATEPOSTBACK_URI + "{debtAccountId}", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public @ResponseBody String createpostback(
+            @PathVariable("debtAccountId") final DebtAccount debtAccount,
+            @RequestParam(value = "bean", required = true) final TreasuryExemptionBean bean,
+            final Model model) {
+        
         if (bean.getDebitEntry() != null && bean.getTreasuryExemptionType() != null) {
-            BigDecimal amount =
-                    bean.getDebitEntry().getAmountWithVat().multiply(
-                            bean.getTreasuryExemptionType().getDefaultExemptionPercentage()
-                            .divide(BigDecimal.valueOf(100)));
-            amount =
-                    bean.getDebitEntry().getDebtAccount().getFinantialInstitution().getCurrency()
-                    .getValueWithScale(amount);
+            BigDecimal amount = bean.getDebitEntry().getAmountWithVat()
+                    .multiply(bean.getTreasuryExemptionType().getDefaultExemptionPercentage().divide(BigDecimal.valueOf(100)));
+            amount = bean.getDebitEntry().getDebtAccount().getFinantialInstitution().getCurrency().getValueWithScale(amount);
             bean.setValuetoexempt(amount);
         }
-        
+
         setTreasuryExemptionBean(bean, model);
         return getBeanJson(bean);
     }

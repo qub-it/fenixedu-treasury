@@ -66,7 +66,7 @@ ${portal.angularToolkit()}
 <div class="well well-sm" style="display: inline-block">
     <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
     &nbsp;<a
-        href="${pageContext.request.contextPath}<%= TreasuryEventController.READ_URL %>/${treasuryEvent.externalId}">
+        href="${pageContext.request.contextPath}<%= TreasuryEventController.READ_URL %>${debtAccount.externalId}/${treasuryEvent.externalId}">
         <spring:message code="label.event.back" />
     </a> &nbsp;
 </div>
@@ -137,10 +137,10 @@ ${portal.angularToolkit()}
     ng-app="angularAppTreasuryExemption"
     ng-controller="TreasuryExemptionController"
     ng-submit="submitForm($model)"
-    action='${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>'>
+    action='${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATE_URL %>${debtAccount.externalId}'>
 
     <input type="hidden" name="postback"
-        value='${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATEPOSTBACK_URL %>' />
+        value='${pageContext.request.contextPath}<%= TreasuryExemptionController.CREATEPOSTBACK_URL %>${debtAccount.externalId}' />
 
     <input name="bean" type="hidden" value="{{ object }}" />
 
@@ -232,7 +232,6 @@ ${portal.angularToolkit()}
 </form>
 
 <script>
-	$(document).ready(function() {
-
-	});
+$(document).ready(function() {
+});
 </script>

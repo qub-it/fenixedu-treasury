@@ -186,6 +186,4 @@ ${portal.toolkit()}
 </form>
 
 <script>
-$(document).ready(function() {
-
 </script>
