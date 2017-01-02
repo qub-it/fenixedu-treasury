@@ -116,6 +116,8 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     }
 
     public abstract boolean isActive();
+    
+    public abstract Customer getActiveCustomer();
 
     @Atomic
     public void delete() {

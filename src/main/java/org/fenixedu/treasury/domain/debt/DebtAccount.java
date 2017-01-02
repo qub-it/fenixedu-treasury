@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.debt.balancetransfer.BalanceTransferService;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
@@ -58,7 +59,7 @@ public class DebtAccount extends DebtAccount_Base {
             return Customer.COMPARE_BY_NAME_IGNORE_CASE.compare(o1.getCustomer(), o2.getCustomer());
         }
     };
-    
+
     public DebtAccount() {
         super();
         setBennu(Bennu.getInstance());
@@ -95,10 +96,22 @@ public class DebtAccount extends DebtAccount_Base {
         return getFinantialInstitution().getCurrency().getValueWithScale(amount);
     }
 
+    @Atomic
+    public void transferBalance(final DebtAccount destinyDebtAccount) {
+        (new BalanceTransferService()).transferBalance(this, destinyDebtAccount);
+    }
+
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+
     public static Stream<DebtAccount> findAll() {
         return Bennu.getInstance().getDebtAccountsSet().stream();
     }
-    
+
     public static Stream<DebtAccount> find(final FinantialInstitution finantialInstitution) {
         return findAll().filter(d -> d.getFinantialInstitution() == finantialInstitution);
     }
@@ -106,7 +119,7 @@ public class DebtAccount extends DebtAccount_Base {
     public static Stream<DebtAccount> findAdhoc(final FinantialInstitution finantialInstitution) {
         return find(finantialInstitution).filter(x -> x.getCustomer().isAdhocCustomer());
     }
-    
+
     public static Stream<DebtAccount> find(final Customer customer) {
         return findAll().filter(d -> d.getCustomer() == customer);
     }
@@ -114,11 +127,12 @@ public class DebtAccount extends DebtAccount_Base {
     public static Optional<DebtAccount> findUnique(final FinantialInstitution finantialInstitution, final Customer customer) {
         return find(finantialInstitution).filter(d -> d.getCustomer() == customer).findFirst();
     }
-    
-    public static SortedSet<DebtAccount> findAdhocDebtAccountsSortedByCustomerName(final FinantialInstitution finantialInstitution) {
+
+    public static SortedSet<DebtAccount> findAdhocDebtAccountsSortedByCustomerName(
+            final FinantialInstitution finantialInstitution) {
         final SortedSet<DebtAccount> result = Sets.newTreeSet(COMPARATOR_BY_CUSTOMER_NAME_IGNORE_CASE);
         result.addAll(DebtAccount.findAdhoc(finantialInstitution).collect(Collectors.toSet()));
-        
+
         return result;
     }
 
@@ -210,20 +224,16 @@ public class DebtAccount extends DebtAccount_Base {
         BigDecimal interestAmount = BigDecimal.ZERO;
         for (InvoiceEntry entry : this.getPendingInvoiceEntriesSet()) {
             if (entry.isDebitNoteEntry()) {
-                interestAmount =
-                        interestAmount.add(((DebitEntry) entry).calculateUndebitedInterestValue(whenToCalculate)
-                                .getInterestAmount());
+                interestAmount = interestAmount
+                        .add(((DebitEntry) entry).calculateUndebitedInterestValue(whenToCalculate).getInterestAmount());
             }
         }
         return interestAmount;
     }
 
     public Stream<InvoiceEntry> getActiveInvoiceEntries() {
-        return this
-                .getInvoiceEntrySet()
-                .stream()
-                .filter(x -> x.getFinantialDocument() == null || x.getFinantialDocument() != null
-                        && x.getFinantialDocument().isAnnulled() == false);
+        return this.getInvoiceEntrySet().stream().filter(x -> x.getFinantialDocument() == null
+                || x.getFinantialDocument() != null && x.getFinantialDocument().isAnnulled() == false);
     }
 
     public boolean hasPreparingDocuments() {
@@ -241,9 +251,8 @@ public class DebtAccount extends DebtAccount_Base {
     }
 
     public boolean hasPreparingSettlementNotes() {
-        return getPendingInvoiceEntriesSet().stream().anyMatch(
-                ie -> ie.getSettlementEntriesSet().stream()
-                        .anyMatch(se -> se.getFinantialDocument() != null && se.getFinantialDocument().isPreparing()));
+        return getPendingInvoiceEntriesSet().stream().anyMatch(ie -> ie.getSettlementEntriesSet().stream()
+                .anyMatch(se -> se.getFinantialDocument() != null && se.getFinantialDocument().isPreparing()));
     }
 
 }

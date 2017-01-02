@@ -428,6 +428,22 @@ public class SAPExporter implements IERPExporter {
             // CustomerID
             payment.setCustomerID(document.getDebtAccount().getCustomer().getCode());
 
+            //check the PayorDebtAccount
+            if (document.getReferencedCustomers().size() > 1) {
+                throw new TreasuryDomainException("error.SettlementNote.referencedCustomers.only.one.allowed");
+            }
+            
+            final Customer payorCustomer = document.getReferencedCustomers().iterator().next();
+            if (payorCustomer != null && payorCustomer != document.getDebtAccount().getCustomer()) {
+                final ERPCustomerFieldsBean payorCustomerBean = ERPCustomerFieldsBean.fillFromCustomer(payorCustomer);
+
+                if (!baseCustomers.containsKey(payorCustomerBean.getCustomerId())) {
+                    baseCustomers.put(payorCustomerBean.getCustomerId(), payorCustomerBean);
+                }
+                
+                payment.setPayorCustomerID(payorCustomer.getCode());
+            }
+            
             // DocumentStatus
             /*
              * Deve ser preenchido com: ?N? ? Normal; Texto 1 ?T? ? Por conta de

@@ -865,6 +865,16 @@ relation TreasurySettingsCurrency {
 	}
 }
 
+relation TreasurySettingsTransferBalanceProduct {
+	settings.TreasurySettings playsRole transferBalanceTreasurySettings {
+		multiplicity 0..1;
+	}
+	
+    Product playsRole transferBalanceProduct {
+        multiplicity 0..1;
+    }
+}
+
 /*************
  * RELATIONS *
  *************/

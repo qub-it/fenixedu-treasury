@@ -29,6 +29,7 @@ package org.fenixedu.treasury.ui.accounting.managecustomer;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,15 +39,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.fenixedu.bennu.TupleDataSourceBean;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
-import org.fenixedu.treasury.domain.document.CreditEntry;
-import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitEntry;
-import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.paymentcodes.FinantialDocumentPaymentCode;
@@ -175,12 +175,13 @@ public class DebtAccountController extends TreasuryBaseController {
 
     private void checkIncompleteAddress(final DebtAccount debtAccount, final Model model) {
         final List<String> errorMessages = Lists.newArrayList();
-        final boolean validAddress = ERPCustomerFieldsBean.checkIncompleteAddressForDebtAccountAndPayors(debtAccount, errorMessages);
+        final boolean validAddress =
+                ERPCustomerFieldsBean.checkIncompleteAddressForDebtAccountAndPayors(debtAccount, errorMessages);
 
         model.addAttribute("validAddress", validAddress);
         model.addAttribute("addressErrorMessages", errorMessages);
     }
-    
+
     private boolean isInvalidFiscalCode(final DebtAccount debtAccount) {
         return !Strings.isNullOrEmpty(debtAccount.getCustomer().getFiscalCountry())
                 && Constants.isDefaultCountry(debtAccount.getCustomer().getFiscalCountry())
@@ -353,6 +354,34 @@ public class DebtAccountController extends TreasuryBaseController {
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
             return redirect(READ_URL + debtAccount.getExternalId(), model, redirectAttributes);
+        }
+    }
+
+    private static final String _TRANSFERBALANCE_URI = "/transferbalance";
+    public static final String TRANSFERBALANCE_URL = CONTROLLER_URL + _TRANSFERBALANCE_URI;
+
+    @RequestMapping(value = _TRANSFERBALANCE_URI + "/{oid}")
+    public String transferbalance(@PathVariable("oid") final DebtAccount debtAccount, final Model model,
+            final RedirectAttributes redirectAttributes) {
+        try {
+            if (debtAccount.getCustomer().isActive()) {
+                throw new TreasuryDomainException("error.DebtAccount.transfer.from.must.not.be.active");
+            }
+
+            final FinantialInstitution finantialInstitution = debtAccount.getFinantialInstitution();
+
+            Optional<DebtAccount> activeDebtAccount =
+                    DebtAccount.findUnique(finantialInstitution, debtAccount.getCustomer().getActiveCustomer());
+
+            if (!activeDebtAccount.isPresent()) {
+                throw new TreasuryDomainException("error.DebtAccount.active.debt.account.not.found");
+            }
+
+            debtAccount.transferBalance(activeDebtAccount.get());
+            return redirect(READ_URL + debtAccount.getExternalId(), model, redirectAttributes);
+        } catch (final Exception ex) {
+            addErrorMessage(ex.getLocalizedMessage(), model);
+            return read(debtAccount, model, redirectAttributes);
         }
     }
 

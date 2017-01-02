@@ -68,10 +68,11 @@ ${portal.angularToolkit()}
 			FinantialInstitution finantialInstitution = (FinantialInstitution) debtAccount
 					.getFinantialInstitution();
 %>
-<div class="modal fade" id="deleteModal">
+
+<div class="modal fade" id="transferBalanceModal">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="deleteForm" action="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/delete/${debtAccount.externalId}" method="POST">
+            <form id="deleteForm" action="${pageContext.request.contextPath}<%= DebtAccountController.TRANSFERBALANCE_URL %>/${debtAccount.externalId}" method="POST">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -82,7 +83,7 @@ ${portal.angularToolkit()}
                 </div>
                 <div class="modal-body">
                     <p>
-                        <spring:message code="label.accounting.manageCustomer.readDebtAccount.confirmDelete" />
+                        <spring:message code="label.accounting.manageCustomer.readDebtAccount.confirm.transfer.balance" />
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -90,7 +91,7 @@ ${portal.angularToolkit()}
                         <spring:message code="label.close" />
                     </button>
                     <button id="deleteButton" class="btn btn-danger" type="submit">
-                        <spring:message code="label.delete" />
+                        <spring:message code="label.transfer" />
                     </button>
                 </div>
             </form>
@@ -100,6 +101,7 @@ ${portal.angularToolkit()}
     <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
+
 
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
@@ -262,6 +264,17 @@ ${portal.angularToolkit()}
             		<spring:message code="label.ERPTuitionInfo.create" />
                	</a>
             </li>
+			<% } %>
+
+			<% if(TreasuryAccessControl.getInstance().isBackOfficeMember(Authenticate.getUser())) { %>
+			<c:if test="${not debtAccount.customer.active}">
+            <li>
+            	<a href="#" data-toggle="modal" data-target="#transferBalanceModal">
+            		<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>&nbsp;
+            		<spring:message code="label.event.accounting.manageCustomer.transferBalance" />
+               	</a>
+            </li>
+            </c:if>
 			<% } %>
         </ul>
     </div>

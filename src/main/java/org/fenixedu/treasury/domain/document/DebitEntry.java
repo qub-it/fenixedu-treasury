@@ -695,7 +695,7 @@ public class DebitEntry extends DebitEntry_Base {
             final InterestRate interestRate, final DateTime entryDateTime) {
 
         /* Debt can only be created if customer is active */
-        if (!debtAccount.getCustomer().isActive()) {
+        if (product != TreasurySettings.getInstance().getTransferBalanceProduct() && !debtAccount.getCustomer().isActive()) {
             throw new TreasuryDomainException("error.DebitEntry.customer.not.active");
         }
 

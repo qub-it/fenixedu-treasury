@@ -599,7 +599,7 @@ public class SettlementNote extends SettlementNote_Base {
         return this.getFinantialDocumentEntriesSet().isEmpty();
     }
 
-    private Set<Customer> getReferencedCustomers() {
+    public Set<Customer> getReferencedCustomers() {
         final Set<Customer> result = Sets.newHashSet();
 
         for (final SettlementEntry settlementEntry : getSettlemetEntriesSet()) {

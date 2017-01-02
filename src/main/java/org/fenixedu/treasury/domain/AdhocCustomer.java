@@ -55,6 +55,11 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     public boolean isActive() {
         return true;
     }
+    
+    @Override
+    public Customer getActiveCustomer() {
+        return this;
+    }
 
     protected AdhocCustomer(final CustomerType customerType, final String fiscalNumber, final String name, final String address,
             final String districtSubdivision, final String zipCode, final String addressCountryCode, final String countryCode,

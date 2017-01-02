@@ -88,6 +88,10 @@ public class CreditNote extends CreditNote_Base {
         if (!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
             throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
         }
+        
+        if(getDebitNote() != null && getPayorDebtAccount() != getDebitNote().getPayorDebtAccount()) {
+            throw new TreasuryDomainException("error.CreditNote.with.payorDebtAccount.different.from.debit.note");
+        }
 
         super.checkRules();
     }
@@ -169,17 +173,32 @@ public class CreditNote extends CreditNote_Base {
         
         return super.getPayorDebtAccount();
     };
+    
+    public void editPayorDebtAccount(final DebtAccount payorDebtAccount) {
+        if(!isPreparing()) {
+            throw new TreasuryDomainException("error.CreditNote.edit.not.possible.on.closed.document");
+        }
+        
+        setPayorDebtAccount(payorDebtAccount);
 
+        checkRules();
+    }
+
+    /* Method is not used anywhere */
     @Atomic
-    public void edit(final DebitNote debitNote, final DebtAccount payorDebtAccount,
+    private void deprecatedEdit(final DebitNote debitNote, final DebtAccount payorDebtAccount,
             final FinantialDocumentType finantialDocumentType, final DebtAccount debtAccount,
             final DocumentNumberSeries documentNumberSeries, final Currency currency, final String documentNumber,
             final org.joda.time.DateTime documentDate, final org.joda.time.LocalDate documentDueDate,
             final String originDocumentNumber, final org.fenixedu.treasury.domain.document.FinantialDocumentStateType state) {
+        if(!isPreparing()) {
+            throw new TreasuryDomainException("error.CreditNote.edit.not.possible.on.closed.document");
+        }
+        
         setDebitNote(debitNote);
-        setPayorDebtAccount(payorDebtAccount);
         setFinantialDocumentType(finantialDocumentType);
         setDebtAccount(debtAccount);
+        editPayorDebtAccount(payorDebtAccount);
         setDocumentNumberSeries(documentNumberSeries);
         setCurrency(currency);
         setDocumentNumber(documentNumber);
