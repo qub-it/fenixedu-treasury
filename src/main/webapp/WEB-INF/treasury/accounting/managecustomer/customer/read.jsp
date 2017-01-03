@@ -182,7 +182,10 @@ ${portal.toolkit()}
 			                       <tr>
 			                           <th scope="row" class="col-xs-4"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
 			                           <td class="col-xs-2">
-			                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
+			                           		<p><c:out value="${debtAccount.customer.uiFiscalNumber}" /></p>
+			                           		<c:if test="${debtAccount.customer.fromPersonMerge}">
+				                           		<p>[<spring:message code="label.Customer.fromPersonMerge" />]</p>
+			                           		</c:if>
 			                           </td>
 			                           <td >
 			                               <div class="col-xs-3">
@@ -206,21 +209,34 @@ ${portal.toolkit()}
 				                           <th scope="row" class="col-xs-4">
 				                           	<c:out value="${debtAccount.finantialInstitution.name}" />
 			                               <c:if test="${!inactiveCustomer.active}">
-			                                   <p><span class="label label-warning">
-			                                   	<spring:message code="warning.Customer.is.inactive.due.merge.or.fiscal.change" />
-			                                   </span></p>
+			                                   <p>
+													<span class="label label-warning">
+														<spring:message code="warning.Customer.is.inactive.due.merge.or.fiscal.change" />
+													</span>
+			                                   </p>
 			                               </c:if>
 				                           </th>
 				                           <td class="col-xs-2">
-				                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
+				                           		<p>
+					                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
+				                           		</p>
+				                           		<c:if test="${debtAccount.customer.fromPersonMerge}">
+				                           		<p>
+						                           		<em>[<spring:message code="label.Customer.fromPersonMerge" />]</em>
+				                           		</p>
+				                           		</c:if>
 				                           </td>
 				                           <td>
 				                               <div class="col-xs-3">
 				                                   <c:out value="${debtAccount.finantialInstitution.currency.getValueFor(debtAccount.totalInDebt + debtAccount.calculatePendingInterestAmount())}" />
-				                               </div> &nbsp;&nbsp;<a class="btn btn-primary btn-xs"
-				                               href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}">
+				                               </div> &nbsp;&nbsp;
+				                               
+				                               <a class="btn btn-primary btn-xs"
+					                               href="${pageContext.request.contextPath}/treasury/accounting/managecustomer/debtaccount/read/${debtAccount.externalId}">
 				                               <span class="glyphicon glyphicon-user" >&nbsp;</span><spring:message
-				                                       code="label.customer.read.showdebtaccount"></spring:message></a> <c:if test="${debtAccount.totalInDebt < 0 }">
+				                                       code="label.customer.read.showdebtaccount"></spring:message>
+												</a> 
+												<c:if test="${debtAccount.totalInDebt < 0 }">
 				                                   <span class="label label-primary"> <spring:message code="label.DebtAccount.customerHasAmountToRehimburse" />
 				                                   </span>
 				                               </c:if> 

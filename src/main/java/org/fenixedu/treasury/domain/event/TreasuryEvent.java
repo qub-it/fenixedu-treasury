@@ -259,6 +259,8 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
             throw new TreasuryDomainException("error.TreasuryEvent.cannot.delete");
         }
 
+        setDebtAccount(null);
+        setProduct(null);
         setBennu(null);
 
         super.deleteDomainObject();
