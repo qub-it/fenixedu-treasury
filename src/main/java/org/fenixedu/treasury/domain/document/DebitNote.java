@@ -67,7 +67,7 @@ public class DebitNote extends DebitNote_Base {
     public boolean isDebitNote() {
         return true;
     }
-    
+
     @Override
     protected void checkRules() {
         if (!getDocumentNumberSeries().getFinantialDocumentType().getType().equals(FinantialDocumentTypeEnum.DEBIT_NOTE)) {
@@ -131,10 +131,8 @@ public class DebitNote extends DebitNote_Base {
     }
 
     @Atomic
-    public void edit(final DebtAccount payorDebtAccount, final LocalDate documentDate, LocalDate documentDueDate,
-            final String originDocumentNumber) {
+    public void edit(final LocalDate documentDate, LocalDate documentDueDate, final String originDocumentNumber) {
 
-        setPayorDebtAccount(payorDebtAccount);
         setDocumentDate(documentDate.toDateTimeAtStartOfDay());
         setDocumentDueDate(documentDueDate);
         setOriginDocumentNumber(originDocumentNumber);
@@ -367,8 +365,8 @@ public class DebitNote extends DebitNote_Base {
         final DebitNote updatingDebitNote = isPreparing() ? this : anullAndCopyDebitNote(
                 Constants.bundle("label.DebitNote.updatePayorDebtAccount.anull.reason"));
 
-        updatingDebitNote.edit(payorDebtAccount, getDocumentDueDate(), getDocumentDueDate(), getOriginDocumentNumber());
-
+        updatingDebitNote.setPayorDebtAccount(payorDebtAccount);
+        
         return updatingDebitNote;
     }
 

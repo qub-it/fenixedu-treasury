@@ -49,6 +49,19 @@ ${portal.toolkit()}
 <script
     src="${pageContext.request.contextPath}/static/treasury/js/omnis.js"></script>
 
+<style type="text/css">
+
+.my-table-option .input-group-addon {
+	border: 0px solid #ccc;
+	border-radius: 0px;
+}
+
+.my-table-option .input-group .form-control {
+	border: 0px solid #ccc;
+	border-radius: 0px;
+}
+
+</style>
 
 
 <%-- TITLE --%>
@@ -447,10 +460,21 @@ ${portal.toolkit()}
         <!-- /.modal-dialog -->
     </div>
         
-            <datatables:table id="allDebitEntriesTable" row="debitEntry"
-                data="${allActiveDebitEntriesDataSet}"
-                cssClass="table responsive table-bordered table-hover"
-                cdn="false" cellspacing="2">
+			<div class="my-table-option row">
+			  <div class="col-xs-12">
+			    <div class="input-group">
+			      <span class="input-group-addon">
+			        <input id="includeAnnuledCheckbox" type="checkbox" aria-label="...">
+			      </span>
+			      <input type="text" class="form-control" aria-label="..." value="<spring:message code="label.TreasuryEvent.show.annuled" />" disabled />
+			    </div>
+			  </div>
+			</div>
+            <datatables:table id="allDebitEntriesTable" row="debitEntry" data="${allActiveDebitEntriesDataSet}"
+                cssClass="table responsive table-bordered table-hover" cdn="false" cellspacing="2">
+                <datatables:column cssClass="never">
+                	<c:out value="${not empty debitEntry.finantialDocument && debitEntry.finantialDocument.isAnnulled()}" />
+                </datatables:column>
                 <datatables:column cssStyle="width:10%">
                     <datatables:columnHead>
                         <spring:message
@@ -484,7 +508,7 @@ ${portal.toolkit()}
                         <c:out value="${debitEntry.description}" />
                     </p>
                     <p>
-                    	<em><c:out value="${debitEntry.debtAccount.customer.fiscalCountry} - ${debitEntry.debtAccount.customer.fiscalNumber}" /></em>
+                    	<em><c:out value="${debitEntry.debtAccount.customer.uiFiscalNumber}" /></em>
                     </p>
 					<p>
 	                    <c:if test="${debitEntry.eventAnnuled}">
@@ -532,13 +556,34 @@ ${portal.toolkit()}
                 </datatables:column>
             </datatables:table>
             <script>
-				createDataTables(
-						'allDebitEntriesTable',
-						true,
-						false,
-						false,
-						"${pageContext.request.contextPath}",
-						"${datatablesI18NUrl}");
+	        	$(document).ready(function() {
+	        		var table = $('#allDebitEntriesTable').DataTable({
+	        			language : { url : "${datatablesI18NUrl}" },
+	            		"dom": '<"col-sm-6"l><"col-sm-6"f>rtip', //FilterBox = YES && ExportOptions = NO
+	        			"bDeferRender" : true,
+	        			"bPaginate" : false,
+	                    "tableTools": {
+	                        "sSwfPath": "${pageContext.request.contextPath}/static/treasury/swf/copy_csv_xls_pdf.swf"
+	                    }
+	        		});
+
+	        		table.columns.adjust().draw();
+					$('#allDebitEntriesTable tbody').on( 'click', 'tr', function () {
+					      $(this).toggleClass('selected');
+					});
+					
+					$.fn.dataTable.ext.search.push(
+					    function( settings, data, dataIndex ) {
+					        var includeAnnuledChecked = $('#includeAnnuledCheckbox').is(':checked');
+					        var annuled = (data[0].trim() === "true");
+					        return (!annuled || includeAnnuledChecked);
+					    }
+					);
+					
+					$('#includeAnnuledCheckbox').click(function() {
+						table.columns.adjust().draw();
+					});
+	        	});
 			</script>
         </c:when>
         <c:otherwise>
@@ -570,18 +615,17 @@ ${portal.toolkit()}
                         <spring:message
                             code="label.TreasuryEvent.allDebitEntries.documentNumber" />
                     </datatables:columnHead>
-                    <c:out
-                        value="${creditEntry.finantialDocument.uiDocumentNumber}" />
+                    <p><c:out value="${creditEntry.finantialDocument.uiDocumentNumber}" /></p>
+                    <c:if test="${not empty creditEntry.debitEntry && not empty creditEntry.debitEntry.finantialDocument }">
+	                    <p><em>[<c:out value="${creditEntry.debitEntry.finantialDocument.uiDocumentNumber}" />]</em></p>
+                    </c:if>
                 </datatables:column>
                 <datatables:column cssStyle="width:15%">
                     <datatables:columnHead>
-                        <spring:message
-                            code="label.TreasuryEvent.allDebitEntries.entryDateTime" />
+                        <spring:message code="label.TreasuryEvent.allDebitEntries.entryDateTime" />
                     </datatables:columnHead>
                     <p align=center>
-                        <joda:format
-                            value="${creditEntry.entryDateTime}"
-                            style="S-" />
+                        <joda:format value="${creditEntry.entryDateTime}" style="S-" />
                     </p>
                 </datatables:column>
                 <datatables:column cssStyle="width:60%">
@@ -589,7 +633,8 @@ ${portal.toolkit()}
                         <spring:message
                             code="label.TreasuryEvent.allDebitEntries.description" />
                     </datatables:columnHead>
-                    <c:out value="${creditEntry.description}" />
+                    <p><c:out value="${creditEntry.description}" /></p>
+                    <p><em><c:out value="${creditEntry.debtAccount.customer.uiFiscalNumber}" /></em></p>
                 </datatables:column>
                 <datatables:column cssStyle="width:10%">
                     <datatables:columnHead>
@@ -617,6 +662,4 @@ ${portal.toolkit()}
 </c:choose>
 
 <script>
-	$(document).ready(function() {
-	});
 </script>

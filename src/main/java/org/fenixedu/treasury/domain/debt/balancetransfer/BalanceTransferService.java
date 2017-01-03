@@ -36,8 +36,16 @@ import pt.ist.fenixframework.Atomic;
 
 public class BalanceTransferService {
 
+    private DebtAccount objectDebtAccount;
+    private DebtAccount destinyDebtAccount;
+
+    public BalanceTransferService(final DebtAccount objectDebtAccount, final DebtAccount destinyDebtAccount) {
+        this.objectDebtAccount = objectDebtAccount;
+        this.destinyDebtAccount = destinyDebtAccount;
+    }
+
     @Atomic
-    public void transferBalance(final DebtAccount objectDebtAccount, final DebtAccount destinyDebtAccount) {
+    public void transferBalance() {
         final FinantialInstitution finantialInstitution = objectDebtAccount.getFinantialInstitution();
         final DocumentNumberSeries documentNumberSeries =
                 DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(), finantialInstitution).get();
@@ -54,19 +62,21 @@ public class BalanceTransferService {
                 }
 
                 pendingDebitNotes.add((DebitNote) debitEntry.getFinantialDocument());
-            } else if (invoiceEntry.isCreditNoteEntry()) {
-                transferCreditEntry((CreditEntry) invoiceEntry, destinyDebtAccount);
             }
         }
 
         for (final DebitNote debitNote : pendingDebitNotes) {
-            transferDebitEntries(debitNote, destinyDebtAccount);
+            transferDebitEntries(debitNote);
+        }
+
+        for (final InvoiceEntry invoiceEntry : objectDebtAccount.getPendingInvoiceEntriesSet()) {
+            if (invoiceEntry.isCreditNoteEntry()) {
+                transferCreditEntry((CreditEntry) invoiceEntry);
+            }
         }
     }
 
-    private void transferCreditEntry(final CreditEntry invoiceEntry, final DebtAccount destinyDebtAccount) {
-
-        final DebtAccount objectDebtAccount = invoiceEntry.getDebtAccount();
+    private void transferCreditEntry(final CreditEntry invoiceEntry) {
         final FinantialInstitution finantialInstitution = objectDebtAccount.getFinantialInstitution();
         final Series defaultSeries = Series.findUniqueDefault(finantialInstitution).get();
         final Series regulationSeries = finantialInstitution.getRegulationSeries();
@@ -113,15 +123,15 @@ public class BalanceTransferService {
         settlementNote.closeDocument();
     }
 
-    private void transferDebitEntries(final DebitNote objectDebitNote, final DebtAccount destinyDebtAccount) {
+    private void transferDebitEntries(final DebitNote objectDebitNote) {
         final FinantialInstitution finantialInstitution = objectDebitNote.getDebtAccount().getFinantialInstitution();
-        final DebtAccount objectDebtAccount = objectDebitNote.getDebtAccount();
-        final DocumentNumberSeries documentNumberSeries =
-                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForDebitNote(), finantialInstitution).get();
+        final DocumentNumberSeries settlementNumberSeries =
+                DocumentNumberSeries.findUniqueDefault(FinantialDocumentType.findForSettlementNote(), finantialInstitution).get();
         final DateTime now = new DateTime();
 
         if (objectDebitNote.isPreparing()) {
-            final DebitNote newDebitNote = DebitNote.create(destinyDebtAccount, documentNumberSeries, new DateTime());
+            final DebitNote newDebitNote =
+                    DebitNote.create(destinyDebtAccount, objectDebitNote.getDocumentNumberSeries(), new DateTime());
 
             for (final FinantialDocumentEntry objectEntry : objectDebitNote.getFinantialDocumentEntriesSet()) {
                 if (!isPositive(((DebitEntry) objectEntry).getOpenAmount())) {
@@ -129,16 +139,16 @@ public class BalanceTransferService {
                 }
 
                 final DebitEntry debitEntry = (DebitEntry) objectEntry;
-                
+
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
                 }
-                
+
                 DebitEntry newDebitEntry = DebitEntry.create(Optional.of(newDebitNote), destinyDebtAccount,
                         debitEntry.getTreasuryEvent(), debitEntry.getVat(),
                         debitEntry.getAmount().add(debitEntry.getExemptedAmount()), debitEntry.getDueDate(),
-                        debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(), debitEntry.getQuantity(),
-                        debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
+                        debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(),
+                        debitEntry.getQuantity(), debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
 
                 if (debitEntry.getTreasuryExemption() != null) {
                     final TreasuryExemption treasuryExemption = debitEntry.getTreasuryExemption();
@@ -148,31 +158,31 @@ public class BalanceTransferService {
 
                 newDebitEntry.edit(newDebitEntry.getDescription(), newDebitEntry.getTreasuryEvent(), newDebitEntry.getDueDate(),
                         debitEntry.isAcademicalActBlockingSuspension(), debitEntry.isBlockAcademicActsOnDebt());
-                
+
             }
-            
+
             objectDebitNote.anullDebitNoteWithCreditNote(bundle("label.BalanceTransferService.annuled.reason"), false);
         } else if (objectDebitNote.isClosed()) {
             final DebitNote destinyDebitNote = DebitNote.create(destinyDebtAccount, objectDebitNote.getPayorDebtAccount(),
-                    documentNumberSeries, now, now.toLocalDate(), objectDebitNote.getUiDocumentNumber());
+                    objectDebitNote.getDocumentNumberSeries(), now, now.toLocalDate(), objectDebitNote.getUiDocumentNumber());
 
             final SettlementNote settlementNote =
-                    SettlementNote.create(objectDebtAccount, documentNumberSeries, now, now, null, null);
+                    SettlementNote.create(objectDebtAccount, settlementNumberSeries, now, now, null, null);
             for (final FinantialDocumentEntry objectEntry : objectDebitNote.getFinantialDocumentEntriesSet()) {
                 if (!isPositive(((DebitEntry) objectEntry).getOpenAmount())) {
                     continue;
                 }
 
                 final DebitEntry debitEntry = (DebitEntry) objectEntry;
-                
+
                 if (debitEntry.getTreasuryEvent() != null) {
                     debitEntry.annulOnEvent();
                 }
-                
+
                 final BigDecimal openAmountWithoutVat =
                         debitEntry.getOpenAmount().subtract(debitEntry.getOpenAmount().multiply(debitEntry.getVatRate()));
 
-                DebitEntry newDebitEntry = DebitEntry.create(Optional.of(destinyDebitNote), debitEntry.getDebtAccount(),
+                DebitEntry newDebitEntry = DebitEntry.create(Optional.of(destinyDebitNote), destinyDebtAccount,
                         debitEntry.getTreasuryEvent(), debitEntry.getVat(), openAmountWithoutVat, debitEntry.getDueDate(),
                         debitEntry.getPropertiesMap(), debitEntry.getProduct(), debitEntry.getDescription(),
                         debitEntry.getQuantity(), debitEntry.getInterestRate(), debitEntry.getEntryDateTime());
@@ -197,7 +207,7 @@ public class BalanceTransferService {
                     SettlementEntry.create(newCreditEntry, settlementNote, openAmount, newCreditEntry.getDescription(), now,
                             false);
                 } else {
-                    {
+                    if (isPositive(availableCreditAmount)) {
                         CreditEntry newCreditEntry =
                                 debitEntry.createCreditEntry(now, debitEntry.getDescription(), null, availableCreditAmount, null);
                         newCreditEntry.getFinantialDocument().closeDocument();
@@ -207,6 +217,7 @@ public class BalanceTransferService {
                         SettlementEntry.create(newCreditEntry, settlementNote, availableCreditAmount,
                                 newCreditEntry.getDescription(), now, false);
                     }
+
                     {
                         final Series regulationSeries = finantialInstitution.getRegulationSeries();
                         final DocumentNumberSeries creditNoteSeries =
@@ -219,7 +230,7 @@ public class BalanceTransferService {
                         final BigDecimal differenceAmountWithoutVat =
                                 differenceAmount.subtract(differenceAmount.multiply(transferVat.getTaxRate()));
 
-                        final CreditNote regulationCreditNote = CreditNote.create(destinyDebtAccount, creditNoteSeries, now, null,
+                        final CreditNote regulationCreditNote = CreditNote.create(objectDebtAccount, creditNoteSeries, now, null,
                                 objectDebitNote.getUiDocumentNumber());
                         CreditEntry regulationCreditEntry = CreditEntry.create(regulationCreditNote,
                                 balanceTransferProduct.getName().getContent(), balanceTransferProduct, transferVat,
@@ -229,6 +240,7 @@ public class BalanceTransferService {
                             regulationCreditNote.editPayorDebtAccount(objectDebitNote.getPayorDebtAccount());
                         }
 
+                        regulationCreditNote.closeDocument();
                         SettlementEntry.create(debitEntry, settlementNote, differenceAmount, debitEntry.getDescription(), now,
                                 false);
                         SettlementEntry.create(regulationCreditEntry, settlementNote, differenceAmount,
@@ -236,6 +248,8 @@ public class BalanceTransferService {
                     }
                 }
             }
+
+            settlementNote.closeDocument();
         }
     }
 }

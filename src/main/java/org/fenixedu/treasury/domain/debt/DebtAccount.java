@@ -98,7 +98,7 @@ public class DebtAccount extends DebtAccount_Base {
 
     @Atomic
     public void transferBalance(final DebtAccount destinyDebtAccount) {
-        (new BalanceTransferService()).transferBalance(this, destinyDebtAccount);
+        (new BalanceTransferService(this, destinyDebtAccount)).transferBalance();
     }
 
     // @formatter:off

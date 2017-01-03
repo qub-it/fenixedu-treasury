@@ -227,7 +227,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         final String fiscalCountry = !Strings.isNullOrEmpty(getFiscalCountry()) ? getFiscalCountry() : "";
         final String fiscalNumber = !Strings.isNullOrEmpty(getFiscalNumber()) ? getFiscalNumber() : "";
 
-        return fiscalCountry + ":" + fiscalNumber;
+        return (fiscalCountry + " " + fiscalNumber).trim();
     }
     
 }

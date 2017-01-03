@@ -408,11 +408,11 @@ public class DebitNoteController extends TreasuryBaseController {
             String documentObservations, Model model) {
         DebitNote note = getDebitNote(model);
         if (note.isPreparing()) {
-            note.edit(note.getPayorDebtAccount(), documentDate, documentDueDate, originDocumentNumber);
+            note.edit(documentDate, documentDueDate, originDocumentNumber);
         } else {
-            note.edit(note.getPayorDebtAccount(), note.getDocumentDate().toLocalDate(), note.getDocumentDueDate(),
-                    originDocumentNumber);
+            note.edit(note.getDocumentDate().toLocalDate(), note.getDocumentDueDate(), originDocumentNumber);
         }
+        
         note.setDocumentObservations(documentObservations);
     }
 

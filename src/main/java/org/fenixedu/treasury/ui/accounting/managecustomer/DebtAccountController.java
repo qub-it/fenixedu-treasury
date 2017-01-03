@@ -380,6 +380,7 @@ public class DebtAccountController extends TreasuryBaseController {
             debtAccount.transferBalance(activeDebtAccount.get());
             return redirect(READ_URL + debtAccount.getExternalId(), model, redirectAttributes);
         } catch (final Exception ex) {
+            ex.printStackTrace();
             addErrorMessage(ex.getLocalizedMessage(), model);
             return read(debtAccount, model, redirectAttributes);
         }

@@ -63,20 +63,13 @@ public abstract class Invoice extends Invoice_Base {
         if (debtAccount.getClosed()) {
             throw new TreasuryDomainException("error.Invoice.debtAccount.closed");
         }
+
         super.init(debtAccount, documentNumberSeries, documentDate);
     }
 
     protected void init(final DebtAccount debtAccount, final DebtAccount payorDebtAccount,
             final DocumentNumberSeries documentNumberSeries, final DateTime documentDate) {
-        super.init(debtAccount, documentNumberSeries, documentDate);
-
-        if (debtAccount.getClosed()) {
-            throw new TreasuryDomainException("error.Invoice.debtAccount.closed");
-        }
-
-        if (payorDebtAccount == null) {
-            throw new TreasuryDomainException("error.Invoice.payorDebtAccount.null");
-        }
+        this.init(debtAccount, documentNumberSeries, documentDate);
 
         setPayorDebtAccount(payorDebtAccount);
     }
