@@ -812,6 +812,7 @@ public class SettlementNoteController extends TreasuryBaseController {
 
             return null;
         } catch (final TreasuryDomainException | IOException e) {
+            e.printStackTrace();
             addErrorMessage(e.getLocalizedMessage(), model);
             return read(settlementNote, model);
         }

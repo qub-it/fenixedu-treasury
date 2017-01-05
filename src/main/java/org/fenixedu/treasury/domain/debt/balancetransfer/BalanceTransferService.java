@@ -98,13 +98,13 @@ public class BalanceTransferService {
         final DebitNote regulationDebitNote = DebitNote.create(objectDebtAccount, debitNoteSeries, now);
 
         DebitEntry regulationDebitEntry = DebitEntry.create(Optional.of(regulationDebitNote), objectDebtAccount, null,
-                transferVat, creditOpenAmount, now.toLocalDate(), null, balanceTransferProduct,
+                transferVat, creditOpenAmountWithoutVat, now.toLocalDate(), null, balanceTransferProduct,
                 balanceTransferProduct.getName().getContent(Constants.DEFAULT_LANGUAGE), BigDecimal.ONE, null, now);
 
         regulationDebitNote.closeDocument();
         final CreditNote regulationCreditNote =
                 CreditNote.create(destinyDebtAccount, creditNoteSeries, now, null, regulationDebitNote.getUiDocumentNumber());
-        CreditEntry.create(regulationCreditNote, balanceTransferProduct.getName().getContent(), balanceTransferProduct,
+        CreditEntry.create(regulationCreditNote, creditEntry.getDescription(), balanceTransferProduct,
                 transferVat, creditOpenAmountWithoutVat, now, null, BigDecimal.ONE);
 
         if (((CreditNote) creditEntry.getFinantialDocument()).isForPayorDebtAccount()) {
@@ -114,10 +114,13 @@ public class BalanceTransferService {
         final SettlementNote settlementNote =
                 SettlementNote.create(objectDebtAccount, settlementNoteSeries, now, now, null, null);
 
-        creditEntry.getFinantialDocument().closeDocument();
+        if(creditEntry.getFinantialDocument().isPreparing()) {
+            creditEntry.getFinantialDocument().closeDocument();
+        }
+        
         SettlementEntry.create(regulationDebitEntry, settlementNote, regulationDebitEntry.getOpenAmount(),
-                balanceTransferProduct.getName().getContent(), now, false);
-        SettlementEntry.create(creditEntry, settlementNote, creditOpenAmount, balanceTransferProduct.getName().getContent(), now,
+                regulationDebitEntry.getDescription(), now, false);
+        SettlementEntry.create(creditEntry, settlementNote, creditOpenAmount, creditEntry.getDescription(), now,
                 false);
 
         settlementNote.closeDocument();

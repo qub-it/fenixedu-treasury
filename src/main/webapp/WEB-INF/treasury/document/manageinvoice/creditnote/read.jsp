@@ -54,10 +54,10 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) creditNote.ge
   <% 
                 if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
 %>  
-<div class="modal fade" id="deleteModal">
+<div class="modal fade" id="anullModal">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="deleteForm" action="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/delete/${creditNote.externalId}" method="POST">
+            <form id="deleteForm" action="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/anull/${creditNote.externalId}" method="POST">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -68,7 +68,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) creditNote.ge
                 </div>
                 <div class="modal-body">
                     <p>
-                        <spring:message code="label.document.manageInvoice.readCreditNote.confirmDelete" />
+                        <spring:message code="label.document.manageInvoice.readCreditNote.confirmAnull" />
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -76,7 +76,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) creditNote.ge
                         <spring:message code="label.close" />
                     </button>
                     <button id="deleteButton" class="btn btn-danger" type="submit">
-                        <spring:message code="label.delete" />
+                        <spring:message code="label.annul" />
                     </button>
                 </div>
             </form>
@@ -233,12 +233,16 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                 href="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/update/${creditNote.externalId}"><spring:message code="label.event.update" /></a>
 		&nbsp;
 		</c:if>
+<% 
+if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
+%>  
         <c:if test="${creditNote.isPreparing()}">
             |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;
-            <a class="" href="#" data-toggle="modal" data-target="#deleteModal">
-            	<spring:message code="label.event.delete" />
+            <a class="" href="#" data-toggle="modal" data-target="#anullModal">
+            	<spring:message code="label.annul" />
             </a>
 		</c:if>
+<%}%>
 <%}%>
         <c:if test="${creditNote.documentSeriesNumberSet}">
 |

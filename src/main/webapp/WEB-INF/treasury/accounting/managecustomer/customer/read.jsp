@@ -183,8 +183,10 @@ ${portal.toolkit()}
 			                           <th scope="row" class="col-xs-4"><c:out value="${debtAccount.finantialInstitution.name}" /></th>
 			                           <td class="col-xs-2">
 			                           		<p><c:out value="${debtAccount.customer.uiFiscalNumber}" /></p>
+			                           		<c:if test="${debtAccount.customer.personCustomer}">
 			                           		<c:if test="${debtAccount.customer.fromPersonMerge}">
 				                           		<p>[<spring:message code="label.Customer.fromPersonMerge" />]</p>
+			                           		</c:if>
 			                           		</c:if>
 			                           </td>
 			                           <td >
@@ -220,10 +222,12 @@ ${portal.toolkit()}
 				                           		<p>
 					                           		<c:out value="${debtAccount.customer.uiFiscalNumber}" />
 				                           		</p>
+				                           		<c:if test="${debtAccount.customer.personCustomer}">
 				                           		<c:if test="${debtAccount.customer.fromPersonMerge}">
 				                           		<p>
 						                           		<em>[<spring:message code="label.Customer.fromPersonMerge" />]</em>
 				                           		</p>
+				                           		</c:if>
 				                           		</c:if>
 				                           </td>
 				                           <td>

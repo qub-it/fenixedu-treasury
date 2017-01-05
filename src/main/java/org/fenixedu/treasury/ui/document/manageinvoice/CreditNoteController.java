@@ -98,8 +98,8 @@ public class CreditNoteController extends TreasuryBaseController {
     }
 
     @Atomic
-    public void deleteCreditNote(CreditNote creditNote) {
-        creditNote.delete(true);
+    public void anullCreditNote(CreditNote creditNote) {
+        creditNote.anullDocument(Constants.bundle("Reason"));
     }
 
     private static final String _READ_URI = "/read/";
@@ -153,14 +153,14 @@ public class CreditNoteController extends TreasuryBaseController {
         return redirect(CreditNoteController.READ_URL + getCreditNote(model).getExternalId(), model, redirectAttributes);
     }
 
-    @RequestMapping(value = "/delete/{oid}", method = RequestMethod.POST)
-    public String delete(@PathVariable("oid") CreditNote creditNote, Model model, RedirectAttributes redirectAttributes) {
+    @RequestMapping(value = "/anull/{oid}", method = RequestMethod.POST)
+    public String anull(@PathVariable("oid") final CreditNote creditNote, Model model, RedirectAttributes redirectAttributes) {
         setCreditNote(creditNote, model);
         DebtAccount debtAccount = creditNote.getDebtAccount();
         try {
             assertUserIsAllowToModifyInvoices(creditNote.getDocumentNumberSeries().getSeries().getFinantialInstitution(), model);
 
-            deleteCreditNote(creditNote);
+            anullCreditNote(creditNote);
             addInfoMessage(Constants.bundle("label.success.delete"), model);
         } catch (TreasuryDomainException tde) {
             addErrorMessage(Constants.bundle("label.error.delete") + tde.getLocalizedMessage(), model);

@@ -185,6 +185,7 @@ ${portal.angularToolkit()}
             </div>
             </c:if>
             
+			<c:if test="${ not settlementNoteBean.reimbursementNote }">
             <div class="form-group row">
             	<div class="col-sm-2 control-label">
             		<spring:message code="label.SettlementNote.finantialTransactionReference" />
@@ -200,6 +201,7 @@ ${portal.angularToolkit()}
 	           		<input class="form-control" type="text" ng-model="object.finantialTransactionReference" />
             	</div>
             </div>
+            </c:if>
         </div>
     </div>
 

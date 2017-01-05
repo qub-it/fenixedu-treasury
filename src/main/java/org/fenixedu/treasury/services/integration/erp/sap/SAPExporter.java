@@ -135,7 +135,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
-    private static final DateTime ERP_INTEGRATION_START_DATE = new LocalDate(2016, 12, 24).toDateTimeAtStartOfDay();
+    private static final DateTime ERP_INTEGRATION_START_DATE = new LocalDate(2017, 1, 1).toDateTimeAtStartOfDay();
 
     private static final int MAX_REASON = 50;
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
