@@ -324,10 +324,12 @@ public class ERPCustomerFieldsBean {
                     districtSubdivision, fiscalCountry, fiscalNumber, name));
         }
 
+        /*
         if (!Strings.isNullOrEmpty(addressCountryCode) && !addressCountryCode.equals(fiscalCountry)) {
             errorMessages.add(Constants.bundle("error.ERPCustomerFieldsBean.fiscal.country.not.equals.to.address",
                     addressCountryCode, fiscalCountry, fiscalCountry, fiscalNumber, name));
         }
+        */
 
         return errorMessages.isEmpty();
     }
