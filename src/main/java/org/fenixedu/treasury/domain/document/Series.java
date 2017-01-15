@@ -39,6 +39,7 @@ import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.util.LocalizedStringUtil;
 import org.joda.time.DateTime;
 
@@ -176,6 +177,10 @@ public class Series extends Series_Base {
     
     public boolean isSelectable() {
         return super.getSelectable();
+    }
+    
+    public boolean isRegulationSeries() {
+        return getFinantialInstitution().getRegulationSeries() == this;
     }
 
     @Atomic

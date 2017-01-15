@@ -2,7 +2,6 @@ package org.fenixedu.treasury.services.integration.erp;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,7 +17,6 @@ import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.services.integration.erp.ERPExternalServiceImplementation.ReimbursementStateBean;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
-import org.fenixedu.treasury.util.Constants;
 
 import com.google.common.collect.Lists;
 
@@ -47,8 +45,8 @@ public class ERPExporterManager {
     };
 
     public static String saftEncoding(final FinantialInstitution finantialInstitution) {
-        final IERPExporter erpExporter = finantialInstitution
-                .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+        final IERPExporter erpExporter =
+                finantialInstitution.getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
 
         return erpExporter.saftEncoding();
     }
@@ -101,7 +99,6 @@ public class ERPExporterManager {
 
     public static void scheduleSingleDocument(final FinantialDocument finantialDocument) {
         if (finantialDocument.isCreditNote()) {
-            // With SAP Credit notes are exported with settlement notes
             return;
         }
 
@@ -121,6 +118,20 @@ public class ERPExporterManager {
             };
 
         }.start();
+    }
+
+    public static ERPExportOperation exportSingleDocument(final FinantialDocument finantialDocument) {
+        if (finantialDocument.isCreditNote()) {
+            throw new TreasuryDomainException("error.ERPExporterManager.scheduleSingleDocument.creditNote.disabled");
+        }
+
+        final FinantialInstitution finantialInstitution = finantialDocument.getDebtAccount().getFinantialInstitution();
+        final ERPConfiguration erpIntegrationConfiguration = finantialInstitution.getErpIntegrationConfiguration();
+
+        final List<FinantialDocument> documentsToExport = Collections.singletonList(finantialDocument);
+        final IERPExporter erpExporter = erpIntegrationConfiguration.getERPExternalServiceImplementation().getERPExporter();
+
+        return erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, documentsToExport);
     }
 
     public static void requestPendingDocumentStatus(FinantialInstitution finantialInstitution) {

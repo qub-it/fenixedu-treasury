@@ -135,7 +135,7 @@ import pt.ist.fenixframework.Atomic.TxMode;
 // ******************************************************************************************************************************
 public class SAPExporter implements IERPExporter {
 
-    private static final DateTime ERP_INTEGRATION_START_DATE = new LocalDate(2017, 1, 1).toDateTimeAtStartOfDay();
+    public static final DateTime ERP_INTEGRATION_START_DATE = new LocalDate(2017, 1, 1).toDateTimeAtStartOfDay();
 
     private static final int MAX_REASON = 50;
     private static final String MORADA_DESCONHECIDO = "Desconhecido";
@@ -403,13 +403,16 @@ public class SAPExporter implements IERPExporter {
         DatatypeFactory dataTypeFactory;
         try {
             dataTypeFactory = DatatypeFactory.newInstance();
-            DateTime documentDate = document.getDocumentDate();
+            final DateTime documentDate = document.getDocumentDate();
+            final DateTime paymentDate = document.getPaymentDate();
 
             // SystemEntryDate
             payment.setSystemEntryDate(convertToXMLDateTime(dataTypeFactory, documentDate));
 
             /* ANIL: 2015/10/20 converted from dateTime to Date */
-            payment.setTransactionDate(convertToXMLDate(dataTypeFactory, documentDate));
+
+            // TODO: For now fill with real payment date
+            payment.setTransactionDate(convertToXMLDate(dataTypeFactory, paymentDate));
 
             /* SAP: 2016/09/19 This element is required */
             payment.setPaymentType(SAFTPTPaymentType.RG);
@@ -432,18 +435,7 @@ public class SAPExporter implements IERPExporter {
             if (document.getReferencedCustomers().size() > 1) {
                 throw new TreasuryDomainException("error.SettlementNote.referencedCustomers.only.one.allowed");
             }
-            
-            final Customer payorCustomer = document.getReferencedCustomers().iterator().next();
-            if (payorCustomer != null && payorCustomer != document.getDebtAccount().getCustomer()) {
-                final ERPCustomerFieldsBean payorCustomerBean = ERPCustomerFieldsBean.fillFromCustomer(payorCustomer);
 
-                if (!baseCustomers.containsKey(payorCustomerBean.getCustomerId())) {
-                    baseCustomers.put(payorCustomerBean.getCustomerId(), payorCustomerBean);
-                }
-                
-                payment.setPayorCustomerID(payorCustomer.getCode());
-            }
-            
             // DocumentStatus
             /*
              * Deve ser preenchido com: ?N? ? Normal; Texto 1 ?T? ? Por conta de
@@ -488,7 +480,7 @@ public class SAPExporter implements IERPExporter {
                     method.setPaymentAmount(paymentEntry.getPayedAmount().setScale(2, RoundingMode.HALF_EVEN));
 
                     /* ANIL: 2015/10/20 converted from dateTime to Date */
-                    method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
+                    method.setPaymentDate(convertToXMLDate(dataTypeFactory, calculatePaymentDate(document)));
 
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(paymentEntry.getPaymentMethod()));
                     method.setPaymentMethodReference(
@@ -503,7 +495,7 @@ public class SAPExporter implements IERPExporter {
                     method.setPaymentAmount(reimbursmentEntry.getReimbursedAmount().setScale(2, RoundingMode.HALF_EVEN));
 
                     /* ANIL: 2015/10/20 converted from dateTime to Date */
-                    method.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
+                    method.setPaymentDate(convertToXMLDate(dataTypeFactory, calculatePaymentDate(document)));
 
                     method.setPaymentMechanism(convertToSAFTPaymentMechanism(reimbursmentEntry.getPaymentMethod()));
                     method.setPaymentMethodReference(
@@ -525,7 +517,7 @@ public class SAPExporter implements IERPExporter {
                 voidMethod.setPaymentAmount(BigDecimal.ZERO);
 
                 /* ANIL: 2015/10/20 converted from dateTime to Date */
-                voidMethod.setPaymentDate(convertToXMLDate(dataTypeFactory, document.getPaymentDate()));
+                voidMethod.setPaymentDate(convertToXMLDate(dataTypeFactory, calculatePaymentDate(document)));
 
                 voidMethod.setPaymentMechanism("OU");
                 voidMethod.setPaymentMethodReference("");
@@ -606,6 +598,24 @@ public class SAPExporter implements IERPExporter {
      * ******************************
      */
     // @formatter:on
+
+    private DateTime calculatePaymentDate(final SettlementNote document) {
+        DateTime result = document.getPaymentDate();
+
+        for (final SettlementEntry settlementEntry : document.getSettlemetEntriesSet()) {
+            final DateTime certificationDate =
+                    settlementEntry.getInvoiceEntry().getFinantialDocument().getErpCertificationDate().toDateTimeAtStartOfDay();
+            if (certificationDate == null) {
+                continue;
+            }
+
+            if (certificationDate.isAfter(result)) {
+                result = certificationDate;
+            }
+        }
+
+        return result;
+    }
 
     private WorkDocument convertToSAFTWorkDocument(final Invoice document, final Map<String, ERPCustomerFieldsBean> baseCustomers,
             final Map<String, org.fenixedu.treasury.generated.sources.saft.sap.Product> baseProducts) {
@@ -1424,7 +1434,7 @@ public class SAPExporter implements IERPExporter {
         DocumentsInformationInput input = new DocumentsInformationInput();
         if (operationFile.getSize() <= erpIntegrationConfiguration.getMaxSizeBytesToExportOnline()) {
             input.setData(operationFile.getContent());
-            DocumentsInformationOutput sendInfoOnlineResult = service.sendInfoOnline(input);
+            DocumentsInformationOutput sendInfoOnlineResult = service.sendInfoOnline(institution, input);
 
             logBean.appendIntegrationLog(
                     Constants.bundle("info.ERPExporter.sucess.sending.inforation.online", sendInfoOnlineResult.getRequestId()));
@@ -1450,6 +1460,9 @@ public class SAPExporter implements IERPExporter {
                                 Constants.bundle("info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
                         logBean.appendIntegrationLog(message);
                         document.clearDocumentToExport(message);
+
+                        // Fill information from ERP
+                        document.editERPCertificationData(new LocalDate(), status.getSapDocumentNumber());
                     } else {
                         success = false;
                         logBean.appendIntegrationLog(Constants.bundle("info.ERPExporter.error.integrating.document",

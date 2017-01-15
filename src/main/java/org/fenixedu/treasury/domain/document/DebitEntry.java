@@ -269,8 +269,8 @@ public class DebitEntry extends DebitEntry_Base {
         if (this.getEntryDateTime() != null && this.getDueDate().isBefore(this.getEntryDateTime().toLocalDate())) {
             throw new TreasuryDomainException("error.DebitEntry.dueDate.invalid");
         }
-        
-        if(Strings.isNullOrEmpty(getDescription())) {
+
+        if (Strings.isNullOrEmpty(getDescription())) {
             throw new TreasuryDomainException("error.DebitEntry.description.required");
         }
 
@@ -278,6 +278,10 @@ public class DebitEntry extends DebitEntry_Base {
         if (isPositive(getExemptedAmount()) && CreditEntry.findActive(getTreasuryEvent(), getProduct()).count() > 0) {
             throw new TreasuryDomainException(
                     "error.DebitEntry.exemption.cannot.be.on.debit.entry.and.with.credit.entry.at.same.time");
+        }
+
+        if (getTreasuryEvent() != null && getProduct().isTransferBalanceProduct()) {
+            throw new TreasuryDomainException("error.DebitEntry.transferBalanceProduct.cannot.be.associated.to.academic.event");
         }
     }
 
@@ -398,7 +402,7 @@ public class DebitEntry extends DebitEntry_Base {
                     treasuryExemption.getTreasuryExemptionType().getName().getContent());
 
             final CreditEntry creditEntryFromExemption =
-                    createCreditEntry(now, getDescription(), null, amountWithoutVat, treasuryExemption);
+                    createCreditEntry(now, getDescription(), null, amountWithoutVat, treasuryExemption, null);
 
             closeCreditEntryIfPossible(reason, now, creditEntryFromExemption);
 
@@ -421,7 +425,7 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public CreditEntry createCreditEntry(final DateTime documentDate, final String description, final String documentObservations,
-            final BigDecimal amountForCredit, final TreasuryExemption treasuryExemption) {
+            final BigDecimal amountForCredit, final TreasuryExemption treasuryExemption, CreditNote creditNote) {
         final DebitNote finantialDocument = (DebitNote) this.getFinantialDocument();
 
         if (finantialDocument == null) {
@@ -431,8 +435,10 @@ public class DebitEntry extends DebitEntry_Base {
         final DocumentNumberSeries documentNumberSeries = DocumentNumberSeries.find(FinantialDocumentType.findForCreditNote(),
                 finantialDocument.getDocumentNumberSeries().getSeries());
 
-        CreditNote creditNote = CreditNote.create(this.getDebtAccount(), documentNumberSeries, documentDate, finantialDocument,
+        if(creditNote == null) {
+            creditNote = CreditNote.create(this.getDebtAccount(), documentNumberSeries, documentDate, finantialDocument,
                 finantialDocument.getUiDocumentNumber());
+        }
 
         if (!Strings.isNullOrEmpty(documentObservations)) {
             creditNote.setDocumentObservations(documentObservations);

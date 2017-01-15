@@ -429,7 +429,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
             </div>
         </c:if>
         
-		<c:if test="${debitNote.isClosed() && not debitNote.exportedInLegacyERP && not debitNote.documentToExport}">
+		<c:if test="${debitNote.certifiedPrintedDocumentAvailable}">
 	       	&nbsp;|&nbsp;
 	        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
 	        <a href="${pageContext.request.contextPath}<%= DebitNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${debitNote.externalId}">
@@ -438,7 +438,6 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
 		</c:if>
     </div>
 </form>
-
 
 <c:if test="${not empty infoMessages}">
     <div class="alert alert-info" role="alert">
@@ -508,7 +507,7 @@ if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.get
                         <c:if test='${not debitNote.payorDebtAccount.equals(debitNote.debtAccount)}'>
                             <tr>
                                 <th scope="row" class="col-xs-3"><spring:message code="label.DebitNote.payorDebtAccount" /></th>
-                                <td><c:out value='${debitNote.payorDebtAccount.customer.businessIdentification} - ${debitNote.payorDebtAccount.customer.name}' /></td>
+                                <td><c:out value='${debitNote.payorDebtAccount.customer.uiFiscalNumber} - ${debitNote.payorDebtAccount.customer.name}' /></td>
                             </tr>
                         </c:if>
                     </c:if>

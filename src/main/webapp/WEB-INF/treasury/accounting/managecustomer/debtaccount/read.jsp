@@ -259,9 +259,9 @@ ${portal.angularToolkit()}
 			
 			<% if(TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) { %>
             <li>
-            	<a href="${pageContext.request.contextPath}/academictreasury/erptuitioninfo/create/${debtAccount.customer.externalId}">
+            	<a href="${pageContext.request.contextPath}/academictreasury/erptuitioninfo/search?customerId=${debtAccount.customer.externalId}">
             		<span class="glyphicon glyphicon-upload" aria-hidden="true" target="_blank"></span>&nbsp;
-            		<spring:message code="label.ERPTuitionInfo.create" />
+            		<spring:message code="label.ERPTuitionInfo.title" />
                	</a>
             </li>
 			<% } %>

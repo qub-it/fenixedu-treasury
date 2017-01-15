@@ -254,6 +254,8 @@ if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+
+<%-- 
 					<c:if test="${creditNote.documentToExport}">
 					<c:if test="${validAddress}">
                     <li>
@@ -264,6 +266,7 @@ if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
                     </li>
 					</c:if>
                     </c:if>
+--%>
 
                     <li><a class="" href="${pageContext.request.contextPath}/treasury/document/manageinvoice/creditnote/read/${creditNote.externalId}/exportintegrationfile">
                             <span class="glyphicon glyphicon-export" aria-hidden="true"></span> <spring:message code="label.event.document.manageInvoice.exportIntegrationFile" />
@@ -295,15 +298,15 @@ if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
             <spring:message code="label.print" />
         </a>
         --%>
-        
-	<c:if test="${creditNote.isClosed() && not creditNote.exportedInLegacyERP && not creditNote.documentToExport}">
+
+	<c:if test="${creditNote.certifiedPrintedDocumentAvailable}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= CreditNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${creditNote.externalId}">
         	<spring:message code="label.FinantialDocument.download.credit.note" />
         </a>
 	</c:if>
-        
+	
     </div>
 </form>
 
@@ -380,7 +383,7 @@ if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
                         <c:if test='${not creditNote.payorDebtAccount.equals(creditNote.debtAccount)}'>
                             <tr>
                                 <th scope="row" class="col-xs-3"><spring:message code="label.CreditNote.payorDebtAccount" /></th>
-                                <td><c:out value='${creditNote.payorDebtAccount.customer.businessIdentification} - ${creditNote.payorDebtAccount.customer.name}' /></td>
+                                <td><c:out value='${creditNote.payorDebtAccount.customer.uiFiscalNumber} - ${creditNote.payorDebtAccount.customer.name}' /></td>
                             </tr>
                         </c:if>
                     </c:if>

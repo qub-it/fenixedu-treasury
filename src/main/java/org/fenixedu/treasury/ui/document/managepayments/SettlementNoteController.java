@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,7 +48,6 @@ import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
-import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.document.PaymentEntry;
@@ -732,7 +729,7 @@ public class SettlementNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/read/{oid}/exportintegrationonline")
-    public String processReadToExportIntegrationOnline(@PathVariable("oid") SettlementNote settlementNote, Model model,
+    public String processReadToExportIntegrationOnline(@PathVariable("oid") final SettlementNote settlementNote, Model model,
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsFrontOfficeMember(settlementNote.getDebtAccount().getFinantialInstitution(), model);
@@ -743,20 +740,14 @@ public class SettlementNoteController extends TreasuryBaseController {
                 //Force a check status first of the document 
                 erpExporter.checkIntegrationDocumentStatus(settlementNote);
             } catch (Exception ex) {
-
             }
 
-            List<FinantialDocument> documentsToExport = Collections.singletonList(settlementNote);
+            final ERPExportOperation output = ERPExporterManager.exportSingleDocument(settlementNote);
+            addInfoMessage(Constants.bundle("label.integration.erp.exportoperation.success"), model);
 
-            final IERPExporter erpExporter = settlementNote.getDebtAccount().getFinantialInstitution()
-                    .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
-
-            ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
-                    settlementNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
+            addErrorMessage(Constants.bundle("label.integration.erp.exportoperation.error")
                     + ex.getLocalizedMessage(), model);
         }
         return read(settlementNote, model);
@@ -811,7 +802,7 @@ public class SettlementNoteController extends TreasuryBaseController {
             response.getOutputStream().write(contents);
 
             return null;
-        } catch (final TreasuryDomainException | IOException e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             addErrorMessage(e.getLocalizedMessage(), model);
             return read(settlementNote, model);

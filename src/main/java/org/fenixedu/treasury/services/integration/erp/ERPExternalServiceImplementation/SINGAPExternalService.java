@@ -8,6 +8,7 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.generated.sources.saft.singap.siag.AuditFile;
@@ -54,7 +55,8 @@ public class SINGAPExternalService extends BennuWebServiceClient<ServiceSoap> im
     }
 
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstutition,
+            DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         output.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         final ServiceSoap client = getClient();

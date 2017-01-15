@@ -327,7 +327,7 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         </div>
     </c:if>
     
-	<c:if test="${settlementNote.isClosed() && not settlementNote.exportedInLegacyERP && not settlementNote.documentToExport}">
+	<c:if test="${settlementNote.certifiedPrintedDocumentAvailable}">
        	&nbsp;|&nbsp;
         <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
         <a href="${pageContext.request.contextPath}<%= SettlementNoteController.DOWNLOAD_CERTIFIED_DOCUMENT_PRINT_URL %>/${settlementNote.externalId}">
@@ -622,7 +622,9 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
             <datatables:columnHead>
                 <spring:message code="label.InvoiceEntry.document" />
             </datatables:columnHead>
-           	<c:out value="${advancedPaymentEntry.finantialDocument.uiDocumentNumber}" />
+			<a href="${pageContext.request.contextPath}<%= CreditNoteController.READ_URL %>/${settlementNote.advancedPaymentCreditNote.externalId}">
+				<c:out value="${settlementNote.advancedPaymentCreditNote.uiDocumentNumber}" />
+			</a>
         </datatables:column>
         <datatables:column>
             <datatables:columnHead>

@@ -30,7 +30,7 @@ public class SAPExporterUtils {
     public static BigDecimal payedAmountAtDate(final InvoiceEntry invoiceEntry, final DateTime when) {
         BigDecimal amount = BigDecimal.ZERO;
         for (final SettlementEntry entry : invoiceEntry.getSettlementEntriesSet()) {
-            if(entry.getEntryDateTime().isAfter(when)) {
+            if(entry.getVersioningCreationDate().isAfter(when)) {
                 continue;
             }
             
@@ -54,6 +54,10 @@ public class SAPExporterUtils {
     public static BigDecimal netAmountAtDate(final Invoice invoice, final DateTime when) {
         BigDecimal amount = BigDecimal.ZERO;
         for (FinantialDocumentEntry entry : invoice.getFinantialDocumentEntriesSet()) {
+            if(!Constants.isPositive(entry.getTotalAmount())) {
+                continue;
+            }
+            
             BigDecimal entryAmountAtDate = openAmountAtDate((InvoiceEntry) entry, when);
             entryAmountAtDate = divide(entry.getNetAmount().multiply(entryAmountAtDate), entry.getTotalAmount());
             

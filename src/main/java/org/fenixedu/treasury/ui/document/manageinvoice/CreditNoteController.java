@@ -26,10 +26,7 @@
  */
 package org.fenixedu.treasury.ui.document.manageinvoice;
 
-import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,7 +44,6 @@ import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
-import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -422,7 +418,7 @@ public class CreditNoteController extends TreasuryBaseController {
                     saftEncoding);
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
             response.getOutputStream().write(output.getBytes(saftEncoding));
-            
+
             return null;
         } catch (Exception ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
@@ -443,20 +439,16 @@ public class CreditNoteController extends TreasuryBaseController {
 
                 erpExporter.checkIntegrationDocumentStatus(creditNote);
             } catch (Exception ex) {
-
             }
 
-            final List<FinantialDocument> documentsToExport = Collections.singletonList(creditNote);
-            final IERPExporter erpExporter = creditNote.getDebtAccount().getFinantialInstitution()
-                    .getErpIntegrationConfiguration().getERPExternalServiceImplementation().getERPExporter();
+            final ERPExportOperation output = ERPExporterManager.exportSingleDocument(creditNote);
 
-            ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
-                    creditNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
             addInfoMessage(Constants.bundle("label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
             addErrorMessage(Constants.bundle("label.integration.erp.exportoperation.error") + ex.getLocalizedMessage(), model);
         }
+
         return read(creditNote, model);
     }
 
@@ -509,7 +501,7 @@ public class CreditNoteController extends TreasuryBaseController {
             response.getOutputStream().write(contents);
 
             return null;
-        } catch (final TreasuryDomainException | IOException e) {
+        } catch (final Exception e) {
             addErrorMessage(e.getLocalizedMessage(), model);
             return read(creditNote, model);
         }

@@ -7,6 +7,7 @@ import java.util.function.UnaryOperator;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
@@ -47,7 +48,8 @@ public class SIAGExternalService extends BennuWebServiceClient<GestaoAcademicaSe
     }
 
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         org.fenixedu.treasury.services.integration.erp.siag.DocumentsInformationInput siagInput =
                 new org.fenixedu.treasury.services.integration.erp.siag.DocumentsInformationInput();

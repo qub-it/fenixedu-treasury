@@ -8,7 +8,9 @@ import java.util.Optional;
 
 import javax.xml.ws.BindingProvider;
 
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.CreditNote;
+import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStatusType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -43,8 +45,11 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
 
 public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIENTESBLK> implements IERPExternalService {
 
+    private static final String S_KEY = "S";
+
     @Override
-    public DocumentsInformationOutput sendInfoOnline(DocumentsInformationInput documentsInformation) {
+    public DocumentsInformationOutput sendInfoOnline(final FinantialInstitution finantialInstitution,
+            DocumentsInformationInput documentsInformation) {
         DocumentsInformationOutput output = new DocumentsInformationOutput();
         output.setDocumentStatus(new ArrayList<DocumentStatusWS>());
         final ZULWSFATURACAOCLIENTESBLK client = getClient();
@@ -53,8 +58,8 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         //Set Timeout for the client
         Map<String, Object> requestContext = ((BindingProvider) client).getRequestContext();
-        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
-        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
+        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 15000); // Timeout in millis
+        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 2000); // Timeout in millis
 
         ZulwsfaturacaoClientesIn auditFile = new ZulwsfaturacaoClientesIn();
         auditFile.setFinantialInstitution(documentsInformation.getFinantialInstitution());
@@ -63,13 +68,21 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         ZulwsfaturacaoClientesOut zulwsfaturacaoClientesOut = client.zulfmwsFaturacaoClientes(auditFile);
 
         output.setRequestId(zulwsfaturacaoClientesOut.getRequestId());
+
+        boolean hasSettlementFailed = hasSettlementFailed(finantialInstitution, zulwsfaturacaoClientesOut);
+        boolean isSomeDocAssociatedWithReimbursementFailed =
+                isSomeDocAssociatedWithReimbursementFailed(finantialInstitution, zulwsfaturacaoClientesOut);
+
         for (ZulwsdocumentStatusWs1 item : zulwsfaturacaoClientesOut.getDocumentStatus().getItem()) {
+            final DocumentStatusWrapper itemWrapper = new DocumentStatusWrapper(finantialInstitution, item);
+
             DocumentStatusWS status = new DocumentStatusWS();
-            status.setDocumentNumber(item.getDocumentNumber());
+            status.setDocumentNumber(itemWrapper.getDocumentNumber());
             status.setErrorDescription(
-                    String.format("[STATUS: %s] - %s", item.getIntegrationStatus(), item.getErrorDescription()));
+                    String.format("[STATUS: %s] - %s", itemWrapper.getIntegrationStatus(), itemWrapper.getErrorDescription()));
             status.setIntegrationStatus(
-                    convertToStatusType(item.getIntegrationStatus(), item.getDocumentNumber(), item.getSapDocumentNumber()));
+                    convertToStatusType(itemWrapper, hasSettlementFailed, isSomeDocAssociatedWithReimbursementFailed));
+
             output.getDocumentStatus().add(status);
         }
 
@@ -88,12 +101,44 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
         return output;
     }
 
-    private StatusType convertToStatusType(final String status, String documentNumber, final String sapDocumentNumber) {
-        if (documentNumber.startsWith("NR INT")) {
-            return "S".equals(status) ? StatusType.SUCCESS : StatusType.ERROR;
+    private boolean isSomeDocAssociatedWithReimbursementFailed(final FinantialInstitution finantialInstitution,
+            ZulwsfaturacaoClientesOut zulwsfaturacaoClientesOut) {
+        boolean isSomeDocAssociatedWithReimbursementFailed = false;
+        {
+            for (ZulwsdocumentStatusWs1 item : zulwsfaturacaoClientesOut.getDocumentStatus().getItem()) {
+                final DocumentStatusWrapper itemWrapper = new DocumentStatusWrapper(finantialInstitution, item);
+
+                if (!itemWrapper.isSettlementNote()) {
+                    isSomeDocAssociatedWithReimbursementFailed |= itemWrapper.integrationStatus() != StatusType.SUCCESS;
+                }
+            }
+        }
+        return isSomeDocAssociatedWithReimbursementFailed;
+    }
+
+    private boolean hasSettlementFailed(final FinantialInstitution finantialInstitution,
+            ZulwsfaturacaoClientesOut zulwsfaturacaoClientesOut) {
+        boolean hasSettlementFailed = false;
+        for (ZulwsdocumentStatusWs1 item : zulwsfaturacaoClientesOut.getDocumentStatus().getItem()) {
+            final DocumentStatusWrapper itemWrapper = new DocumentStatusWrapper(finantialInstitution, item);
+
+            if (itemWrapper.isSettlementNote()) {
+                hasSettlementFailed |= itemWrapper.integrationStatus() != StatusType.SUCCESS;
+            }
+        }
+        return hasSettlementFailed;
+    }
+
+    private StatusType convertToStatusType(final DocumentStatusWrapper itemWrapper, final boolean hasSettlementFailed,
+            final boolean isSomeDocAssociatedWithReimbursementFailed) {
+        final String status = itemWrapper.getIntegrationStatus();
+        final String sapDocumentNumber = itemWrapper.getSapDocumentNumber();
+
+        if (itemWrapper.isReimbursement()) {
+            return !isSomeDocAssociatedWithReimbursementFailed && S_KEY.equals(status) ? StatusType.SUCCESS : StatusType.ERROR;
         }
 
-        if (!Strings.isNullOrEmpty(sapDocumentNumber) && "S".equals(status)) {
+        if (!Strings.isNullOrEmpty(sapDocumentNumber) && S_KEY.equals(status) && !hasSettlementFailed) {
             return StatusType.SUCCESS;
         }
 
@@ -118,8 +163,8 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         //Set Timeout for the client
         Map<String, Object> requestContext = ((BindingProvider) client).getRequestContext();
-        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
-        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
+        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 15000); // Timeout in millis
+        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 2000); // Timeout in millis
 
         ZulwsDocumentosInput input = new ZulwsDocumentosInput();
 
@@ -129,8 +174,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         try {
             final ZulwsDocumentosOutput zulwsDocumentos = client.zulwsDocumentos(input);
-            final StatusType status =
-                    convertToStatusType(zulwsDocumentos.getStatus(), finantialDocumentNumber, finantialDocumentNumber);
+            final StatusType status = S_KEY.equals(zulwsDocumentos.getStatus()) ? StatusType.SUCCESS : StatusType.ERROR;
 
             if (status != StatusType.SUCCESS) {
                 throw new TreasuryDomainException(
@@ -157,8 +201,8 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
 
         //Set Timeout for the client
         Map<String, Object> requestContext = ((BindingProvider) client).getRequestContext();
-        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 0); // Timeout in millis
-        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 0); // Timeout in millis
+        requestContext.put(BindingProviderProperties.REQUEST_TIMEOUT, 15000); // Timeout in millis
+        requestContext.put(BindingProviderProperties.CONNECT_TIMEOUT, 2000); // Timeout in millis
 
         final CreditNote creditNote =
                 (CreditNote) reimbursementNote.getSettlemetEntries().findFirst().get().getInvoiceEntry().getFinantialDocument();
@@ -216,6 +260,59 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
     protected BindingProvider getService() {
         BindingProvider prov = (BindingProvider) new ZULWSFATURACAOCLIENTESBLK_Service().getZULWSFATURACAOCLIENTESBLK();
         return prov;
+    }
+
+    private class DocumentStatusWrapper {
+        private FinantialInstitution finantialInstitution;
+        private ZulwsdocumentStatusWs1 itemStatus;
+
+        private DocumentStatusWrapper(final FinantialInstitution finantialInstitution, ZulwsdocumentStatusWs1 itemStatus) {
+            this.finantialInstitution = finantialInstitution;
+            this.itemStatus = itemStatus;
+        }
+
+        private String getIntegrationStatus() {
+            return this.itemStatus.getIntegrationStatus();
+        }
+
+        private String getErrorDescription() {
+            return this.itemStatus.getErrorDescription();
+        }
+
+        private String getDocumentNumber() {
+            return this.itemStatus.getDocumentNumber();
+        }
+
+        private String getSapDocumentNumber() {
+            return this.itemStatus.getSapDocumentNumber();
+        }
+
+        private boolean isSettlementNote() {
+            final FinantialDocument fd =
+                    FinantialDocument.findByUiDocumentNumber(finantialInstitution, this.itemStatus.getDocumentNumber());
+
+            if (fd == null) {
+                return false;
+            }
+
+            return fd.isSettlementNote();
+        }
+
+        private boolean isReimbursement() {
+            final FinantialDocument fd =
+                    FinantialDocument.findByUiDocumentNumber(finantialInstitution, this.itemStatus.getDocumentNumber());
+
+            if (fd == null) {
+                return false;
+            }
+
+            return fd.isSettlementNote() && ((SettlementNote) fd).isReimbursement();
+        }
+
+        private StatusType integrationStatus() {
+            return convertToStatusType(this, false, false);
+        }
+
     }
 
 }

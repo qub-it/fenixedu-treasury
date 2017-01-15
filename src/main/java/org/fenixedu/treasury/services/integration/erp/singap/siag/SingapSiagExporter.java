@@ -1317,7 +1317,7 @@ public class SingapSiagExporter implements IERPExporter {
         DocumentsInformationInput input = new DocumentsInformationInput();
         if (operationFile.getSize() <= erpIntegrationConfiguration.getMaxSizeBytesToExportOnline()) {
             input.setData(operationFile.getContent());
-            DocumentsInformationOutput sendInfoOnlineResult = service.sendInfoOnline(input);
+            DocumentsInformationOutput sendInfoOnlineResult = service.sendInfoOnline(institution, input);
             logBean.appendIntegrationLog(
                     Constants.bundle("info.ERPExporter.sucess.sending.inforation.online", sendInfoOnlineResult.getRequestId()));
 

@@ -27,6 +27,7 @@
  */
 package org.fenixedu.treasury.domain;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
@@ -59,8 +60,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
             return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
         }
     };
-    
-    
+
     protected Customer() {
         super();
         setBennu(Bennu.getInstance());
@@ -103,6 +103,8 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract String getPhoneNumber();
 
+    public abstract BigDecimal getGlobalBalance();
+
     public boolean isDeletable() {
         return false;
     }
@@ -116,7 +118,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     }
 
     public abstract boolean isActive();
-    
+
     public abstract Customer getActiveCustomer();
 
     @Atomic
@@ -155,6 +157,19 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public static Stream<? extends Customer> findByCode(final java.lang.String code) {
         return findAll().filter(i -> code.equalsIgnoreCase(i.getCode()));
+    }
+
+    public static Stream<? extends Customer> findByFiscalInformation(final String fiscalCountryCode, final String fiscalNumber) {
+        if (Strings.isNullOrEmpty(fiscalCountryCode)) {
+            throw new TreasuryDomainException("error.Customer.findByFiscalCountryAndNumber.fiscalCountryCode.required");
+        }
+
+        if (Strings.isNullOrEmpty(fiscalNumber)) {
+            throw new TreasuryDomainException("error.Customer.findByFiscalCountryAndNumber.fiscalNumber.required");
+        }
+
+        return findAll().filter(c -> lowerCase(c.getFiscalCountry()).equals(lowerCase(fiscalCountryCode))
+                && lowerCase(c.getFiscalNumber()).equals(lowerCase(fiscalNumber)));
     }
 
     public boolean matchesMultiFilter(String searchText) {
@@ -220,14 +235,24 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     }
 
     public abstract Set<? extends TreasuryEvent> getTreasuryEventsSet();
+
     public abstract boolean isUiOtherRelatedCustomerActive();
+
     public abstract String uiRedirectToActiveCustomer(final String url);
-    
+
     public String getUiFiscalNumber() {
         final String fiscalCountry = !Strings.isNullOrEmpty(getFiscalCountry()) ? getFiscalCountry() : "";
         final String fiscalNumber = !Strings.isNullOrEmpty(getFiscalNumber()) ? getFiscalNumber() : "";
 
         return (fiscalCountry + " " + fiscalNumber).trim();
     }
-    
+
+    protected static String lowerCase(final String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.toLowerCase();
+    }
+
 }

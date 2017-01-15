@@ -75,6 +75,11 @@ public class CreditEntry extends CreditEntry_Base {
         recalculateAmountValues();
 
         checkRules();
+        
+        // Ensure this credit entry is only one in credit note
+        if (getFinantialDocument().getFinantialDocumentEntriesSet().size() != 1) {
+            throw new TreasuryDomainException("error.CreditEntry.finantialDocument.with.unexpected.entries");
+        }
     }
 
     @Override
@@ -107,12 +112,7 @@ public class CreditEntry extends CreditEntry_Base {
             }
         }
 
-        // Ensure this credit entry is only one in credit note
-        if (getFinantialDocument().getFinantialDocumentEntriesSet().size() != 1) {
-            throw new TreasuryDomainException("error.CreditEntry.finantialDocument.with.unexpected.entries");
-        }
-        
-        if(Strings.isNullOrEmpty(getDescription())) {
+        if (Strings.isNullOrEmpty(getDescription())) {
             throw new TreasuryDomainException("error.CreditEntry.description.required");
         }
     }
@@ -199,8 +199,8 @@ public class CreditEntry extends CreditEntry_Base {
         if (!Constants.isLessThan(remainingAmount, getOpenAmount())) {
             throw new TreasuryDomainException("error.CreditEntry.splitCreditEntry.remainingAmount.less.than.open.amount");
         }
-        
-        if(!getFinantialDocument().isPreparing()) {
+
+        if (!getFinantialDocument().isPreparing()) {
             throw new TreasuryDomainException("error.CreditEntry.splitCreditEntry.finantialDocument.not.preparing");
         }
 
@@ -223,7 +223,7 @@ public class CreditEntry extends CreditEntry_Base {
         final CreditEntry newCreditEntry = CreditEntry.create(newCreditNote, getDescription(), getProduct(), getVat(),
                 remainingAmountWithoutVatDividedByQuantity, getEntryDateTime(), getDebitEntry(), BigDecimal.ONE);
         newCreditEntry.setFromExemption(isFromExemption());
-        
+
         return newCreditEntry;
     }
 

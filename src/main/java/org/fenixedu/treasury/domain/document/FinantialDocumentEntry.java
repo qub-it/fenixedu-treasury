@@ -79,7 +79,7 @@ public abstract class FinantialDocumentEntry extends FinantialDocumentEntry_Base
             throw new TreasuryDomainException("error.FinantialDocumentEntry.amount.required");
         }
 
-        if (getAmount().compareTo(BigDecimal.ZERO) < 0) {
+        if (!Constants.isPositive(getAmount())) {
             throw new TreasuryDomainException("error.FinantialDocumentEntry.amount.less.than.zero");
         }
     }

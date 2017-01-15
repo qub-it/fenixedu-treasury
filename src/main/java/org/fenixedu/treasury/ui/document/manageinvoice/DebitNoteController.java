@@ -27,12 +27,10 @@
 package org.fenixedu.treasury.ui.document.manageinvoice;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +47,6 @@ import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DebitNote;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.ERPCustomerFieldsBean;
-import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.FinantialDocumentStateType;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -412,7 +409,7 @@ public class DebitNoteController extends TreasuryBaseController {
         } else {
             note.edit(note.getDocumentDate().toLocalDate(), note.getDocumentDueDate(), originDocumentNumber);
         }
-        
+
         note.setDocumentObservations(documentObservations);
     }
 
@@ -633,20 +630,13 @@ public class DebitNoteController extends TreasuryBaseController {
                 //Force a check status first of the document 
                 erpExporter.checkIntegrationDocumentStatus(debitNote);
             } catch (Exception ex) {
-
             }
 
-            List<FinantialDocument> documentsToExport = Collections.singletonList(debitNote);
-            final IERPExporter erpExporter = debitNote.getDebtAccount().getFinantialInstitution().getErpIntegrationConfiguration()
-                    .getERPExternalServiceImplementation().getERPExporter();
-
-            ERPExportOperation output = erpExporter.exportFinantialDocumentToIntegration(
-                    debitNote.getDebtAccount().getFinantialInstitution(), documentsToExport);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
+            final ERPExportOperation output = ERPExporterManager.exportSingleDocument(debitNote);
+            addInfoMessage(Constants.bundle("label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
-                    + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.bundle("label.integration.erp.exportoperation.error") + ex.getLocalizedMessage(), model);
         }
         setDebitNote(debitNote, model);
         return read(debitNote, model, redirectAttributes);
@@ -751,7 +741,7 @@ public class DebitNoteController extends TreasuryBaseController {
             response.getOutputStream().write(contents);
 
             return null;
-        } catch (final TreasuryDomainException | IOException e) {
+        } catch (final Exception e) {
             addErrorMessage(e.getLocalizedMessage(), model);
             return read(debitNote, model, redirectAttributes);
         }

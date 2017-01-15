@@ -39,6 +39,7 @@ import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.domain.tariff.FixedTariff;
 import org.fenixedu.treasury.domain.tariff.Tariff;
 import org.fenixedu.treasury.util.Constants;
@@ -149,6 +150,10 @@ public class Product extends Product_Base {
 //        }
         return getInvoiceEntriesSet().isEmpty() && getTreasuryExemptionSet().isEmpty() && getTreasuryEventsSet().isEmpty()
                 && getAdvancePaymentTreasurySettings() == null && getTreasurySettings() == null;
+    }
+    
+    public boolean isTransferBalanceProduct() {
+        return this == TreasurySettings.getInstance().getTransferBalanceProduct();
     }
 
     @Atomic

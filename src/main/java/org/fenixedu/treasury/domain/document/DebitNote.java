@@ -30,6 +30,7 @@ package org.fenixedu.treasury.domain.document;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,16 +38,26 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.security.Authenticate;
+import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.Product;
+import org.fenixedu.treasury.domain.Vat;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
+import org.fenixedu.treasury.domain.event.TreasuryEvent;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
 import org.fenixedu.treasury.domain.paymentcodes.MultipleEntriesPaymentCode;
+import org.fenixedu.treasury.domain.settings.TreasurySettings;
+import org.fenixedu.treasury.domain.tariff.InterestRate;
 import org.fenixedu.treasury.dto.InterestRateBean;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+
 import pt.ist.fenixframework.Atomic;
+import static org.fenixedu.treasury.util.Constants.isPositive;
 
 public class DebitNote extends DebitNote_Base {
 
@@ -165,11 +176,11 @@ public class DebitNote extends DebitNote_Base {
     @Atomic
     public static DebitNote create(final DebtAccount debtAccount, final DebtAccount payorDebtAccount,
             final DocumentNumberSeries documentNumberSeries, final DateTime documentDate, final LocalDate documentDueDate,
-            final String originaNumber) {
+            final String originNumber) {
 
         DebitNote note = new DebitNote(debtAccount, payorDebtAccount, documentNumberSeries, documentDate);
         note.setFinantialDocumentType(FinantialDocumentType.findForDebitNote());
-        note.setOriginDocumentNumber(originaNumber);
+        note.setOriginDocumentNumber(originNumber);
         note.setDocumentDueDate(documentDueDate);
         note.checkRules();
 
@@ -283,7 +294,7 @@ public class DebitNote extends DebitNote_Base {
             }
 
             for (DebitEntry debitEntry : this.getDebitEntriesSet()) {
-                if (Constants.isPositive(debitEntry.getExemptedAmount())) {
+                if (isPositive(debitEntry.getExemptedAmount())) {
                     throw new TreasuryDomainException("error.DebitNote.annul.not.possible.remove.exemption.on.debit.entry",
                             debitEntry.getDescription());
                 }
@@ -326,7 +337,7 @@ public class DebitNote extends DebitNote_Base {
             final BigDecimal amountForCredit =
                     entry.getCurrency().getValueWithScale(Constants.divide(entry.getAvailableAmountForCredit(),
                             BigDecimal.ONE.add(Constants.divide(entry.getVatRate(), BigDecimal.valueOf(100)))));
-            entry.createCreditEntry(documentDate, entry.getDescription(), documentObservations, amountForCredit, null);
+            entry.createCreditEntry(documentDate, entry.getDescription(), documentObservations, amountForCredit, null, null);
         }
 
         if (!createForInterestRateEntries) {
@@ -339,7 +350,7 @@ public class DebitNote extends DebitNote_Base {
                         .getValueWithScale(Constants.divide(interestEntry.getAvailableAmountForCredit(),
                                 BigDecimal.ONE.add(Constants.divide(entry.getVatRate(), BigDecimal.valueOf(100)))));
                 interestEntry.createCreditEntry(documentDate, entry.getDescription(), documentObservations, amountForCredit,
-                        null);
+                        null, null);
             }
         }
     }
@@ -366,7 +377,15 @@ public class DebitNote extends DebitNote_Base {
                 Constants.bundle("label.DebitNote.updatePayorDebtAccount.anull.reason"));
 
         updatingDebitNote.setPayorDebtAccount(payorDebtAccount);
-        
+
+        for (DebitEntry debitEntry : this.getDebitEntriesSet()) {
+            for (final MultipleEntriesPaymentCode paymentCode : debitEntry.getPaymentCodesSet()) {
+                if (paymentCode.getPaymentReferenceCode().isNew() || paymentCode.getPaymentReferenceCode().isUsed()) {
+                    paymentCode.getPaymentReferenceCode().anullPaymentReferenceCode();
+                }
+            }
+        }
+
         return updatingDebitNote;
     }
 
@@ -419,6 +438,29 @@ public class DebitNote extends DebitNote_Base {
             throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE, "error.DebitNote.no.interest.to.generate"));
         }
         return interestDebitNote;
+    }
+
+    public static DebitEntry createBalanceTransferDebit(final DebtAccount debtAccount, final DateTime entryDate,
+            final LocalDate dueDate, final String originNumber, final BigDecimal amountWithVat,
+            final DebtAccount payorDebtAccount, String entryDescription) {
+        final FinantialInstitution finantialInstitution = debtAccount.getFinantialInstitution();
+        final Series regulationSeries = finantialInstitution.getRegulationSeries();
+        final DocumentNumberSeries numberSeries =
+                DocumentNumberSeries.find(FinantialDocumentType.findForDebitNote(), regulationSeries);
+        final Product balanceTransferProduct = TreasurySettings.getInstance().getTransferBalanceProduct();
+        final Vat transferVat = Vat.findActiveUnique(balanceTransferProduct.getVatType(), finantialInstitution, entryDate).get();
+
+        if(Strings.isNullOrEmpty(entryDescription)) {
+            entryDescription = balanceTransferProduct.getName().getContent();
+        }
+        
+        final DebitNote debitNote = DebitNote.create(debtAccount, payorDebtAccount, numberSeries, new DateTime(),
+                new DateTime().toLocalDate(), originNumber);
+
+        final BigDecimal amountWithoutVat = Constants.divide(amountWithVat, BigDecimal.ONE.add(transferVat.getTaxRate()));
+        return DebitEntry.create(Optional.of(debitNote), debtAccount, null, transferVat, amountWithoutVat, dueDate,
+                Maps.newHashMap(), balanceTransferProduct, entryDescription, BigDecimal.ONE, null,
+                entryDate);
     }
 
 }

@@ -202,15 +202,6 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
         return result;
     }
 
-    public BigDecimal getExemptedAmount(final DebitEntry debitEntry) {
-        BigDecimal result = debitEntry.getExemptedAmount();
-
-        result = result.add(debitEntry.getCreditEntriesSet().stream().map(l -> l.getAmountWithVat()).reduce((a, b) -> a.add(b))
-                .orElse(BigDecimal.ZERO));
-
-        return result;
-    }
-
     protected String propertiesMapToJson(final Map<String, String> propertiesMap) {
         final GsonBuilder builder = new GsonBuilder();
 

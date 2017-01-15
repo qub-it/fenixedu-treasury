@@ -37,12 +37,17 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.Currency;
+import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.Product;
+import org.fenixedu.treasury.domain.Vat;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.exemption.TreasuryExemption;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
+
+import com.google.common.base.Strings;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -65,9 +70,13 @@ public class CreditNote extends CreditNote_Base {
         super.init(debtAccount, documentNumberSeries, documentDate);
 
         this.setDebitNote(debitNote);
-        
-        if(debitNote != null) {
+
+        if (debitNote != null) {
             this.setPayorDebtAccount(debitNote.getPayorDebtAccount());
+        }
+        
+        if (!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
+            throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
         }
     }
 
@@ -85,11 +94,7 @@ public class CreditNote extends CreditNote_Base {
             throw new TreasuryDomainException("error.CreditNote.debitnote.not.closed");
         }
 
-        if (!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
-            throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
-        }
-        
-        if(getDebitNote() != null && getPayorDebtAccount() != getDebitNote().getPayorDebtAccount()) {
+        if (getDebitNote() != null && getPayorDebtAccount() != getDebitNote().getPayorDebtAccount()) {
             throw new TreasuryDomainException("error.CreditNote.with.payorDebtAccount.different.from.debit.note");
         }
 
@@ -121,7 +126,7 @@ public class CreditNote extends CreditNote_Base {
                 settlementEntries.add(settlementEntry);
             }
         }
-        
+
         if (settlementEntries.isEmpty()) {
             return false;
         }
@@ -132,8 +137,17 @@ public class CreditNote extends CreditNote_Base {
 
         final SettlementNote settlementNote =
                 (SettlementNote) getRelatedSettlementEntries().iterator().next().getFinantialDocument();
-        
+
         return settlementNote.isReimbursement();
+    }
+    
+    @Override
+    public void closeDocument(boolean markDocumentToExport) {
+        super.closeDocument(markDocumentToExport);
+    
+        if (!getCreditEntriesSet().isEmpty() && getCreditEntriesSet().size() > 1) {
+            throw new TreasuryDomainException("error.CreditNote.with.unexpected.credit.entries");
+        }
     }
 
     @Override
@@ -163,22 +177,22 @@ public class CreditNote extends CreditNote_Base {
     public BigDecimal getCreditAmount() {
         return this.getTotalAmount();
     }
-    
+
     @Override
     // Ensure payor debt account of associated debit note is returned
     public DebtAccount getPayorDebtAccount() {
-        if(super.getPayorDebtAccount() == null && getDebitNote() != null) {
+        if (super.getPayorDebtAccount() == null && getDebitNote() != null) {
             return getDebitNote().getPayorDebtAccount();
         }
-        
+
         return super.getPayorDebtAccount();
     };
-    
+
     public void editPayorDebtAccount(final DebtAccount payorDebtAccount) {
-        if(!isPreparing()) {
+        if (!isPreparing()) {
             throw new TreasuryDomainException("error.CreditNote.edit.not.possible.on.closed.document");
         }
-        
+
         setPayorDebtAccount(payorDebtAccount);
 
         checkRules();
@@ -191,10 +205,10 @@ public class CreditNote extends CreditNote_Base {
             final DocumentNumberSeries documentNumberSeries, final Currency currency, final String documentNumber,
             final org.joda.time.DateTime documentDate, final org.joda.time.LocalDate documentDueDate,
             final String originDocumentNumber, final org.fenixedu.treasury.domain.document.FinantialDocumentStateType state) {
-        if(!isPreparing()) {
+        if (!isPreparing()) {
             throw new TreasuryDomainException("error.CreditNote.edit.not.possible.on.closed.document");
         }
-        
+
         setDebitNote(debitNote);
         setFinantialDocumentType(finantialDocumentType);
         setDebtAccount(debtAccount);
@@ -325,7 +339,6 @@ public class CreditNote extends CreditNote_Base {
         return creditNote;
     }
 
-    
     // @formatter:off
     /* ********
      * SERVICES
@@ -344,6 +357,33 @@ public class CreditNote extends CreditNote_Base {
         note.setOriginDocumentNumber(originNumber);
         note.checkRules();
         return note;
+    }
+
+    public static CreditEntry createBalanceTransferCredit(final DebtAccount debtAccount, final DateTime documentDate,
+            final String originNumber, final BigDecimal amountWithVat, final DebtAccount payorDebtAccount,
+            String entryDescription) {
+
+        final FinantialInstitution finantialInstitution = debtAccount.getFinantialInstitution();
+        final Series regulationSeries = finantialInstitution.getRegulationSeries();
+        final DocumentNumberSeries numberSeries =
+                DocumentNumberSeries.find(FinantialDocumentType.findForCreditNote(), regulationSeries);
+        final Product balanceTransferProduct = TreasurySettings.getInstance().getTransferBalanceProduct();
+        final Vat transferVat =
+                Vat.findActiveUnique(balanceTransferProduct.getVatType(), finantialInstitution, documentDate).get();
+
+        if (Strings.isNullOrEmpty(entryDescription)) {
+            entryDescription = balanceTransferProduct.getName().getContent();
+        }
+
+        final CreditNote creditNote = CreditNote.create(debtAccount, numberSeries, documentDate, null, originNumber);
+
+        final BigDecimal amountWithoutVat = Constants.divide(amountWithVat, BigDecimal.ONE.add(transferVat.getTaxRate()));
+        CreditEntry entry = CreditEntry.create(creditNote, entryDescription, balanceTransferProduct, transferVat,
+                amountWithoutVat, documentDate, null, BigDecimal.ONE);
+
+        creditNote.editPayorDebtAccount(payorDebtAccount);
+
+        return entry;
     }
 
 }

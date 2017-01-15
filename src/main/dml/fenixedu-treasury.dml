@@ -241,6 +241,8 @@ class document.FinantialDocument {
 	DateTime closeDate;
 	boolean exportedInLegacyERP;
 	String legacyERPCertificateDocumentReference;
+	LocalDate erpCertificationDate;
+	String erpCertificateDocumentReference;
 }
 
 	class document.Invoice extends document.FinantialDocument {

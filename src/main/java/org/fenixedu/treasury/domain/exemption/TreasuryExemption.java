@@ -16,6 +16,8 @@ import pt.ist.fenixframework.Atomic;
 
 import com.google.common.base.Strings;
 
+import static org.fenixedu.treasury.util.Constants.isGreaterThan;
+
 public class TreasuryExemption extends TreasuryExemption_Base {
 
     protected TreasuryExemption() {
@@ -30,9 +32,9 @@ public class TreasuryExemption extends TreasuryExemption_Base {
         if (debitEntry.getTreasuryExemption() != null) {
             throw new TreasuryDomainException("error.TreasuryExemption.debitEntry.already.exempted");
         }
-        
+
         for (final CreditEntry creditEntry : debitEntry.getCreditEntriesSet()) {
-            if(!creditEntry.isFromExemption()) {
+            if (!creditEntry.isFromExemption()) {
                 throw new TreasuryDomainException("error.TreasuryExemption.debitEntry.with.credit.not.from.exemption");
             }
         }
@@ -87,8 +89,9 @@ public class TreasuryExemption extends TreasuryExemption_Base {
         if (getDebitEntry().isEventAnnuled()) {
             throw new TreasuryDomainException("error.TreasuryExemption.debit.entry.annuled.in.event");
         }
-        
-        if(Constants.isGreaterThan(getValueToExempt(), getDebitEntry().getAmountWithVat().add(getDebitEntry().getExemptedAmount()))) {
+
+        if (Constants.isGreaterThan(getValueToExempt(),
+                getDebitEntry().getAmountWithVat().add(getDebitEntry().getExemptedAmount()))) {
             throw new TreasuryDomainException("error.TreasuryExemption.valueToExempt.higher.than.debitEntry");
         }
     }
@@ -108,17 +111,25 @@ public class TreasuryExemption extends TreasuryExemption_Base {
     private void exemptEventIfWithDebtEntries() {
         // We're in conditions to create credit entries. But first
         // calculate the amount to exempt
-        final BigDecimal amountToExempt = getValueToExempt().subtract(getTreasuryEvent().getExemptedAmount(getDebitEntry()));
+        final BigDecimal amountToExempt = getValueToExempt().subtract(exemptedAmount(getDebitEntry()));
 
         if (!Constants.isPositive(amountToExempt)) {
             return;
         }
 
-        final BigDecimal amountToUse =
-                Constants.isGreaterThan(getDebitEntry().getAmountWithVat(), amountToExempt) ? amountToExempt : getDebitEntry()
-                        .getAmountWithVat();
+        final BigDecimal amountWithVat = getDebitEntry().getAmountWithVat();
+        final BigDecimal amountToUse = isGreaterThan(amountWithVat, amountToExempt) ? amountToExempt : amountWithVat;
 
         getDebitEntry().exempt(this, amountToUse);
+    }
+
+    private BigDecimal exemptedAmount(final DebitEntry debitEntry) {
+        BigDecimal result = debitEntry.getExemptedAmount();
+
+        result = result.add(debitEntry.getCreditEntriesSet().stream().map(l -> l.getAmountWithVat()).reduce((a, b) -> a.add(b))
+                .orElse(BigDecimal.ZERO));
+
+        return result;
     }
 
     private void revertExemptionIfPossible() {
@@ -167,7 +178,7 @@ public class TreasuryExemption extends TreasuryExemption_Base {
     public static Stream<TreasuryExemption> findAll() {
         return Bennu.getInstance().getTreasuryExemptionsSet().stream();
     }
-    
+
     public static Stream<TreasuryExemption> find(final TreasuryExemptionType treasuryExemptionType) {
         return Bennu.getInstance().getTreasuryExemptionsSet().stream()
                 .filter(t -> t.getTreasuryExemptionType() == treasuryExemptionType);

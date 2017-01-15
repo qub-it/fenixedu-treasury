@@ -196,7 +196,7 @@ ${portal.angularToolkit()}
                 <tr>
                     <th scope="row" class="col-xs-3"><spring:message
                             code="label.Customer.fiscalNumber" /></th>
-                    <td><c:out value='${settlementNoteBean.debtAccount.customer.fiscalCountry}:${settlementNoteBean.debtAccount.customer.fiscalNumber}' />
+                    <td><c:out value='${settlementNoteBean.debtAccount.customer.uiFiscalNumber}' />
                     </td>
                 </tr>
                 <tr>

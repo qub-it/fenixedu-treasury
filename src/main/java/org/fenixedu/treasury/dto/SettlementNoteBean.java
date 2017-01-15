@@ -19,6 +19,7 @@ import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.VatType;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.CreditEntry;
+import org.fenixedu.treasury.domain.document.CreditNote;
 import org.fenixedu.treasury.domain.document.DebitEntry;
 import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.document.FinantialDocumentType;
@@ -105,7 +106,8 @@ public class SettlementNoteBean implements IBean, Serializable {
                 }
 
                 if (reimbursementNote
-                        && !(invoiceEntry.getFinantialDocument() != null && invoiceEntry.getFinantialDocument().isPreparing())) {
+                        && !(invoiceEntry.getFinantialDocument() != null && (invoiceEntry.getFinantialDocument().isPreparing()
+                                || ((CreditNote) invoiceEntry.getFinantialDocument()).isAdvancePayment()))) {
                     continue;
                 }
 

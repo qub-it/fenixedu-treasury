@@ -183,21 +183,11 @@ ${portal.angularToolkit()}
                         code="label.AdhocCustomer.fiscalNumber" />
                 </div>
 
-                <div class="col-sm-10">
-                	<c:if test="${adhocCustomer.personCustomer}">
-	                    <input id="adhocCustomer_fiscalNumber"
-	                        class="form-control" type="text"
-	                        ng-model="object.fiscalNumber"
-	                        name="fiscalnumber"
-	                        value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : adhocCustomer.fiscalNumber }'/>' readonly="readonly" />
-					</c:if>
-                	<c:if test="${adhocCustomer.adhocCustomer}">
-	                    <input id="adhocCustomer_fiscalNumber"
-	                        class="form-control" type="text"
-	                        ng-model="object.fiscalNumber"
-	                        name="fiscalnumber"
-	                        value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : adhocCustomer.fiscalNumber }'/>' />
-					</c:if>
+                <input id="adhocCustomer_fiscalNumber"
+                    class="form-control" type="text"
+                    ng-model="object.fiscalNumber"
+                    name="fiscalnumber"
+                    value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : adhocCustomer.fiscalNumber }'/>' readonly="readonly" />
                 </div>
             </div>
             <div class="form-group row">
@@ -325,23 +315,11 @@ ${portal.angularToolkit()}
                 </div>
 
                 <div class="col-sm-10">
-                	<c:if test="${adhocCustomer.personCustomer}">
-	                    <input id="adhocCustomer_countryCode"
-	                        class="form-control" type="text"
-	                        ng-model="object.countryCode"
-	                        name="countrycode"
-	                        value='<c:out value='${not empty param.countrycode ? param.countrycode : adhocCustomer.countryCode }'/>' readonly="readonly" />
-					</c:if>
-					
-                	<c:if test="${adhocCustomer.adhocCustomer}">
-	                    <ui-select id="adhocCustomer_countryCode"
-	                        ng-model="$parent.object.countryCode" theme="bootstrap"> 
-	                        <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
-	                        <ui-select-choices repeat="c.id as c in object.countryCodesDataSource| filter: $select.search">
-			                    <span ng-bind-html="c.text | highlight: $select.search"></span>
-	                    	</ui-select-choices>
-	                    </ui-select>
-					</c:if>
+                    <input id="adhocCustomer_countryCode"
+                        class="form-control" type="text"
+                        ng-model="object.countryCode"
+                        name="countrycode"
+                        value='<c:out value='${not empty param.countrycode ? param.countrycode : adhocCustomer.countryCode }'/>' readonly="readonly" />
                 </div>
             </div>
 

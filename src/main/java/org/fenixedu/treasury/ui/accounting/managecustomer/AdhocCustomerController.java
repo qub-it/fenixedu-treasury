@@ -175,9 +175,9 @@ public class AdhocCustomerController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(model);
 
             adhocCustomer.registerFinantialInstitutions(bean.getFinantialInstitutions());
-            updateAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getFiscalNumber(), bean.getIdentificationNumber(),
+            updateAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getIdentificationNumber(),
                     bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(), bean.getAddressCountryCode(),
-                    bean.getCountryCode(), model);
+                    model);
 
             return redirect(CustomerController.READ_URL + getAdhocCustomer(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
@@ -189,12 +189,12 @@ public class AdhocCustomerController extends TreasuryBaseController {
     }
 
     @Atomic
-    public void updateAdhocCustomer(final CustomerType customerType, final String name, final String fiscalNumber,
-            final String identificationNumber, final String address, final String districtSubdivision, final String zipCode,
-            final String addressCountryCode, final String countryCode, final Model model) {
+    public void updateAdhocCustomer(final CustomerType customerType, final String name, final String identificationNumber,
+            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
+            final Model model) {
         if (getAdhocCustomer(model).isAdhocCustomer()) {
-            ((AdhocCustomer) getAdhocCustomer(model)).edit(customerType, fiscalNumber, name, address, districtSubdivision,
-                    zipCode, addressCountryCode, countryCode, identificationNumber);
+            ((AdhocCustomer) getAdhocCustomer(model)).edit(customerType, name, address, districtSubdivision, zipCode,
+                    addressCountryCode, identificationNumber);
         }
     }
 }
