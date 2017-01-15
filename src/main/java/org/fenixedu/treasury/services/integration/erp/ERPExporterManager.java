@@ -3,12 +3,14 @@ package org.fenixedu.treasury.services.integration.erp;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.scheduler.TaskRunner;
 import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.domain.document.reimbursement.ReimbursementProcessStateLog;
@@ -26,7 +28,7 @@ public class ERPExporterManager {
 
     private static final int WAIT_TRANSACTION_TO_FINISH_MS = 500;
 
-    private static final Comparator<FinantialDocument> COMPARE_BY_DOCUMENT_TYPE = new Comparator<FinantialDocument>() {
+    public static final Comparator<FinantialDocument> COMPARE_BY_DOCUMENT_TYPE = new Comparator<FinantialDocument>() {
         @Override
         public int compare(FinantialDocument o1, FinantialDocument o2) {
             if (o1.getFinantialDocumentType().equals(o2.getFinantialDocumentType())) {
@@ -70,8 +72,10 @@ public class ERPExporterManager {
             return Lists.newArrayList();
         }
 
-        final List<FinantialDocument> sortedDocuments = finantialInstitution.getFinantialDocumentsPendingForExportationSet()
-                .stream().filter(x -> !x.isCreditNote() && (x.isAnnulled() || x.isClosed())).collect(Collectors.toSet()).stream()
+        final List<FinantialDocument> sortedDocuments = finantialInstitution.getFinantialDocumentsPendingForExportationSet().stream()
+                .filter(x -> !x.isCreditNote())
+                .filter(x -> x.isAnnulled() || x.isClosed())
+                .collect(Collectors.toSet()).stream()
                 .sorted(COMPARE_BY_DOCUMENT_TYPE).collect(Collectors.toList());
 
         if (sortedDocuments.isEmpty()) {
@@ -94,9 +98,44 @@ public class ERPExporterManager {
             return result;
         }
 
-        return Lists.newArrayList(erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, sortedDocuments));
+        // return Lists.newArrayList(erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, sortedDocuments));
+        return Lists.newArrayList();
     }
 
+    public static List<ERPExportOperation> exportPendingDocumentsForDebtAccount(final DebtAccount debtAccount) {
+        final FinantialInstitution finantialInstitution = debtAccount.getFinantialInstitution();
+
+        final List<FinantialDocument> sortedDocuments = debtAccount.getFinantialDocumentsSet().stream()
+                .filter(d -> d.isDocumentSeriesNumberSet())
+                .filter(d -> !d.isCreditNote())
+                .filter(d -> d.isDocumentToExport())
+                .filter(d -> d.isAnnulled() || d.isClosed())
+                .sorted(COMPARE_BY_DOCUMENT_TYPE).collect(Collectors.toList());
+        
+
+        final IERPExporter erpExporter = debtAccount.getFinantialInstitution().getErpIntegrationConfiguration()
+                .getERPExternalServiceImplementation().getERPExporter();
+
+        if (finantialInstitution.getErpIntegrationConfiguration().getExportOnlyRelatedDocumentsPerExport()) {
+            final List<ERPExportOperation> result = Lists.newArrayList();
+
+            while (!sortedDocuments.isEmpty()) {
+                final FinantialDocument doc = sortedDocuments.iterator().next();
+
+                //remove the related documents from the original Set
+                sortedDocuments.remove(doc);
+
+                result.add(
+                        erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, Collections.singletonList(doc)));
+            }
+
+            return result;
+        }
+        
+        return Lists.newArrayList();
+    }
+
+    
     public static void scheduleSingleDocument(final FinantialDocument finantialDocument) {
         if (finantialDocument.isCreditNote()) {
             return;

@@ -603,14 +603,14 @@ public class SAPExporter implements IERPExporter {
         DateTime result = document.getPaymentDate();
 
         for (final SettlementEntry settlementEntry : document.getSettlemetEntriesSet()) {
-            final DateTime certificationDate =
-                    settlementEntry.getInvoiceEntry().getFinantialDocument().getErpCertificationDate().toDateTimeAtStartOfDay();
+            final LocalDate certificationDate =
+                    settlementEntry.getInvoiceEntry().getFinantialDocument().getErpCertificationDate();
             if (certificationDate == null) {
                 continue;
             }
 
-            if (certificationDate.isAfter(result)) {
-                result = certificationDate;
+            if (certificationDate.toDateTimeAtStartOfDay().isAfter(result)) {
+                result = certificationDate.toDateTimeAtStartOfDay();
             }
         }
 
@@ -1446,7 +1446,6 @@ public class SAPExporter implements IERPExporter {
                         FinantialDocument.findByUiDocumentNumber(institution, status.getDocumentNumber());
 
                 boolean integratedWithSuccess = status.isIntegratedWithSuccess();
-                String errorDescription = status.getErrorDescription();
 //                if(document.isCreditNote()) {
 //                    final CreditNote creditNote = (CreditNote) document;
 //                    
@@ -1459,10 +1458,7 @@ public class SAPExporter implements IERPExporter {
                         final String message =
                                 Constants.bundle("info.ERPExporter.sucess.integrating.document", document.getUiDocumentNumber());
                         logBean.appendIntegrationLog(message);
-                        document.clearDocumentToExport(message);
-
-                        // Fill information from ERP
-                        document.editERPCertificationData(new LocalDate(), status.getSapDocumentNumber());
+                        document.clearDocumentToExportAndSaveERPCertificationData(message, new LocalDate(), status.getSapDocumentNumber());
                     } else {
                         success = false;
                         logBean.appendIntegrationLog(Constants.bundle("info.ERPExporter.error.integrating.document",
@@ -1641,9 +1637,6 @@ public class SAPExporter implements IERPExporter {
                 new ArrayList<FinantialDocument>(), true, false, preProcessFunctionBeforeSerialize);
 
     }
-
-//    private static final DateTime ERP_END_DATE = DateTimeFormat.forPattern(Constants.STANDARD_DATE_FORMAT_YYYY_MM_DD)
-//            .parseLocalDate("2017-01-01").toDateTimeAtStartOfDay();
 
     @Atomic(mode = TxMode.WRITE)
     @Override
@@ -1919,7 +1912,6 @@ public class SAPExporter implements IERPExporter {
             operation.appendLog(logBean.getErrorLog(), logBean.getIntegrationLog(), logBean.getSoapInboundMessage(),
                     logBean.getSoapOutboundMessage());
         }
-
     }
 
     @Override

@@ -82,6 +82,7 @@ public class SAPExternalService extends BennuWebServiceClient<ZULWSFATURACAOCLIE
                     String.format("[STATUS: %s] - %s", itemWrapper.getIntegrationStatus(), itemWrapper.getErrorDescription()));
             status.setIntegrationStatus(
                     convertToStatusType(itemWrapper, hasSettlementFailed, isSomeDocAssociatedWithReimbursementFailed));
+            status.setSapDocumentNumber(itemWrapper.getSapDocumentNumber());
 
             output.getDocumentStatus().add(status);
         }

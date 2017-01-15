@@ -293,15 +293,26 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         }
     }
 
-    public void editERPCertificationData(final LocalDate erpCertificationDate, final String erpCertificateDocumentReference) {
-        if(erpCertificationDate == null) {
+    @Atomic
+    public void clearDocumentToExportAndSaveERPCertificationData(final String reason, final LocalDate erpCertificationDate,
+            final String erpCertificateDocumentReference) {
+        if (getInstitutionForExportation() != null) {
+            this.setInstitutionForExportation(null);
+            super.setClearDocumentToExportReason(reason);
+
+            this.editERPCertificationData(erpCertificationDate, erpCertificateDocumentReference);
+        }
+    }
+
+    private void editERPCertificationData(final LocalDate erpCertificationDate, final String erpCertificateDocumentReference) {
+        if (erpCertificationDate == null) {
             throw new TreasuryDomainException("error.FinantialDocument.erpCertificationDate.required");
         }
-        
-        if(Strings.isNullOrEmpty(erpCertificateDocumentReference)) {
+
+        if (Strings.isNullOrEmpty(erpCertificateDocumentReference)) {
             throw new TreasuryDomainException("error.FinantialDocument.erpCertificateDocumentReference.required");
         }
-        
+
         this.setErpCertificationDate(erpCertificationDate);
         this.setErpCertificateDocumentReference(erpCertificateDocumentReference);
     }
@@ -394,8 +405,8 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
         if (getDocumentNumberSeries().getSeries().isRegulationSeries()) {
             return false;
         }
-        
-        if(isCreditNote() && ((CreditNote) this).isAdvancePayment()) {
+
+        if (isCreditNote() && ((CreditNote) this).isAdvancePayment()) {
             return false;
         }
 

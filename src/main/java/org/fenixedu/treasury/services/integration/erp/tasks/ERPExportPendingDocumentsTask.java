@@ -19,6 +19,10 @@ public class ERPExportPendingDocumentsTask extends CronTask {
 
             taskLog("Start Exporting Pending Documents for : " + x.getName());
             try {
+                if (!x.getErpIntegrationConfiguration().getActive()) {
+                    return;
+                }
+
                 List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution =
                         ERPExporterManager.exportPendingDocumentsForFinantialInstitution(x);
 

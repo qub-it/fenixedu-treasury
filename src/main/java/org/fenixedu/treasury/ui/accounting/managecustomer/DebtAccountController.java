@@ -53,6 +53,7 @@ import org.fenixedu.treasury.domain.paymentcodes.FinantialDocumentPaymentCode;
 import org.fenixedu.treasury.domain.paymentcodes.MultipleEntriesPaymentCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentCodeTarget;
 import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
+import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.reports.DocumentPrinter;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
@@ -316,23 +317,17 @@ public class DebtAccountController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/read/{oid}/exportintegrationonline")
-    public String processReadToExportIntegrationOnline(@PathVariable("oid") DebtAccount debtAccount, Model model,
+    public String processReadToExportIntegrationOnline(@PathVariable("oid") final DebtAccount debtAccount, Model model,
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsFrontOfficeMember(debtAccount.getFinantialInstitution(), model);
-            List<FinantialDocument> pendingDocuments = new ArrayList(debtAccount.getFinantialDocumentsSet().stream()
-                    .filter(d -> d.isDocumentSeriesNumberSet()).collect(Collectors.toSet()));
+            throw new TreasuryDomainException("Desactivado");
 
-            if (pendingDocuments.size() > 0) {
-                final IERPExporter erpExporter = debtAccount.getFinantialInstitution().getErpIntegrationConfiguration()
-                        .getERPExternalServiceImplementation().getERPExporter();
-
-                ERPExportOperation output =
-                        erpExporter.exportFinantialDocumentToIntegration(debtAccount.getFinantialInstitution(), pendingDocuments);
-                addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
-                return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
-            }
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.no.documents"), model);
+//            
+//            ERPExporterManager.exportPendingDocumentsForDebtAccount(debtAccount);
+//
+//            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
+//            return redirect(READ_URL + debtAccount.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
             addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
                     + ex.getLocalizedMessage(), model);

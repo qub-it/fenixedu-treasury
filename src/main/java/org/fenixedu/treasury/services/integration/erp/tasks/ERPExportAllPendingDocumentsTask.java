@@ -13,6 +13,7 @@ import org.fenixedu.bennu.scheduler.annotation.Task;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.integration.ERPExportOperation;
+import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 
 import com.google.common.collect.Lists;
@@ -104,17 +105,20 @@ public class ERPExportAllPendingDocumentsTask extends CronTask {
 
             List<ERPExportOperation> result = new ArrayList<ERPExportOperation>();
 
-            if (finantialInstitution.getErpIntegrationConfiguration().getActive() == false) {
+            if (!finantialInstitution.getErpIntegrationConfiguration().getActive()) {
                 return result;
             }
 
-            Set<FinantialDocument> pendingDocuments = finantialInstitution.getFinantialDocumentsPendingForExportationSet()
-                    .stream().filter(x -> x.isAnnulled() || x.isClosed())
-                    .filter(x -> x.isSettlementNote() == exportSettlementNotes).collect(Collectors.toSet());
+            final Set<FinantialDocument> pendingDocuments = finantialInstitution.getFinantialDocumentsPendingForExportationSet()
+                    .stream()
+                    .filter(x -> !x.isCreditNote())
+                    .filter(x -> x.isAnnulled() || x.isClosed())
+                    .filter(x -> x.isSettlementNote() == exportSettlementNotes)
+                    .collect(Collectors.toSet());
 
-            List<FinantialDocument> sortedDocuments = pendingDocuments.stream().collect(Collectors.toList());
-
-            sortedDocuments = sortedDocuments.stream().collect(Collectors.toList());
+            final List<FinantialDocument> sortedDocuments = pendingDocuments.stream()
+                    .sorted(ERPExporterManager.COMPARE_BY_DOCUMENT_TYPE)
+                    .collect(Collectors.toList());
 
             int count = 0;
             if (pendingDocuments.isEmpty() == false) {
@@ -123,32 +127,28 @@ public class ERPExportAllPendingDocumentsTask extends CronTask {
                     while (sortedDocuments.isEmpty() == false) {
                         FinantialDocument doc = sortedDocuments.iterator().next();
 
-                        count++;
-
-                        if ((count % 100) == 0) {
-
-                            task.taskLog("Sended %d\n", count);
-                        }
-
                         //remove the related documents from the original Set
                         sortedDocuments.remove(doc);
 
-                        //Create a ExportOperation
-                        final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
-                                .getERPExternalServiceImplementation().getERPExporter();
+                        count++;
 
-                        ERPExportOperation exportFinantialDocumentToIntegration = erpExporter
-                                .exportFinantialDocumentToIntegration(finantialInstitution, Collections.singletonList(doc));
+                        if ((count % 100) == 0) {
+                            task.taskLog("Sended %d\n", count);
+                        }
+
+                        //Create a ExportOperation
+                        ERPExportOperation exportFinantialDocumentToIntegration = ERPExporterManager.exportSingleDocument(doc);
+
                         result.add(exportFinantialDocumentToIntegration);
                     }
                 } else {
-                    final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
-                            .getERPExternalServiceImplementation().getERPExporter();
-
-                    ERPExportOperation exportFinantialDocumentToIntegration =
-                            erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, sortedDocuments);
-
-                    result.add(exportFinantialDocumentToIntegration);
+//                    final IERPExporter erpExporter = finantialInstitution.getErpIntegrationConfiguration()
+//                            .getERPExternalServiceImplementation().getERPExporter();
+//
+//                    ERPExportOperation exportFinantialDocumentToIntegration =
+//                            erpExporter.exportFinantialDocumentToIntegration(finantialInstitution, sortedDocuments);
+//
+//                    result.add(exportFinantialDocumentToIntegration);
                 }
             }
 
