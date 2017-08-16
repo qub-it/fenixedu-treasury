@@ -24,7 +24,7 @@ public class ERPExportPendingDocumentsTask extends CronTask {
                 }
 
                 List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution =
-                        ERPExporterManager.exportPendingDocumentsForFinantialInstitution(x);
+                        ERPExporterManager.exportPendingDocumentsForFinantialInstitution(x, 500);
 
                 for (ERPExportOperation exportOperation : exportPendingDocumentsForFinantialInstitution) {
                     for (FinantialDocument doc : exportOperation.getFinantialDocumentsSet()) {
