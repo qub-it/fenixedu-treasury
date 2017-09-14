@@ -207,30 +207,8 @@ public abstract class TreasuryEvent extends TreasuryEvent_Base {
         return result;
     }
 
-    protected String propertiesMapToJson(final Map<String, String> propertiesMap) {
-        final GsonBuilder builder = new GsonBuilder();
-
-        final Gson gson = builder.create();
-        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-
-        return gson.toJson(propertiesMap, stringStringMapType);
-    }
-
     public Map<String, String> getPropertiesMap() {
-        if (StringUtils.isEmpty(getPropertiesJsonMap())) {
-            return new HashMap<String, String>();
-        }
-
-        final GsonBuilder builder = new GsonBuilder();
-
-        final Gson gson = builder.create();
-        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-
-        final Map<String, String> propertiesMap = gson.fromJson(getPropertiesJsonMap(), stringStringMapType);
-
-        return propertiesMap;
+        return Constants.propertiesJsonToMap(getPropertiesJsonMap());
     }
 
     public Set<Product> getPossibleProductsToExempt() {

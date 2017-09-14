@@ -307,6 +307,11 @@ public class SIBSPaymentsImporter {
             }
         }
         
+        if(codeToProcess.getTargetPayment() == null) {
+            result.addMessage("error.manager.SIBS.code.exists.but.not.attributed.to.any.target", detailLine.getCode());
+            return null;
+        }
+        
         if(codeToProcess.getTargetPayment().getReferencedCustomers().size() > 1) {
             result.addMessage("warning.manager.SIBS.referenced.multiple.payor.entities", codeToProcess.getReferenceCode());
         }

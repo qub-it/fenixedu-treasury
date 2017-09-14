@@ -203,7 +203,7 @@ public class DebitEntry extends DebitEntry_Base {
 
         setTreasuryEvent(treasuryEvent);
         setDueDate(dueDate);
-        setPropertiesJsonMap(propertiesMapToJson(propertiesMap));
+        setPropertiesJsonMap(Constants.propertiesMapToJson(propertiesMap));
         setExemptedAmount(BigDecimal.ZERO);
         setInterestRate(interestRate);
 
@@ -318,19 +318,7 @@ public class DebitEntry extends DebitEntry_Base {
     }
 
     public Map<String, String> getPropertiesMap() {
-        if (StringUtils.isEmpty(getPropertiesJsonMap())) {
-            return null;
-        }
-
-        final GsonBuilder builder = new GsonBuilder();
-
-        final Gson gson = builder.create();
-        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-
-        final Map<String, String> propertiesMap = gson.fromJson(getPropertiesJsonMap(), stringStringMapType);
-
-        return propertiesMap;
+        return Constants.propertiesJsonToMap(getPropertiesJsonMap());
     }
 
     @Atomic
@@ -354,7 +342,7 @@ public class DebitEntry extends DebitEntry_Base {
 
         DebitEntry interestEntry =
                 _create(debitNote, getDebtAccount(), getTreasuryEvent(), vat, interest.getInterestAmount(), when.toLocalDate(),
-                        propertiesJsonToMap(getPropertiesJsonMap()), product, entryDescription, BigDecimal.ONE, null, when);
+                        Constants.propertiesJsonToMap(getPropertiesJsonMap()), product, entryDescription, BigDecimal.ONE, null, when);
 
         addInterestDebitEntries(interestEntry);
 
@@ -634,26 +622,6 @@ public class DebitEntry extends DebitEntry_Base {
         }
 
         return result;
-    }
-
-    protected String propertiesMapToJson(final Map<String, String> propertiesMap) {
-        final GsonBuilder builder = new GsonBuilder();
-
-        final Gson gson = builder.create();
-        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-
-        return gson.toJson(propertiesMap, stringStringMapType);
-    }
-
-    protected Map<String, String> propertiesJsonToMap(final String propertiesMapJson) {
-        final GsonBuilder builder = new GsonBuilder();
-
-        final Gson gson = builder.create();
-        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-
-        return gson.fromJson(propertiesMapJson, stringStringMapType);
     }
 
     public static Stream<? extends DebitEntry> findAll() {

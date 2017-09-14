@@ -306,6 +306,7 @@ class document.FinantialDocumentEntry {
 class document.PaymentEntry {
 	BigDecimalT payedAmount;
 	String paymentMethodId;
+	String propertiesJsonMap;
 }
 
 class document.ReimbursementEntry {

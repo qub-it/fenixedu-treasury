@@ -28,11 +28,13 @@
 package org.fenixedu.treasury.domain.document;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.util.Constants;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -43,16 +45,20 @@ public class PaymentEntry extends PaymentEntry_Base {
         setBennu(Bennu.getInstance());
     }
 
-    protected PaymentEntry(final PaymentMethod paymentMethod, final SettlementNote settlementNote, final BigDecimal payedAmount, final String paymentMethodId) {
+    protected PaymentEntry(final PaymentMethod paymentMethod, final SettlementNote settlementNote, 
+            final BigDecimal payedAmount, final String paymentMethodId, final Map<String, String> propertiesMap) {
         this();
-        init(paymentMethod, settlementNote, payedAmount, paymentMethodId);
+        init(paymentMethod, settlementNote, payedAmount, paymentMethodId, propertiesMap);
     }
 
-    protected void init(final PaymentMethod paymentMethod, final SettlementNote settlementNote, final BigDecimal payedAmount, final String paymentMethodId) {
+    protected void init(final PaymentMethod paymentMethod, final SettlementNote settlementNote, 
+            final BigDecimal payedAmount, final String paymentMethodId, final Map<String, String> propertiesMap) {
         setPaymentMethod(paymentMethod);
         setSettlementNote(settlementNote);
         setPayedAmount(payedAmount);
         setPaymentMethodId(paymentMethodId);
+        setPropertiesJsonMap(Constants.propertiesMapToJson(propertiesMap));
+        
         
         checkRules();
     }
@@ -94,6 +100,10 @@ public class PaymentEntry extends PaymentEntry_Base {
         checkRules();
     }
 
+    public Map<String, String> getPropertiesMap() {
+        return Constants.propertiesJsonToMap(getPropertiesJsonMap());
+    }
+
     public boolean isDeletable() {
         return true;
     }
@@ -112,8 +122,8 @@ public class PaymentEntry extends PaymentEntry_Base {
 
     @Atomic
     public static PaymentEntry create(final PaymentMethod paymentMethod, final SettlementNote settlementNote,
-            final BigDecimal payedAmount, final String paymentMethodId) {
-        return new PaymentEntry(paymentMethod, settlementNote, payedAmount, paymentMethodId);
+            final BigDecimal payedAmount, final String paymentMethodId, final Map<String, String> propertiesMap) {
+        return new PaymentEntry(paymentMethod, settlementNote, payedAmount, paymentMethodId, propertiesMap);
     }
 
     // @formatter: off

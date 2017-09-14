@@ -71,6 +71,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
@@ -365,7 +366,7 @@ public class SingapSiagImporter implements IERPImporter {
                 for (PaymentMethod paymentMethod : payment.getPaymentMethod()) {
                     PaymentEntry paymentEntry =
                             PaymentEntry.create(convertFromSAFTPaymentMethod(paymentMethod.getPaymentMechanism()), settlementNote,
-                                    paymentMethod.getPaymentAmount(), null);
+                                    paymentMethod.getPaymentAmount(), null, Maps.newHashMap());
                 }
             }
 

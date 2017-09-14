@@ -3,6 +3,7 @@ package org.fenixedu.treasury.domain.paymentcodes;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -25,7 +26,9 @@ import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
@@ -200,8 +203,10 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
         //5. Close the SettlementNote
         //######################################
 
-        PaymentEntry paymentEntry = PaymentEntry.create(this.getPaymentReferenceCode().getPaymentCodePool().getPaymentMethod(),
-                settlementNote, amount, getPaymentReferenceCode().getReferenceCode());
+        final Map<String, String> paymentEntryPropertiesMap = fillPaymentEntryPropertiesMap(sibsTransactionId);
+        
+        PaymentEntry paymentEntry = PaymentEntry.create(getPaymentReferenceCode().getPaymentCodePool().getPaymentMethod(),
+                settlementNote, amount, fillPaymentEntryMethodId(), paymentEntryPropertiesMap);
         settlementNote.closeDocument();
 
         //######################################
@@ -210,6 +215,22 @@ public abstract class PaymentCodeTarget extends PaymentCodeTarget_Base {
         this.getPaymentReferenceCode().setState(PaymentReferenceCodeStateType.PROCESSED);
 
         return settlementNote;
+    }
+
+    private String fillPaymentEntryMethodId() {
+        // ANIL (2017-09-13) Required by used ERP at this date
+        return String.format("COB PAG SERV %s",getPaymentReferenceCode().getPaymentCodePool().getEntityReferenceCode());
+    }
+
+    private Map<String, String> fillPaymentEntryPropertiesMap(final String sibsTransactionId) {
+        final Map<String, String> paymentEntryPropertiesMap = Maps.newHashMap();
+        paymentEntryPropertiesMap.put("ReferenceCode", getPaymentReferenceCode().getReferenceCode());
+        paymentEntryPropertiesMap.put("EntityReferenceCode", getPaymentReferenceCode().getPaymentCodePool().getEntityReferenceCode());
+        
+        if(!Strings.isNullOrEmpty(sibsTransactionId)) {
+            paymentEntryPropertiesMap.put("SibsTransactionId", sibsTransactionId);
+        }
+        return paymentEntryPropertiesMap;
     }
 
     protected abstract DocumentNumberSeries getDocumentSeriesInterestDebits();

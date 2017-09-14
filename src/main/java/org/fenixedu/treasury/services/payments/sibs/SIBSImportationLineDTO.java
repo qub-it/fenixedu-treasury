@@ -99,7 +99,7 @@ public class SIBSImportationLineDTO {
     }
 
     public String getPersonName() {
-        if (!hasPaymentCode()) {
+        if (!hasPaymentCode() || getPaymentCode().getTargetPayment() == null) {
             return null;
         }
 
@@ -107,7 +107,7 @@ public class SIBSImportationLineDTO {
     }
 
     public String getStudentNumber() {
-        if (!hasPaymentCode()) {
+        if (!hasPaymentCode() || getPaymentCode().getTargetPayment() == null) {
             return null;
         }
 
@@ -115,7 +115,7 @@ public class SIBSImportationLineDTO {
     }
 
     public String getDescription() {
-        if (!hasPaymentCode()) {
+        if (!hasPaymentCode() || getPaymentCode().getTargetPayment() == null) {
             return null;
         }
 

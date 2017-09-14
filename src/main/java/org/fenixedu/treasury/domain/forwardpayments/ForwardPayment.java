@@ -2,11 +2,11 @@ package org.fenixedu.treasury.domain.forwardpayments;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -41,6 +41,7 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
@@ -194,7 +195,9 @@ public class ForwardPayment extends ForwardPayment_Base {
         final List<DebitEntry> orderedEntries = Lists.newArrayList(getDebitEntriesSet());
         Collections.sort(orderedEntries, COMPARE_DEBIT_ENTRIES);
 
-        PaymentEntry.create(getForwardPaymentConfiguration().getPaymentMethod(), getSettlementNote(), amountToConsume, null);
+        final Map<String, String> paymentEntryPropertiesMap = fillPaymentEntryPropertiesMap(statusCode);
+        
+        PaymentEntry.create(getForwardPaymentConfiguration().getPaymentMethod(), getSettlementNote(), amountToConsume, null, paymentEntryPropertiesMap);
 
         if (referencedCustomers(orderedEntries).size() == 1) {
             for (final DebitEntry debitEntry : orderedEntries) {
@@ -265,6 +268,25 @@ public class ForwardPayment extends ForwardPayment_Base {
         setJustification(justification);
 
         checkRules();
+    }
+
+    private Map<String, String> fillPaymentEntryPropertiesMap(final String statusCode) {
+        final Map<String, String> paymentEntryPropertiesMap = Maps.newHashMap();
+        
+        paymentEntryPropertiesMap.put("OrderNumber", String.valueOf(getOrderNumber()));
+        
+        if(!Strings.isNullOrEmpty(getTransactionId())) {
+            paymentEntryPropertiesMap.put("TransactionId", getTransactionId());
+        }
+        
+        if(getTransactionDate() != null) {
+            paymentEntryPropertiesMap.put("TransactionDate", getTransactionDate().toString(Constants.DATE_TIME_FORMAT_YYYY_MM_DD));
+        }
+        
+        if(!Strings.isNullOrEmpty(statusCode)) {
+            paymentEntryPropertiesMap.put("StatusCode", statusCode);
+        }
+        return paymentEntryPropertiesMap;
     }
 
     private Set<Customer> referencedCustomers(final List<DebitEntry> orderedEntries) {

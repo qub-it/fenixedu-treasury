@@ -51,6 +51,7 @@ import org.fenixedu.treasury.dto.SettlementNoteBean.PaymentEntryBean;
 import org.fenixedu.treasury.util.Constants;
 import org.joda.time.DateTime;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
@@ -316,7 +317,7 @@ public class SettlementNote extends SettlementNote_Base {
     private void processPaymentEntries(SettlementNoteBean bean) {
         for (PaymentEntryBean paymentEntryBean : bean.getPaymentEntries()) {
             PaymentEntry.create(paymentEntryBean.getPaymentMethod(), this, paymentEntryBean.getPaymentAmount(),
-                    paymentEntryBean.getPaymentMethodId());
+                    paymentEntryBean.getPaymentMethodId(), Maps.newHashMap());
         }
     }
 

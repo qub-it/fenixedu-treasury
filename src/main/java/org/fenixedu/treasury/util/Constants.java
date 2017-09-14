@@ -26,11 +26,14 @@
  */
 package org.fenixedu.treasury.util;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.fenixedu.bennu.FenixeduTreasurySpringConfiguration;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
@@ -38,9 +41,13 @@ import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.document.InvoiceEntry;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.springframework.util.StringUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 public class Constants {
 
@@ -206,11 +213,11 @@ public class Constants {
         return BundleUtil.getLocalizedString(Constants.BUNDLE, key, args);
     }
 
-    // @formatter: off
+    // @formatter:off
     /********
      * SIBS *
      ********/
-    // @formatter: on
+    // @formatter:on
 
     public static final String sibsTransactionUniqueIdentifier(final String paymentCode, final DateTime whenOccured) {
         return String.format("%s%s", paymentCode, whenOccured.toString("yyyyMMddHHmm"));
@@ -223,5 +230,68 @@ public class Constants {
 
         return originDocumentNumber.length() <= ORIGIN_DOCUMENT_LIMIT;
     }
+    
+    
+    // @formatter:off
+    /***********
+     * JSON UTILS
+     *********** 
+     */
+    // @formatter:on
 
+    public static String propertiesMapToJson(final Map<String, String> propertiesMap) {
+        final GsonBuilder builder = new GsonBuilder();
+
+        final Gson gson = builder.create();
+        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
+        }.getType();
+
+        return gson.toJson(propertiesMap, stringStringMapType);
+    }
+
+    public static Map<String, String> propertiesJsonToMap(final String propertiesMapJson) {
+        if (StringUtils.isEmpty(propertiesMapJson)) {
+            return new HashMap<String, String>();
+        }
+        
+        final GsonBuilder builder = new GsonBuilder();
+
+        final Gson gson = builder.create();
+        final Type stringStringMapType = new TypeToken<Map<String, String>>() {
+        }.getType();
+
+        return gson.fromJson(propertiesMapJson, stringStringMapType);
+    }
+
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
