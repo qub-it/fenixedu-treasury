@@ -133,12 +133,12 @@ public class TreasuryExemption extends TreasuryExemption_Base {
     }
 
     private void revertExemptionIfPossible() {
-        // TreasuryEvent is not charged. Do nothing...
-        if (!getTreasuryEvent().isChargedWithDebitEntry()) {
+
+        if(getDebitEntry().isAnnulled()) {
             return;
         }
-
-        if (!getDebitEntry().isProcessedInClosedDebitNote() || !getDebitEntry().isEventAnnuled()) {
+        
+        if (!getDebitEntry().isProcessedInClosedDebitNote() || !getDebitEntry().isAnnulled()) {
 
             if (!getDebitEntry().revertExemptionIfPossible(this)) {
                 throw new TreasuryDomainException(

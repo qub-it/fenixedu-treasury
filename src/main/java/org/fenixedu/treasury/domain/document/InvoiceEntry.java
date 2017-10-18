@@ -136,10 +136,12 @@ public abstract class InvoiceEntry extends InvoiceEntry_Base {
         return false;
     }
 
+    // TODO: Should be renamed to isProcessedInInvoice()
     public boolean isProcessedInDebitNote() {
         return getFinantialDocument() != null;
     }
 
+    // TODO: Should be renamed to isProcessedInClosedInvoice()
     public boolean isProcessedInClosedDebitNote() {
         return isProcessedInDebitNote() && getFinantialDocument().isClosed();
     }
