@@ -898,13 +898,20 @@ public class SAPExporter implements IERPExporter {
 
                 OrderReferences reference = new OrderReferences();
 
-                reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
+                if(!creditEntry.getFinantialDocument().isExportedInLegacyERP()) {
+                    reference.setOriginatingON(creditEntry.getDebitEntry().getFinantialDocument().getUiDocumentNumber());
+                } else {
+                    reference.setOriginatingON("");
+                }
+                
                 reference.setOrderDate(documentDateCalendar);
 
                 if (((DebitNote) creditEntry.getDebitEntry().getFinantialDocument()).isExportedInLegacyERP()) {
                     final DebitNote debitNote = (DebitNote) creditEntry.getDebitEntry().getFinantialDocument();
                     if (!Strings.isNullOrEmpty(debitNote.getLegacyERPCertificateDocumentReference())) {
-                        reference.setOriginatingON(debitNote.getLegacyERPCertificateDocumentReference());
+                        if(!creditEntry.getFinantialDocument().isExportedInLegacyERP()) {
+                            reference.setOriginatingON(debitNote.getLegacyERPCertificateDocumentReference());
+                        }
                     } else {
                         if(!creditEntry.getFinantialDocument().isExportedInLegacyERP() && 
                                 !institution.getErpIntegrationConfiguration().isCreditsOfLegacyDebitWithoutLegacyInvoiceExportEnabled()) {
