@@ -1,6 +1,6 @@
 package org.fenixedu.treasury.services.groups;
 
-import java.util.Set;
+import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.annotation.GroupOperator;
 import org.fenixedu.bennu.core.domain.User;
@@ -28,24 +28,24 @@ public class TreasuryBackOfficeGroup extends CustomGroup {
     public static TreasuryBackOfficeGroup get() {
         return INSTANCE;
     }
-    
+
     @Override
     public String getPresentationName() {
         return BundleUtil.getString(Constants.BUNDLE, "label.TreasuryBackOfficeGroup.description");
     }
 
     @Override
-    public Set<User> getMembers() {
-        return TreasuryAccessControlAPI.getBackOfficeMembers();
+    public Stream<User> getMembers() {
+        return TreasuryAccessControlAPI.getBackOfficeMembers().stream();
     }
 
     @Override
     public boolean isMember(final User user) {
-        return getMembers().contains(user);
+        return getMembers().anyMatch(u -> u == user);
     }
 
     @Override
-    public Set<User> getMembers(final DateTime when) {
+    public Stream<User> getMembers(final DateTime when) {
         return getMembers();
     }
 
@@ -55,7 +55,7 @@ public class TreasuryBackOfficeGroup extends CustomGroup {
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
         return object instanceof TreasuryBackOfficeGroup;
     }
 

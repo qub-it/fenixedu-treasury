@@ -14,20 +14,18 @@
 	<parent>
 		<groupId>com.qubit.solution.fenixedu</groupId>
 		<artifactId>versioned-fenix-framework-project</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-NEW-DEV</version>
 	</parent>
 
 	<groupId>org.fenixedu</groupId>
 	<artifactId>fenixedu-treasury</artifactId>
-	<version>1.0.12</version>
+	<version>1.0.10-NEW-DEV</version>
 	<packaging>jar</packaging>
 
 	<name>Treasury</name>
 
 	<properties>
-		<version.org.fenixedu.bennu>3.4.2-SNAPSHOT</version.org.fenixedu.bennu>
-		<version.org.fenixedu.bennu.spring>1.2.0</version.org.fenixedu.bennu.spring>
-		<version.org.fenixedu.bennu.io>3.4.1</version.org.fenixedu.bennu.io>
+		<version.org.fenixedu.bennu>6.0.0-NEW-DEV</version.org.fenixedu.bennu>
 		<version.pt.ist.standards>1.1.0-SNAPSHOT</version.pt.ist.standards>
 	</properties>
 
@@ -48,27 +46,38 @@
 			<artifactId>standards</artifactId>
 			<version>${version.pt.ist.standards}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.fenixedu</groupId>
-			<artifactId>bennu-core</artifactId>
-			<version>${version.org.fenixedu.bennu}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.fenixedu</groupId>
-			<artifactId>bennu-io</artifactId>
-			<version>${version.org.fenixedu.bennu.io}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.fenixedu</groupId>
-			<artifactId>bennu-scheduler</artifactId>
-			<version>${version.org.fenixedu.bennu}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.fenixedu</groupId>
-			<artifactId>bennu-spring</artifactId>
-			<version>${version.org.fenixedu.bennu.spring}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-core</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-scheduler</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-portal</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-io</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-spring</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fenixedu</groupId>
+            <artifactId>bennu-cas-client</artifactId>
+            <version>${version.org.fenixedu.bennu}</version>
+        </dependency>
+
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -77,7 +86,7 @@
 		<dependency>
 			<groupId>com.qubit.solution.fenixedu</groupId>
 			<artifactId>bennu-webservices-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.0-NEW-DEV</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet.jsp</groupId>
@@ -154,12 +163,6 @@
             <version>2.2.10</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.fenixedu</groupId>
-            <artifactId>bennu-signals</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>

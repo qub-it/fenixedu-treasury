@@ -1,7 +1,7 @@
 package org.fenixedu.treasury.domain.bennu.signals;
 
-import org.fenixedu.bennu.signals.DomainObjectEvent;
-import org.fenixedu.bennu.signals.Signal;
+import org.fenixedu.bennu.core.signals.DomainObjectEvent;
+import org.fenixedu.bennu.core.signals.Signal;
 import org.fenixedu.treasury.domain.document.SettlementNote;
 
 public class BennuSignalsServices {

@@ -427,12 +427,12 @@ public class ForwardPayment extends ForwardPayment_Base {
      *********************************/
     // @formatter: on
     
-    public static void postForwardPaymentProcessService(final DateTime beginDate, final DateTime endDate, final PrintWriter logWriter) {
+    public static void postForwardPaymentProcessService(final DateTime beginDate, final DateTime endDate, final Logger logger) {
     
         Thread t = new Thread() {
             public void run() {
                 try {
-                    _postForwardPaymentProcessService(beginDate, endDate, logWriter);
+                    _postForwardPaymentProcessService(beginDate, endDate, logger);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -447,7 +447,7 @@ public class ForwardPayment extends ForwardPayment_Base {
     }
     
     @Atomic(mode=TxMode.READ)
-    private static void _postForwardPaymentProcessService(final DateTime beginDate, final DateTime endDate, final PrintWriter logWriter) throws IOException {
+    private static void _postForwardPaymentProcessService(final DateTime beginDate, final DateTime endDate, final Logger logger) throws IOException {
         if(beginDate == null || endDate == null) {
             throw new TreasuryDomainException("error.ForwardPayment.postForwardPaymentProcessService.dates.required");
         }
@@ -461,7 +461,7 @@ public class ForwardPayment extends ForwardPayment_Base {
             .forEach(f -> {
             PostForwardPaymentReportBean reportBean;
             try {
-                reportBean = updateForwardPayment(f.getExternalId(), logWriter);
+                reportBean = updateForwardPayment(f.getExternalId(), logger);
 
                 if (reportBean != null) {
                     // @formatter:off
@@ -549,7 +549,7 @@ public class ForwardPayment extends ForwardPayment_Base {
                 beginDate, endDate, filename, content);
     }
 
-    private static PostForwardPaymentReportBean updateForwardPayment(final String forwardPaymentId, final PrintWriter logWriter) throws IOException {
+    private static PostForwardPaymentReportBean updateForwardPayment(final String forwardPaymentId, final Logger logger) throws IOException {
 
         try {
             PostForwardPaymentReportBean reportBean =
@@ -576,8 +576,9 @@ public class ForwardPayment extends ForwardPayment_Base {
             final String message = e.getMessage();
             final String stackTrace = ExceptionUtils.getStackTrace(e);
 
-            logWriter.format("E\tERROR ON\t%s\t%s\n", forwardPaymentId, message);
-            logWriter.write(stackTrace + "\n");
+            String exceptionOutput = String.format("E\tERROR ON\t%s\t%s\n", forwardPaymentId, message);
+            logger.error(exceptionOutput);
+            logger.error(stackTrace + "\n");
 
             return null;
         }

@@ -1,6 +1,6 @@
 package org.fenixedu.treasury.services.groups;
 
-import java.util.Set;
+import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.annotation.GroupOperator;
 import org.fenixedu.bennu.core.domain.User;
@@ -29,12 +29,12 @@ public class TreasuryManagersGroup extends CustomGroup {
     }
 
     @Override
-    public Set<User> getMembers() {
-        return TreasuryAccessControlAPI.getTreasuryManagerMembers();
+    public Stream<User> getMembers() {
+        return TreasuryAccessControlAPI.getTreasuryManagerMembers().stream();
     }
 
     @Override
-    public Set<User> getMembers(final DateTime when) {
+    public Stream<User> getMembers(final DateTime when) {
         return getMembers();
     }
 
@@ -44,13 +44,13 @@ public class TreasuryManagersGroup extends CustomGroup {
     }
 
     @Override
-    public boolean isMember(User user) {
-        return getMembers().contains(user);
+    public boolean isMember(final User user) {
+        return getMembers().anyMatch(u -> u == user);
     }
 
     @Override
     public boolean isMember(final User user, final DateTime when) {
-        return getMembers().contains(user);
+        return getMembers().anyMatch(u -> u == user);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TreasuryManagersGroup extends CustomGroup {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         return obj instanceof TreasuryManagersGroup;
     }
 

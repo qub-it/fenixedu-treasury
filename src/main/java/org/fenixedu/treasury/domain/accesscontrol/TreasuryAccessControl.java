@@ -3,6 +3,7 @@ package org.fenixedu.treasury.domain.accesscontrol;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.DynamicGroup;
@@ -24,7 +25,7 @@ public class TreasuryAccessControl {
 
     private static TreasuryAccessControl _instance = null;
 
-    private List<ITreasuryAccessControlExtension> extensions = Collections.synchronizedList(Lists.newArrayList());
+    private final List<ITreasuryAccessControlExtension> extensions = Collections.synchronizedList(Lists.newArrayList());
 
     private TreasuryAccessControl() {
     }
@@ -37,11 +38,11 @@ public class TreasuryAccessControl {
         return isBackOfficeMember(Authenticate.getUser());
     }
 
-    public boolean isFrontOfficeMember(FinantialInstitution finantialInstitution) {
+    public boolean isFrontOfficeMember(final FinantialInstitution finantialInstitution) {
         return isFrontOfficeMember(Authenticate.getUser(), finantialInstitution);
     }
 
-    public boolean isBackOfficeMember(FinantialInstitution finantialInstitution) {
+    public boolean isBackOfficeMember(final FinantialInstitution finantialInstitution) {
         return isBackOfficeMember(Authenticate.getUser(), finantialInstitution);
     }
 
@@ -110,7 +111,7 @@ public class TreasuryAccessControl {
             result.addAll(iTreasuryAccessControlExtension.getFrontOfficeMembers());
         }
 
-        result.addAll(getOrCreateDynamicGroup(TREASURY_FRONT_OFFICE).getMembers());
+        result.addAll(getOrCreateDynamicGroup(TREASURY_FRONT_OFFICE).getMembers().collect(Collectors.toSet()));
 
         return result;
     }
@@ -122,7 +123,7 @@ public class TreasuryAccessControl {
             result.addAll(iTreasuryAccessControlExtension.getBackOfficeMembers());
         }
 
-        result.addAll(getOrCreateDynamicGroup(TREASURY_BACK_OFFICE).getMembers());
+        result.addAll(getOrCreateDynamicGroup(TREASURY_BACK_OFFICE).getMembers().collect(Collectors.toSet()));
 
         return result;
     }
@@ -130,7 +131,7 @@ public class TreasuryAccessControl {
     public Set<User> getTreasuryManagerMembers() {
         final Set<User> result = Sets.newHashSet();
 
-        result.addAll(getOrCreateDynamicGroup(TREASURY_MANAGERS).getMembers());
+        result.addAll(getOrCreateDynamicGroup(TREASURY_MANAGERS).getMembers().collect(Collectors.toSet()));
 
         return result;
     }
@@ -166,7 +167,7 @@ public class TreasuryAccessControl {
         return dynamicGroup;
     }
 
-    public boolean isAllowToModifyInvoices(User user, final FinantialInstitution finantialInstitution) {
+    public boolean isAllowToModifyInvoices(final User user, final FinantialInstitution finantialInstitution) {
         boolean result = getOrCreateDynamicGroup(TREASURY_FRONT_OFFICE).isMember(user);
         if (result == true) {
             return result;
@@ -180,7 +181,7 @@ public class TreasuryAccessControl {
         return true;
     }
 
-    public boolean isAllowToModifySettlements(User user, final FinantialInstitution finantialInstitution) {
+    public boolean isAllowToModifySettlements(final User user, final FinantialInstitution finantialInstitution) {
         boolean result = getOrCreateDynamicGroup(TREASURY_FRONT_OFFICE).isMember(user);
         if (result == true) {
             return result;
