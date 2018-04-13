@@ -348,7 +348,7 @@ public class CreditNoteController extends TreasuryBaseController {
 
         if (debitNote == null) {
             this.addWarningMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.document.manageinvoice.creditnote.without.debitnote"), model);
+                    Constants.treasuryBundle("label.document.manageinvoice.creditnote.without.debitnote"), model);
         }
         return "treasury/document/manageinvoice/creditnote/create";
     }

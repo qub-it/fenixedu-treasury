@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.managefinantialinstitution;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -155,13 +157,13 @@ public class FinantialInstitutionController extends TreasuryBaseController {
 
         if (GlobalInterestRate.findByYear(now.getYear()).count() == 0) {
             addWarningMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "warning.GlobalInterestRate.no.interest.rate.for.current.year"), model);
+                    treasuryBundle("warning.GlobalInterestRate.no.interest.rate.for.current.year"), model);
         }
 
         if (now.getMonthOfYear() == 12) {
             if (GlobalInterestRate.findByYear(now.getYear() + 1).count() == 0) {
                 addWarningMessage(
-                        BundleUtil.getString(Constants.BUNDLE, "warning.GlobalInterestRate.no.interest.rate.for.next.year"),
+                        treasuryBundle("warning.GlobalInterestRate.no.interest.rate.for.next.year"),
                         model);
 
             }
@@ -179,12 +181,12 @@ public class FinantialInstitutionController extends TreasuryBaseController {
 
             deleteFinantialInstitution(finantialInstitution);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + tex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + getFinantialInstitution(model).getExternalId(), model, redirectAttributes);
     }
@@ -218,12 +220,12 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             setFinantialInstitutionBean(bean, model);
             FinantialInstitution finantialInstitution = createFinantialInstitution(bean);
             setFinantialInstitution(finantialInstitution, model);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
+            addInfoMessage(treasuryBundle("label.success.create"), model);
             return redirect(READ_URL + getFinantialInstitution(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         return create(model);
     }
@@ -271,12 +273,12 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(finantialInstitution, model);
             updateFinantialInstitution(bean, model);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.edit"), model);
+            addInfoMessage(treasuryBundle("label.success.edit"), model);
             return redirect(READ_URL + getFinantialInstitution(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.edit") + tex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.edit") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.edit") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.edit") + ex.getLocalizedMessage(), model);
         }
         return update(finantialInstitution, model);
     }
@@ -315,7 +317,7 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
             response.getOutputStream().write(output.getBytes("Windows-1252"));
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.upload") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.upload") + ex.getLocalizedMessage(), model);
             try {
                 response.sendRedirect(redirect(READ_URL + finantialInstitution.getExternalId(), model, redirectAttributes));
             } catch (IOException e) {
@@ -346,7 +348,7 @@ public class FinantialInstitutionController extends TreasuryBaseController {
             response.setHeader("Content-disposition", "attachment; filename=" + filename);
             response.getOutputStream().write(output.getBytes("Windows-1252"));
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.upload") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.upload") + ex.getLocalizedMessage(), model);
             try {
                 response.sendRedirect(redirect(READ_URL + finantialInstitution.getExternalId(), model, redirectAttributes));
             } catch (IOException e) {
@@ -366,11 +368,11 @@ public class FinantialInstitutionController extends TreasuryBaseController {
                     .getERPExternalServiceImplementation().getERPExporter();
 
             ERPExportOperation output = erpExporter.exportProductsToIntegration(finantialInstitution);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
+            addInfoMessage(treasuryBundle("label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
             addErrorMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
+                    treasuryBundle("label.integration.erp.exportoperation.error")
                             + ex.getLocalizedMessage(), model);
         }
         setFinantialInstitution(finantialInstitution, model);
@@ -388,11 +390,11 @@ public class FinantialInstitutionController extends TreasuryBaseController {
                     .getERPExternalServiceImplementation().getERPExporter();
 
             ERPExportOperation output = erpExporter.exportCustomersToIntegration(finantialInstitution);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.success"), model);
+            addInfoMessage(treasuryBundle("label.integration.erp.exportoperation.success"), model);
             return redirect(ERPExportOperationController.READ_URL + output.getExternalId(), model, redirectAttributes);
         } catch (Exception ex) {
             addErrorMessage(
-                    BundleUtil.getString(Constants.BUNDLE, "label.integration.erp.exportoperation.error")
+                    treasuryBundle("label.integration.erp.exportoperation.error")
                             + ex.getLocalizedMessage(), model);
         }
         setFinantialInstitution(finantialInstitution, model);

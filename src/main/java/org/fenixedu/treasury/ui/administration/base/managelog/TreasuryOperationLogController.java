@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.base.managelog;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -83,7 +85,7 @@ public class TreasuryOperationLogController extends TreasuryBaseController {
             @RequestParam(value = "logdateto", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate logDateTo,
             Model model, RedirectAttributes redirectAttributes) {
         if (!FenixFramework.isDomainObjectValid(domainObject)) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.read.object.oid.not.valid"), model);
+            addErrorMessage(treasuryBundle("error.read.object.oid.not.valid"), model);
         } else {
             setDomainObject(domainObject, model);
             setTreasuryOperationLogSet(filterSearch(domainObject.getExternalId(), null, logDateFrom, logDateTo), model);

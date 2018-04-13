@@ -221,7 +221,7 @@ public class Constants {
     // @formatter:on
 
     public static String treasuryBundle(final String key, final String... args) {
-        return BundleUtil.getString(Constants.BUNDLE, key, args);
+        return Constants.treasuryBundle(key, args);
     }
 
     public static LocalizedString treasuryBundleI18N(final String key, final String... args) {

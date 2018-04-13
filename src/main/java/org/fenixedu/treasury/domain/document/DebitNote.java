@@ -513,7 +513,7 @@ public class DebitNote extends DebitNote_Base {
 
         if (Constants.isEqual(interestDebitNote.getTotalAmount(), BigDecimal.ZERO)) {
             interestDebitNote.delete(true);
-            throw new TreasuryDomainException(BundleUtil.getString(Constants.BUNDLE, "error.DebitNote.no.interest.to.generate"));
+            throw new TreasuryDomainException(treasuryBundle("error.DebitNote.no.interest.to.generate"));
         }
         return interestDebitNote;
     }

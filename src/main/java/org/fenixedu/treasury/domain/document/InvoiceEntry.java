@@ -30,6 +30,7 @@ package org.fenixedu.treasury.domain.document;
 import static org.fenixedu.treasury.util.Constants.divide;
 import static org.fenixedu.treasury.util.Constants.isPositive;
 import static org.fenixedu.treasury.util.Constants.rationalRatRate;
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -117,13 +118,11 @@ public abstract class InvoiceEntry extends InvoiceEntry_Base {
         super.checkForDeletionBlockers(blockers);
 
         if (getFinantialDocument() != null && !getFinantialDocument().isPreparing()) {
-            blockers.add(
-                    BundleUtil.getString(Constants.BUNDLE, "error.invoiceentry.cannot.be.deleted.document.is.not.preparing"));
+            blockers.add(treasuryBundle("error.invoiceentry.cannot.be.deleted.document.is.not.preparing"));
         }
 
         if (!getSettlementEntriesSet().isEmpty()) {
-            blockers.add(BundleUtil.getString(Constants.BUNDLE,
-                    "error.invoiceentry.cannot.be.deleted.settlemententries.is.not.empty"));
+            blockers.add(treasuryBundle("error.invoiceentry.cannot.be.deleted.settlemententries.is.not.empty"));
         }
 
     }

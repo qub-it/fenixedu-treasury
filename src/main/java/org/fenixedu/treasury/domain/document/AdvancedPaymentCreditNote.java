@@ -1,5 +1,6 @@
 package org.fenixedu.treasury.domain.document;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
 import static org.fenixedu.treasury.util.Constants.treasuryBundleI18N;
 
 import java.math.BigDecimal;
@@ -80,7 +81,7 @@ public class AdvancedPaymentCreditNote extends AdvancedPaymentCreditNote_Base {
             }
         } else {
             throw new TreasuryDomainException(
-                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
+                    treasuryBundle("error.FinantialDocumentState.invalid.state.change.request"));
         }
 
         checkRules();

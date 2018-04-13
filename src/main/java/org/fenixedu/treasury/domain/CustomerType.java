@@ -27,6 +27,8 @@
  */
 package org.fenixedu.treasury.domain;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.Locale;
 import java.util.stream.Stream;
 
@@ -116,14 +118,14 @@ public class CustomerType extends CustomerType_Base {
         if (CustomerType.findAll().count() == 0) {
             CustomerType.create(
                     "CANDIDATE",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE,
+                    new LocalizedString(Locale.getDefault(), treasuryBundle(
                             "label.CustomerType.CANDIDATE")));
             CustomerType
                     .create("STUDENT",
-                            new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE,
+                            new LocalizedString(Locale.getDefault(), treasuryBundle(
                                     "label.CustomerType.STUDENT")));
             CustomerType.create("ADHOC",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.CustomerType.ADHOC")));
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.CustomerType.ADHOC")));
         }
     }
 

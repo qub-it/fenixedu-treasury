@@ -27,6 +27,9 @@
  */
 package org.fenixedu.treasury.domain;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+import static org.fenixedu.treasury.util.Constants.treasuryBundleI18N;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -202,7 +205,7 @@ public class Product extends Product_Base {
     }
 
     public static LocalizedString defaultUnitOfMeasure() {
-        return BundleUtil.getLocalizedString(Constants.BUNDLE, "label.unitOfMeasure.default");
+        return treasuryBundleI18N("label.unitOfMeasure.default");
     }
     
     public static Stream<Product> findAllLegacy() {

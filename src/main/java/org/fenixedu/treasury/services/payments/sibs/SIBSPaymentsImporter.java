@@ -18,6 +18,8 @@
  */
 package org.fenixedu.treasury.services.payments.sibs;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,11 +70,11 @@ public class SIBSPaymentsImporter {
         private boolean processFailed = false;
 
         public void addMessage(String message, String... args) {
-            actionMessages.add(BundleUtil.getString(Constants.BUNDLE, message, args));
+            actionMessages.add(treasuryBundle(message, args));
         }
 
         public void addError(String message, String... args) {
-            errorMessages.add(BundleUtil.getString(Constants.BUNDLE, message, args));
+            errorMessages.add(treasuryBundle(message, args));
             reportFailure();
         }
 

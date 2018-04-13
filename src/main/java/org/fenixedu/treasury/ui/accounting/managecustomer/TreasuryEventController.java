@@ -227,7 +227,7 @@ public class TreasuryEventController extends TreasuryBaseController {
             
             treasuryExemption.delete();
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
         } catch (final DomainException ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
             return read(debtAccount, treasuryEvent, model);

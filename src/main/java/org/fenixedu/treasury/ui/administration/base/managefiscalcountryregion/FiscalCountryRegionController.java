@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.base.managefiscalcountryregion;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -142,17 +144,17 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
 
             deleteFiscalCountryRegion(fiscalCountryRegion);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
             return redirect("/treasury/administration/base/managefiscalcountryregion/fiscalcountryregion/", model,
                     redirectAttributes);
 
         } catch (DomainException ex) {
             //Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
 
         } catch (Exception ex) {
             //Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
         //The default mapping is the same Read View
@@ -183,12 +185,12 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
 
         } catch (DomainException tde) {
 
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tde.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + tde.getLocalizedMessage(), model);
             return create(model);
 
         } catch (Exception tde) {
 
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tde.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + tde.getLocalizedMessage(), model);
             return create(model);
         }
     }
@@ -223,11 +225,11 @@ public class FiscalCountryRegionController extends TreasuryBaseController {
                     + getFiscalCountryRegion(model).getExternalId(), model, redirectAttributes);
 
         } catch (DomainException de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(fiscalCountryRegion, model);
 
         } catch (Exception de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(fiscalCountryRegion, model);
         }
     }

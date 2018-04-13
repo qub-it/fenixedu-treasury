@@ -1,5 +1,7 @@
 package org.fenixedu.treasury.services.groups;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.Set;
 
 import org.fenixedu.bennu.core.annotation.GroupOperator;
@@ -41,7 +43,7 @@ public class TreasuryFrontOfficeGroup extends CustomGroup {
 
     @Override
     public String getPresentationName() {
-        return BundleUtil.getString(Constants.BUNDLE, "label.TreasuryFrontOfficeGroup.description");
+        return treasuryBundle("label.TreasuryFrontOfficeGroup.description");
     }
 
     @Override

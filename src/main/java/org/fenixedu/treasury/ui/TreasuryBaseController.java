@@ -76,8 +76,8 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isManager(Authenticate.getUser())) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.manager"), model);
-            throw new SecurityException(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.manager"));
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.manager"), model);
+            throw new SecurityException(Constants.treasuryBundle("error.authorization.not.manager"));
         }
     }
 
@@ -85,8 +85,8 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isBackOfficeMember(Authenticate.getUser())) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.backoffice"), model);
-            throw new SecurityException(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.backoffice"));
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.backoffice"), model);
+            throw new SecurityException(Constants.treasuryBundle("error.authorization.not.backoffice"));
         }
     }
 
@@ -94,8 +94,8 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isFrontOfficeMember(Authenticate.getUser())) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.frontoffice"), model);
-            throw new SecurityException(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.frontoffice"));
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.frontoffice"), model);
+            throw new SecurityException(Constants.treasuryBundle("error.authorization.not.frontoffice"));
         }
     }
 
@@ -103,8 +103,8 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isBackOfficeMember(Authenticate.getUser(), finantialInstitution)) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.backoffice"), model);
-            throw new SecurityException(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.backoffice"));
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.backoffice"), model);
+            throw new SecurityException(Constants.treasuryBundle("error.authorization.not.backoffice"));
         }
     }
 
@@ -112,7 +112,7 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isAllowToModifySettlements(Authenticate.getUser(), finantialInstitution)) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.allow.to.modify.settlements"), model);
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.allow.to.modify.settlements"), model);
             throw new SecurityException(BundleUtil.getString(Constants.BUNDLE,
                     "error.authorization.not.allow.to.modify.settlements"));
         }
@@ -122,9 +122,9 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isAllowToModifyInvoices(Authenticate.getUser(), finantialInstitution)) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.allow.to.modify.invoices"), model);
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.allow.to.modify.invoices"), model);
             throw new SecurityException(
-                    BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.allow.to.modify.invoices"));
+                    Constants.treasuryBundle("error.authorization.not.allow.to.modify.invoices"));
         }
     }
 
@@ -132,8 +132,8 @@ public class TreasuryBaseController {
         if (TreasuryAccessControl.getInstance().isFrontOfficeMember(Authenticate.getUser(), finantialInstitution)) {
             return;
         } else {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.frontoffice"), model);
-            throw new SecurityException(BundleUtil.getString(Constants.BUNDLE, "error.authorization.not.frontoffice"));
+            addErrorMessage(Constants.treasuryBundle("error.authorization.not.frontoffice"), model);
+            throw new SecurityException(Constants.treasuryBundle("error.authorization.not.frontoffice"));
         }
     }
 

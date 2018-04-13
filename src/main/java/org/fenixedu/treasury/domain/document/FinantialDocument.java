@@ -27,6 +27,8 @@
  */
 package org.fenixedu.treasury.domain.document;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -277,7 +279,7 @@ public abstract class FinantialDocument extends FinantialDocument_Base {
             }
         } else {
             throw new TreasuryDomainException(
-                    BundleUtil.getString(Constants.BUNDLE, "error.FinantialDocumentState.invalid.state.change.request"));
+                    treasuryBundle("error.FinantialDocumentState.invalid.state.change.request"));
 
         }
 

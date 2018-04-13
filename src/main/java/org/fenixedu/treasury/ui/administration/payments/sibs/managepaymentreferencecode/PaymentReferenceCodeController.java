@@ -159,12 +159,12 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
             deletePaymentReferenceCode(paymentReferenceCode);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.delete"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + tex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
         return redirect(READ_URL + getPaymentReferenceCode(model).getExternalId(), model, redirectAttributes);
@@ -194,13 +194,13 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             PaymentReferenceCode paymentReferenceCode =
                     createPaymentReferenceCode(referenceCode, beginDate, endDate, state, pool);
             model.addAttribute("paymentReferenceCode", paymentReferenceCode);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.create"), model);
 
             return redirect(READ_URL + getPaymentReferenceCode(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         return create(model);
     }
@@ -240,13 +240,13 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             assertUserIsBackOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
 
             updatePaymentReferenceCode(referenceCode, beginDate, endDate, state, model);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.update"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.update"), model);
 
             return redirect(READ_URL + getPaymentReferenceCode(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.update") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.update") + ex.getLocalizedMessage(), model);
         }
         return update(paymentReferenceCode, model);
     }
@@ -262,12 +262,12 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         try {
             paymentReferenceCode.anullPaymentReferenceCode();
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.update"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.update"), model);
 
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.update") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.update") + ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + paymentReferenceCode.getExternalId(), model, redirectAttributes);
 

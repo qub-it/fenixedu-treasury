@@ -87,7 +87,7 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
 
         if (debitNote.getPaymentCodesSet().stream().anyMatch(pc -> pc.getPaymentReferenceCode().getState().isUsed())) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.paymentreferencecode.already.has.one"), model);
+            addErrorMessage(Constants.treasuryBundle("label.paymentreferencecode.already.has.one"), model);
             return redirect(DebitNoteController.READ_URL + debitNote.getExternalId(), model, redirectAttributes);
         }
 
@@ -113,9 +113,9 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             this.setPaymentReferenceCodeBean(bean, model);
 
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
         return "treasury/document/managepayments/paymentreferencecode/createpaymentcodeindebitnote";
@@ -162,9 +162,9 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             model.addAttribute("paymentReferenceCode", paymentReferenceCode);
             return redirect(DebitNoteController.READ_URL + bean.getDebitNote().getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         this.setPaymentReferenceCodeBean(bean, model);
         return "treasury/document/managepayments/paymentreferencecode/createpaymentcodeindebitnote";
@@ -271,9 +271,9 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
 
             return redirect(TreasuryOperationLogController.READ_URL + series.getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         this.setPaymentReferenceCodeBean(bean, model);
         model.addAttribute("series", series);

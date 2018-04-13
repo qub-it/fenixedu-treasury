@@ -27,6 +27,8 @@
  */
 package org.fenixedu.treasury.domain;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,15 +104,15 @@ public class PaymentMethod extends PaymentMethod_Base {
     public static void initializePaymentMethod() {
         if (PaymentMethod.findAll().count() == 0) {
             PaymentMethod.create("NU",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.PaymentMethod.MON")), true);
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.PaymentMethod.MON")), true);
             PaymentMethod.create("TB",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.PaymentMethod.WTR")), true);
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.PaymentMethod.WTR")), true);
             PaymentMethod.create("MB",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.PaymentMethod.ELE")), true);
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.PaymentMethod.ELE")), true);
             PaymentMethod.create("CD",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.PaymentMethod.CCR")), true);
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.PaymentMethod.CCR")), true);
             PaymentMethod.create("CH",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.PaymentMethod.CH")), true);
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.PaymentMethod.CH")), true);
         }
     }
 

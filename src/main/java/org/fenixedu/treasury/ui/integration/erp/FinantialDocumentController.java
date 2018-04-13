@@ -129,7 +129,7 @@ public class FinantialDocumentController extends TreasuryBaseController {
             return redirect(SettlementNoteController.READ_URL + finantialDocument.getExternalId(), model, redirectAttributes);
         }
 
-        addWarningMessage(BundleUtil.getString(Constants.BUNDLE, "warning.integration.erp.invalid.document.type"), model);
+        addWarningMessage(Constants.treasuryBundle("warning.integration.erp.invalid.document.type"), model);
         return search(finantialDocument.getInstitutionForExportation(), model, redirectAttributes);
     }
 
@@ -154,17 +154,17 @@ public class FinantialDocumentController extends TreasuryBaseController {
             List<ERPExportOperation> exportPendingDocumentsForFinantialInstitution =
                     ERPExporterManager.exportPendingDocumentsForFinantialInstitution(finantialInstitution);
             if (exportPendingDocumentsForFinantialInstitution.size() == 0) {
-                addWarningMessage(BundleUtil.getString(Constants.BUNDLE, "warning.integration.erp.no.documents.to.export"),
+                addWarningMessage(Constants.treasuryBundle("warning.integration.erp.no.documents.to.export"),
                         model);
                 return redirect(SEARCH_URL, model, redirectAttributes);
             } else if (exportPendingDocumentsForFinantialInstitution.size() == 1) {
-                addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "info.integration.erp.success.export"), model);
+                addInfoMessage(Constants.treasuryBundle("info.integration.erp.success.export"), model);
                 return redirect(
                         ERPExportOperationController.READ_URL
                                 + exportPendingDocumentsForFinantialInstitution.get(0).getExternalId(),
                         model, redirectAttributes);
             } else {
-                addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "info.integration.erp.multiple.success.export"), model);
+                addInfoMessage(Constants.treasuryBundle("info.integration.erp.multiple.success.export"), model);
                 return redirect(ERPExportOperationController.SEARCH_URL, model, redirectAttributes);
             }
         } catch (Exception ex) {
@@ -209,10 +209,10 @@ public class FinantialDocumentController extends TreasuryBaseController {
             for (FinantialDocument document : finantialDocuments) {
                 // document.clearDocumentToExport();
             }
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.create"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         return redirect(SEARCH_URL, model, redirectAttributes);
     }

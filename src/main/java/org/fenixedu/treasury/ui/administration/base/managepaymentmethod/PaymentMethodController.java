@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.base.managepaymentmethod;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -133,12 +135,12 @@ public class PaymentMethodController extends TreasuryBaseController {
 
             deletePaymentMethod(paymentMethod);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
             return redirect(SEARCH_URL, model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + tde.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + getPaymentMethod(model).getExternalId(), model, redirectAttributes);
     }
@@ -159,9 +161,9 @@ public class PaymentMethodController extends TreasuryBaseController {
 
             return redirect(READ_URL + getPaymentMethod(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tde.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
         } catch (Exception de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + de.getLocalizedMessage(), model);
         }
         return create(model);
     }
@@ -191,9 +193,9 @@ public class PaymentMethodController extends TreasuryBaseController {
             updatePaymentMethod(code, name, availableForPaymentInApplication, model);
             return redirect(READ_URL + getPaymentMethod(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + tde.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + tde.getLocalizedMessage(), model);
         } catch (Exception de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
         }
         return update(paymentMethod, model);
     }

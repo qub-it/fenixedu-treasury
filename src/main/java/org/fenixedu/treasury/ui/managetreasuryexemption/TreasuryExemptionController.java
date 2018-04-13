@@ -112,13 +112,13 @@ public class TreasuryExemptionController extends TreasuryBaseController {
             TreasuryExemption.create(bean.getTreasuryExemptionType(), bean.getTreasuryEvent(), bean.getReason(),
                     bean.getValuetoexempt(), bean.getDebitEntry());
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.create"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.create"), model);
 
             return redirect(treasuryEventUrl(debtAccount, bean.getTreasuryEvent()), model, redirectAttributes);
         } catch (TreasuryDomainException tex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + tex.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         
         return create(debtAccount, bean.getTreasuryEvent(), model);

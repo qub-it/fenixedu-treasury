@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.base.managevat;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -116,7 +118,7 @@ public class VatController extends TreasuryBaseController {
                             vatType -> {
                                 if (!Vat.findActiveUnique(vatType, inst, new DateTime()).isPresent()) {
                                     addErrorMessage(
-                                            BundleUtil.getString(Constants.BUNDLE, "label.Vat.missing.vattype.for",
+                                            treasuryBundle("label.Vat.missing.vattype.for",
                                                     inst.getName(), vatType.getName().getContent()), model);
                                 }
                             });
@@ -163,16 +165,16 @@ public class VatController extends TreasuryBaseController {
 
             deleteVat(vat);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
             return redirect("/treasury/administration/base/managevat/vat/", model, redirectAttributes);
 
         } catch (DomainException ex) {
             //Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
 
         } catch (Exception ex) {
             //Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
         //The default mapping is the same Read View
@@ -210,12 +212,12 @@ public class VatController extends TreasuryBaseController {
 
         } catch (DomainException de) {
 
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + de.getLocalizedMessage(), model);
             return create(model);
 
         } catch (Exception de) {
 
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.create") + de.getLocalizedMessage(), model);
             return create(model);
         }
     }
@@ -254,11 +256,11 @@ public class VatController extends TreasuryBaseController {
                     redirectAttributes);
 
         } catch (DomainException de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(vat, model);
 
         } catch (Exception de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(vat, model);
         }
     }

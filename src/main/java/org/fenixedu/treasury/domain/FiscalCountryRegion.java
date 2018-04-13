@@ -27,6 +27,8 @@
  */
 package org.fenixedu.treasury.domain;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,15 +62,15 @@ public class FiscalCountryRegion extends FiscalCountryRegion_Base {
         if (FiscalCountryRegion.findAll().count() == 0) {
             FiscalCountryRegion.create(
                     "PT",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE,
+                    new LocalizedString(Locale.getDefault(), treasuryBundle(
                             "label.FiscalCountryRegion.PT")));
             FiscalCountryRegion.create(
                     "PT_MA",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE,
+                    new LocalizedString(Locale.getDefault(), treasuryBundle(
                             "label.FiscalCountryRegion.PT_MA")));
             FiscalCountryRegion.create(
                     "PT_AZ",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE,
+                    new LocalizedString(Locale.getDefault(), treasuryBundle(
                             "label.FiscalCountryRegion.PT_AZ")));
         }
     }

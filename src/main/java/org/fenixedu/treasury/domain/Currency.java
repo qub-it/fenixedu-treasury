@@ -27,6 +27,8 @@
  */
 package org.fenixedu.treasury.domain;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
@@ -50,8 +52,8 @@ public class Currency extends Currency_Base {
     public static void initializeCurrency() {
         if (Currency.findAll().count() == 0) {
             Currency.create("EUR",
-                    new LocalizedString(Locale.getDefault(), BundleUtil.getString(Constants.BUNDLE, "label.Currency.EUR")),
-                    BundleUtil.getString(Constants.BUNDLE, "label.Currency.EUR"), "€");
+                    new LocalizedString(Locale.getDefault(), treasuryBundle("label.Currency.EUR")),
+                    treasuryBundle("label.Currency.EUR"), "€");
         }
     }
 

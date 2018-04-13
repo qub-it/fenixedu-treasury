@@ -157,7 +157,7 @@ public class DebitEntry extends DebitEntry_Base {
 
         getInterestDebitEntriesSet().stream().forEach(ide -> ide.checkForDeletionBlockers(blockers));
         if (!getCreditEntriesSet().isEmpty()) {
-            blockers.add(BundleUtil.getString(Constants.BUNDLE, "error.DebitEntry.cannot.delete.has.creditentries"));
+            blockers.add(treasuryBundle("error.DebitEntry.cannot.delete.has.creditentries"));
         }
 
     }

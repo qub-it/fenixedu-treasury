@@ -819,7 +819,7 @@ public class SingapSiagExporter implements IERPExporter {
                         product.getVatExemptionReason().getCode() + "-" + product.getVatExemptionReason().getName().getContent());
             } else {
                 // HACK : DEFAULT
-                line.setTaxExemptionReason(BundleUtil.getString(Constants.BUNDLE, "warning.ERPExporter.vat.exemption.unknown"));
+                line.setTaxExemptionReason(treasuryBundle("warning.ERPExporter.vat.exemption.unknown"));
             }
         }
 

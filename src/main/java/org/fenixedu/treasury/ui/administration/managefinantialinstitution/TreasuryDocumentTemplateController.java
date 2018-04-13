@@ -104,13 +104,13 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(finantialInstitution, model);
 
             deleteDocumentTemplate(documentTemplate);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.delete"), model);
             return redirect(FinantialInstitutionController.READ_URL + finantialInstitution.getExternalId(), model,
                     redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + getDocumentTemplate(model).getExternalId(), model, redirectAttributes);
     }
@@ -126,9 +126,9 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
             TreasuryDocumentTemplate documentTemplate = createDocumentTemplate(finantialDocumentTypes, finantialEntity);
             model.addAttribute("documentTemplate", documentTemplate);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
         }
         return redirect(FinantialInstitutionController.READ_URL + finantialEntity.getFinantialInstitution().getExternalId(),
                 model, redirectAttributes);
@@ -152,11 +152,11 @@ public class TreasuryDocumentTemplateController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(documentTemplate.getFinantialEntity().getFinantialInstitution(), model);
 
             uploadDocumentTemplateFile(documentTemplate, documentTemplateFile, model);
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.upload"), model);
+            addInfoMessage(Constants.treasuryBundle("label.success.upload"), model);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.upload") + tde.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.upload") + tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.upload") + ex.getLocalizedMessage(), model);
+            addErrorMessage(Constants.treasuryBundle("label.error.upload") + ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + getDocumentTemplate(model).getExternalId(), model, redirectAttributes);
     }

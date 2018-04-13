@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.administration.base.managecustomertype;
 
+import static org.fenixedu.treasury.util.Constants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -153,16 +155,16 @@ public class CustomerTypeController extends TreasuryBaseController {
 
             deleteCustomerType(customerType);
 
-            addInfoMessage(BundleUtil.getString(Constants.BUNDLE, "label.success.delete"), model);
+            addInfoMessage(treasuryBundle("label.success.delete"), model);
             return redirect("/treasury/administration/base/managecustomertype/customertype/", model, redirectAttributes);
 
         } catch (DomainException ex) {
             // Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
 
         } catch (Exception ex) {
             // Add error messages to the list
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.delete") + ex.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.delete") + ex.getLocalizedMessage(), model);
         }
 
         // The default mapping is the same Read View
@@ -249,11 +251,11 @@ public class CustomerTypeController extends TreasuryBaseController {
                     + getCustomerType(model).getExternalId(), model, redirectAttributes);
 
         } catch (DomainException de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(customerType, model);
 
         } catch (Exception de) {
-            addErrorMessage(BundleUtil.getString(Constants.BUNDLE, "label.error.update") + de.getLocalizedMessage(), model);
+            addErrorMessage(treasuryBundle("label.error.update") + de.getLocalizedMessage(), model);
             return update(customerType, model);
 
         }
