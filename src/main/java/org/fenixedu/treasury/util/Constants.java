@@ -221,11 +221,11 @@ public class Constants {
     // @formatter:on
 
     public static String treasuryBundle(final String key, final String... args) {
-        return Constants.treasuryBundle(key, args);
+        return BundleUtil.getString(BUNDLE, key, args);
     }
 
     public static LocalizedString treasuryBundleI18N(final String key, final String... args) {
-        return BundleUtil.getLocalizedString(Constants.BUNDLE, key, args);
+        return BundleUtil.getLocalizedString(BUNDLE, key, args);
     }
 
     // @formatter:off
