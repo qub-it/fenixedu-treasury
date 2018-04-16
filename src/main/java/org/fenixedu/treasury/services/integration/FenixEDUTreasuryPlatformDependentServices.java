@@ -18,6 +18,7 @@ import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.file.TreasuryFile;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.tasks.ERPExportSingleDocumentsTask;
@@ -147,13 +148,12 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
 	@Override
 	public void createFile(final IGenericFile genericFile, final String fileName, final String contentType, final byte[] content) {
 		try {
-			GenericFile file = null;
+			TreasuryFile file = new TreasuryFile(fileName, fileName, content);
 			
 			MethodUtils.invokeMethod(genericFile, "setTreasuryFile", file);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
 	}
 
 	@Override
@@ -204,7 +204,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public <T> String versioningCreatorUsername(T obj) {
         try {
-            return (String) obj.getClass().getMethod("getVersioningCreator").invoke(obj);
+            return (String) MethodUtils.invokeMethod(obj, "getVersioningCreator", null);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
                 | SecurityException e) {
             throw new RuntimeException(e);
@@ -214,7 +214,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public <T> DateTime versioningCreationDate(T obj) {
         try {
-            return (DateTime) obj.getClass().getMethod("getVersioningCreationDate").invoke(obj);
+            return (DateTime) MethodUtils.invokeMethod(obj, "getVersioningCreationDate", null);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
                 | SecurityException e) {
             throw new RuntimeException(e);
@@ -224,10 +224,10 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public <T> String versioningUpdatorUsername(T obj) {
         try {
-            Object updatedBy = obj.getClass().getMethod("getVersioningUpdatedBy").invoke(obj);
+            Object updatedBy = MethodUtils.invokeMethod(obj, "getVersioningUpdatedBy", null);
 
             if(updatedBy != null) {
-                return (String) updatedBy.getClass().getMethod("getUsername").invoke(updatedBy);
+                return (String) MethodUtils.invokeMethod(updatedBy, "getUsername", null);
             }
             
             return null;
@@ -241,10 +241,10 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public <T> DateTime versioningUpdateDate(T obj) {
         try {
-            Object updatedBy = obj.getClass().getMethod("getVersioningUpdatedBy").invoke(obj);
+            Object updatedBy = MethodUtils.invokeMethod(obj, "getVersioningUpdatedBy", null);
 
             if(updatedBy != null) {
-                return (DateTime) updatedBy.getClass().getMethod("getDate").invoke(updatedBy);
+                return (DateTime) MethodUtils.invokeMethod(updatedBy, "getDate", null);
             }
             
             return null;

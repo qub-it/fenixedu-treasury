@@ -22,7 +22,7 @@ public interface IGenericFile extends DomainObject {
 		return treasuryPlatformServices().getFileContent(this);
 	}
 
-	default public long getSize() {
+	default public Long getSize() {
 		return treasuryPlatformServices().getFileSize(this);
 	}
 

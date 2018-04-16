@@ -42,7 +42,7 @@ valueType pt.ist.standards.geographic.District as District {
     internalizeWith pt.ist.standards.geographic.TreasuryGeographicInfoLoader.internalizePlace();
 }
 
-valueType pt.ist.standards.geographic.Country as Country {
+valueType pt.ist.standards.geographic.Country as GeographicCountry {
     externalizeWith {
         String pt.ist.standards.geographic.TreasuryGeographicInfoLoader.externalizePlace();
     }
@@ -138,7 +138,7 @@ class FinantialInstitution {
 	String name (REQUIRED);
 	String companyName;
 	String address;
-	Country country;
+	GeographicCountry country;
 	District district;
 	Municipality municipality;
 	String email;
@@ -215,6 +215,7 @@ class document.TreasuryDocumentTemplate {
 
 class document.TreasuryDocumentTemplateFile extends .org.fenixedu.bennu.io.domain.GenericFile {
     boolean active;
+	String fileId;
 }
 
 /*-----------
@@ -679,15 +680,17 @@ class paymentcodes.PaymentReferenceCode
 	}
 	
 	class paymentcodes.SibsReportFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-	  DateTime whenProcessedBySibs;
-	  BigDecimalT transactionsTotalAmount;
-	  BigDecimalT totalCost;
-	  String errorLog;
-	  String infoLog;
+		DateTime whenProcessedBySibs;
+		BigDecimalT transactionsTotalAmount;
+		BigDecimalT totalCost;
+		String errorLog;
+		String infoLog;
+		String fileId;
 	}
 	
 	class paymentcodes.SibsInputFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-	DateTime whenProcessedBySibs;
+		DateTime whenProcessedBySibs;
+		String fileId;
 	}
 
 
@@ -719,16 +722,16 @@ class paymentcodes.PaymentReferenceCode
             }
         }
         
-        class paymentcodes.SibsOutputFile extends .org.fenixedu.bennu.io.domain.GenericFile
-        {
-		      String errorLog;
-		      String infoLog;
-		      String printedPaymentCodes;
-		      DateTime lastSuccessfulExportation;
+        class paymentcodes.SibsOutputFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+			String errorLog;
+			String infoLog;
+			String printedPaymentCodes;
+			DateTime lastSuccessfulExportation;
+			String fileId;
         }
         
-class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFile 
-{
+class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+	String fileId;
 }
 
 class integration.IntegrationOperation
@@ -1976,6 +1979,7 @@ class forwardpayments.ForwardPaymentConfiguration {
 	}
 
 class forwardpayments.ForwardPaymentConfigurationFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+	String fileId;
 }
 
 	relation ForwardPaymentConfigurationFileBennu {
@@ -2069,6 +2073,7 @@ class forwardpayments.ForwardPayment {
 	}
 
 class forwardpayments.ForwardPaymentLogFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+	String fileId;
 }
 
 class forwardpayments.ForwardPaymentLog {
@@ -2124,6 +2129,7 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 	DateTime postForwardPaymentsExecutionDate;
 	DateTime beginDate;
 	DateTime endDate;
+	String fileId;
 }
 
 	relation PostForwardPaymentsReportFileBennu {
@@ -2136,3 +2142,99 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 		}
 	}
 	
+	
+	
+/* GenericFile Migration */
+
+class file.TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+}
+
+	relation TreasuryFileBennu {
+	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+	        multiplicity 1..1;
+	    }
+	    
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity *;
+		}
+	}
+
+	relation TreasuryDocumentTemplateFileTreasuryFile {
+		document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFile {
+			multiplicity 0..1;
+		}
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+
+	relation SibsReportFileTreasuryFile {
+		paymentcodes.SibsReportFile playsRole sibsReportFile {
+			multiplicity 0..1;
+		}
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation SibsInputFileTreasuryFile {
+		paymentcodes.SibsInputFile playsRole sibsInputFile {
+			multiplicity 0..1;
+		}	
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation SibsOutputFileTreasuryFile {
+		paymentcodes.SibsOutputFile playsRole sibsOutputFile {
+			multiplicity 0..1;
+		}	
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+
+	relation OperationFileTreasuryFile {
+		integration.OperationFile playsRole operationFile {
+			multiplicity 0..1;
+		}	
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation ForwardPaymentConfigurationFileTreasuryFile {
+		forwardpayments.ForwardPaymentConfigurationFile playsRole forwardPaymentConfigurationFile {
+			multiplicity 0..1;
+		}	
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation ForwardPaymentLogFileTreasuryFile {
+		forwardpayments.ForwardPaymentLogFile playsRole forwardPaymentLogFile {
+			multiplicity 0..1;
+		}
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation PostForwardPaymentsReportFileTreasuryFile {
+		forwardpayments.PostForwardPaymentsReportFile playsRole postForwardPaymentsReportFile {
+			multiplicity 0..1;
+		}
+		
+		file.TreasuryFile playsRole treasuryFile {
+			multiplicity 0..1;
+		}
+	}
