@@ -27,6 +27,7 @@
 
 package org.fenixedu.treasury.domain.document;
 
+import static org.fenixedu.bennu.core.domain.Bennu.getInstance;
 import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
 
 import java.io.InputStream;
@@ -39,34 +40,39 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base implements IGenericFile {
+public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base /* implements IGenericFile */ {
 
     public static final String CONTENT_TYPE = "application/vnd.oasis.opendocument.text";
     public static final String FILE_EXTENSION = ".odt";
 
     protected TreasuryDocumentTemplateFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setBennu(getInstance());
     }
 
     protected TreasuryDocumentTemplateFile(final TreasuryDocumentTemplate documentTemplate, final boolean active,
             final String displayName, final String fileName, final byte[] content) {
         this();
-        this.init(displayName, fileName, new byte[0]);
         setTreasuryDocumentTemplate(documentTemplate);
         setActive(active);
-
+        
         documentTemplate.activateFile(this);
-
-        treasuryPlatformServices().createFile(this, fileName, CONTENT_TYPE, content);
         
         checkRules();
+
+        TreasuryDocumentTemplateFileDomainObject.copyAndAssociate(this);
     }
 
     private void checkRules() {
         if (getTreasuryDocumentTemplate() == null) {
             throw new TreasuryDomainException("error.TreasuryDocumentTemplateFile.documentTemplate.required");
+        }
+        
+        // Check File
+        if(getCreationDate() == null) {
+            throw new TreasuryDomainException("error.TreasuryDocumentTemplateFile.file.required");
         }
     }
 
@@ -76,6 +82,10 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         setActive(active);
 
         checkRules();
+        
+        if(getTreasuryDocumentTemplateFile() != null) {
+            getTreasuryDocumentTemplateFile().edit(documentTemplate, active);
+        }
     }
 
     public boolean isDeletable() {
@@ -91,9 +101,53 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
 
         setBennu(null);
         setTreasuryDocumentTemplate(null);
+        
+        if(getTreasuryDocumentTemplateFile() != null) {
+            getTreasuryDocumentTemplateFile().delete(); 
+        }
+        
         super.delete();
     }
 
+    /* FROM IGenericFile */
+    
+//    @Override
+//    public byte[] getContent() {
+//        return treasuryPlatformServices().getFileContent(this);
+//    }
+//
+//    @Override
+//    public Long getSize() {
+//        return treasuryPlatformServices().getFileSize(this);
+//    }
+//
+//    @Override
+//    public DateTime getCreationDate() {
+//        return treasuryPlatformServices().getFileCreationDate(this);
+//    }
+//
+//    @Override
+//    public String getFilename() {
+//        return treasuryPlatformServices().getFilename(this);
+//    }
+//
+//    @Override
+//    public InputStream getStream() {
+//        return treasuryPlatformServices().getFileStream(this);
+//    }
+//
+//    @Override
+//    public String getContentType() {
+//        return treasuryPlatformServices().getFileContentType(this);
+//    }
+
+//    @Override
+//    public boolean isAccessible(String username) {
+//        return User.findByUsername(username) != null;
+//    }
+
+    /* SERVICES */
+    
     @Atomic
     static TreasuryDocumentTemplateFile create(final TreasuryDocumentTemplate documentTemplate, final String displayName,
             final String fileName, final byte[] content) {
@@ -113,62 +167,6 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     @Override
     public boolean isAccessible(User user) {
         return user != null;
-    }
-
-    @Override
-    public boolean isAccessible(String username) {
-        return isAccessible(User.findByUsername(username));
-    }
-    
-    @Override
-    public byte[] getContent() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFileContent(this);
-        }
-        
-        return super.getContent();
-    }
-
-    @Override
-    public Long getSize() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFileSize(this);
-        }
-        
-        return super.getSize();
-    }
-
-    @Override
-    public DateTime getCreationDate() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFileCreationDate(this);
-        }
-        
-        return super.getCreationDate();
-    }
-
-    public String getFilename() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFilename(this);
-        }
-        
-        return super.getFilename();
-    }
-
-    public InputStream getStream() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFileStream(this);
-        }
-        
-        return super.getStream();
-    }
-
-    public String getContentType() {
-        if(getTreasuryFile() != null) {
-            return treasuryPlatformServices().getFileContentType(this);
-        }
-        
-        return super.getContentType();
     }
     
 }

@@ -61,6 +61,11 @@ public class OperationFile extends OperationFile_Base {
     @Atomic
     public void edit() {
         checkRules();
+
+        if(getOperationFile() != null) {
+            getOperationFile().edit();
+        }
+        
     }
 
     public boolean isDeletable() {
@@ -77,6 +82,10 @@ public class OperationFile extends OperationFile_Base {
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
 
+        if(getOperationFile() != null) {
+            getOperationFile().delete();
+        }
+        
         super.delete();
     }
 
@@ -85,6 +94,9 @@ public class OperationFile extends OperationFile_Base {
         OperationFile operationFile = new OperationFile();
         operationFile.init(fileName, fileName, bytes);
         operationFile.setIntegrationOperation(operation);
+        
+        OperationFileDomainObject.copyAndAssociate(operationFile);
+        
         return operationFile;
     }
 
@@ -93,6 +105,9 @@ public class OperationFile extends OperationFile_Base {
         OperationFile operationFile = new OperationFile();
         operationFile.init(fileName, fileName, bytes);
         operationFile.setLogIntegrationOperation(operation);
+
+        OperationFileDomainObject.copyAndAssociate(operationFile);
+
         return operationFile;
     }
 

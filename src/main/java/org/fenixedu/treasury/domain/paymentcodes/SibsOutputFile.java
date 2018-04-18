@@ -50,6 +50,9 @@ public class SibsOutputFile extends SibsOutputFile_Base {
             file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
             file.setErrorLog(builder.toString());
         }
+        
+        SibsOutputFileDomainObject.copyAndAssociate(file);
+        
         return file;
     }
 
@@ -186,6 +189,10 @@ public class SibsOutputFile extends SibsOutputFile_Base {
         setInfoLog(infoLog);
         setPrintedPaymentCodes(printedPaymentCodes);
         checkRules();
+        
+        if(getSibsOutputFile() != null) {
+            getSibsOutputFile().edit(finantialInstitution, errorLog, infoLog, printedPaymentCodes);
+        }
     }
 
     @Override
@@ -200,14 +207,10 @@ public class SibsOutputFile extends SibsOutputFile_Base {
 
         setFinantialInstitution(null);
         super.delete();
-    }
-
-    @Atomic
-    public static SibsOutputFile create(final FinantialInstitution finantialInstitution, final java.lang.String errorLog,
-            final java.lang.String infoLog, final java.lang.String printedPaymentCodes) {
-        SibsOutputFile sibsOutputFile = new SibsOutputFile();
-        sibsOutputFile.init(finantialInstitution, errorLog, infoLog, printedPaymentCodes);
-        return sibsOutputFile;
+        
+        if(getSibsOutputFile() != null) {
+            getSibsOutputFile().delete();
+        }
     }
 
     public static Stream<SibsOutputFile> findAll() {

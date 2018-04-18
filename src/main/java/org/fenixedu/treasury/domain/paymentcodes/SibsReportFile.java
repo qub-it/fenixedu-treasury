@@ -37,14 +37,12 @@ import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.payments.sibs.SIBSImportationFileDTO;
 import org.fenixedu.treasury.services.payments.sibs.SIBSPaymentsImporter.ProcessResult;
-import org.fenixedu.treasury.util.Constants;
 import org.fenixedu.treasury.util.streaming.spreadsheet.ExcelSheet;
 import org.fenixedu.treasury.util.streaming.spreadsheet.Spreadsheet;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.FenixFramework;
 
 public class SibsReportFile extends SibsReportFile_Base {
 
@@ -62,6 +60,8 @@ public class SibsReportFile extends SibsReportFile_Base {
         this.init(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
 
         checkRules();
+        
+        SibsReportFileDomainObject.copyAndAssociate(this);
     }
 
     protected void init(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount, final BigDecimal totalCost,
@@ -83,6 +83,10 @@ public class SibsReportFile extends SibsReportFile_Base {
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
         checkRules();
+        
+        if(getSibsReportFile() != null) {
+            getSibsReportFile().edit(whenProcessedBySibs, transactionsTotalAmount, totalCost);
+        }
     }
 
     public boolean isDeletable() {
@@ -202,5 +206,9 @@ public class SibsReportFile extends SibsReportFile_Base {
             build.append(s + "\n");
         }
         this.setInfoLog(build.toString());
+        
+        if(getSibsReportFile() != null) {
+            getSibsReportFile().updateLogMessages(result);
+        }
     }
 }

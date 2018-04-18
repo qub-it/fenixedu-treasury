@@ -21,11 +21,17 @@ public class ForwardPaymentConfigurationFile extends ForwardPaymentConfiguration
         
         file.init(filename, filename, contents);
         
+        ForwardPaymentConfigurationFileDomainObject.create(file);
+        
         return file;
     }
     
     @Override
     public void delete() {
+        if(getVirtualTPACertificate() != null) {
+            getVirtualTPACertificate().delete(); 
+        }
+
         setBennu(null);
         super.delete();
     }

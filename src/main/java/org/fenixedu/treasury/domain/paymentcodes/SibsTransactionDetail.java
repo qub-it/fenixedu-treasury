@@ -23,6 +23,9 @@ public class SibsTransactionDetail extends SibsTransactionDetail_Base {
             final String customerId, final String businessIdentification, final String fiscalNumber, final String customerName,
             final String settlementDocumentNumber) {
         setSibsReport(sibsReport);
+        
+        setSibsReportDomainObject(sibsReport.getSibsReportFile());
+        
         setComments(comments);
         setWhenProcessed(whenProcessed);
         setWhenRegistered(whenRegistered);
@@ -90,6 +93,9 @@ public class SibsTransactionDetail extends SibsTransactionDetail_Base {
             final String customerId, final String businessIdentification, final String fiscalNumber, final String customerName,
             final String settlementDocumentNumber) {
         setSibsReport(sibsReport);
+
+        setSibsReportDomainObject(sibsReport.getSibsReportFile());
+        
         setComments(comments);
         setWhenProcessed(whenProcessed);
         setWhenRegistered(whenRegistered);
@@ -122,6 +128,9 @@ public class SibsTransactionDetail extends SibsTransactionDetail_Base {
     public void delete() {
         TreasuryDomainException.throwWhenDeleteBlocked(getDeletionBlockers());
         super.setSibsReport(null);
+        
+        super.setSibsReportDomainObject(null);
+        
         deleteDomainObject();
     }
 

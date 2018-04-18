@@ -70,6 +70,10 @@ public class SibsInputFile extends SibsInputFile_Base {
     @Atomic
     public void edit() {
         checkRules();
+        
+        if(getSibsInputFile() != null) {
+            getSibsInputFile().edit();
+        }        
     }
 
     public boolean isDeletable() {
@@ -85,13 +89,22 @@ public class SibsInputFile extends SibsInputFile_Base {
 
         setFinantialInstitution(null);
         setUploader(null);
+        
+        if(getSibsInputFile() != null) {
+            getSibsInputFile().delete();
+        }
+        
         super.delete();
     }
 
     @Atomic
     public static SibsInputFile create(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS,
             String displayName, String filename, byte[] content, User uploader) {
-        return new SibsInputFile(finantialInstitution, whenProcessedBySIBS, displayName, filename, content, uploader);
+        SibsInputFile result = new SibsInputFile(finantialInstitution, whenProcessedBySIBS, displayName, filename, content, uploader);
+        
+        SibsInputFileDomainObject.copyAndAssociate(result);
+        
+        return result;
 
     }
 
@@ -111,4 +124,5 @@ public class SibsInputFile extends SibsInputFile_Base {
     public boolean isAccessible(User arg0) {
         return true;
     }
+    
 }
