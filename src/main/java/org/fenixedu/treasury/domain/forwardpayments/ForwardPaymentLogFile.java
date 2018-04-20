@@ -38,7 +38,9 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
         final ForwardPaymentLogFile logFile = new ForwardPaymentLogFile(
                 String.format("requestBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForRequest(log);
-
+        
+        ForwardPaymentLogFileDomainObject.copyAndAssociate(logFile);
+        
         return logFile;
     }
 
@@ -46,6 +48,8 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
         final ForwardPaymentLogFile logFile = new ForwardPaymentLogFile(
                 String.format("responseBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForResponse(log);
+
+        ForwardPaymentLogFileDomainObject.copyAndAssociate(logFile);
 
         return logFile;
     }

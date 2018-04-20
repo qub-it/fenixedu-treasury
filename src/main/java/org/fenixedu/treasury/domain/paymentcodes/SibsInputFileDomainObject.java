@@ -79,18 +79,6 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
         return domainObject;
     }
 
-    public static Stream<SibsInputFile> findAll() {
-        Set<SibsInputFile> result = new HashSet<SibsInputFile>();
-        for (FinantialInstitution finantialInstitution : FinantialInstitution.findAll().collect(Collectors.toList())) {
-            result.addAll(finantialInstitution.getSibsInputFilesSet());
-        }
-        return result.stream();
-    }
-
-    public static Stream<SibsInputFile> findByUploader(final User uploader) {
-        return uploader.getSibsInputFilesSet().stream();
-    }
-
     public boolean isAccessible(User arg0) {
         return true;
     }    

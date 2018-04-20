@@ -746,7 +746,7 @@ class paymentcodes.PaymentReferenceCode
 	}
 	
 		relation SibsReportFileBennu {
-			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+			.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
 				multiplicity 1..1;
 			}
 				  
@@ -764,7 +764,6 @@ class paymentcodes.PaymentReferenceCode
 				multiplicity *;
 			}
 		}
-	
 
      class paymentcodes.SibsTransactionDetail  {
         String comments;
@@ -832,11 +831,11 @@ class paymentcodes.PaymentReferenceCode
 		}
         
         relation SibsReportFileDomainObjectSibsReportFile {
-			paymentcodes.SibsReportFile playsRole treasuryFile {
+			paymentcodes.SibsReportFileDomainObject playsRole sibsReportFile {
 				multiplicity 0..1;
 			}
 
-			paymentcodes.SibsReportFileDomainObject playsRole sibsReportFile {
+			paymentcodes.SibsReportFile playsRole treasuryFile {
 				multiplicity 0..1;
 			}
         }
@@ -932,26 +931,25 @@ class paymentcodes.PaymentReferenceCode
 		String fileId;
 	}
         
-        
-	relation SibsOutputFileFinantialInstitution {
-		paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
-			multiplicity *;
+		relation SibsOutputFileFinantialInstitution {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
+				multiplicity *;
+			}
+			  
+			FinantialInstitution playsRole finantialInstitution {
+				multiplicity 1..1;
+			}
 		}
-		  
-		FinantialInstitution playsRole finantialInstitution {
-			multiplicity 1..1;
+		
+		relation SibsOutputFileBennu {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
+				multiplicity *;
+			}
+			      
+			.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+				multiplicity 1..1;
+			}
 		}
-	}
-	
-	relation SibsOutputFileBennu {
-		paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
-			multiplicity *;
-		}
-		      
-		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
-			multiplicity 1..1;
-		}
-	}
 
 		class paymentcodes.SibsOutputFileDomainObject {
 			String errorLog;
@@ -971,7 +969,7 @@ class paymentcodes.PaymentReferenceCode
 				}
 			}
 			
-			relation SibsOutputFileDomainObjectBennu {
+			relation SibsOutputFileDomainObjectDomainRoot {
 				paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFilesDomainObject {
 					multiplicity *;
 				}
@@ -1025,8 +1023,7 @@ class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFil
 	        multiplicity 1..1;
 	    }
 	    
-	    integration.IntegrationOperation playsRole integrationOperation
-	    {
+	    integration.IntegrationOperation playsRole integrationOperation {
 	        multiplicity 0..1;
 	    }
 	}
@@ -1060,8 +1057,7 @@ class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFil
 		        multiplicity 1..1;
 		    }
 		    
-		    integration.IntegrationOperation playsRole integrationOperation
-		    {
+		    integration.IntegrationOperation playsRole integrationOperation {
 		        multiplicity 0..1;
 		    }
 		}
@@ -2208,7 +2204,7 @@ class forwardpayments.ForwardPaymentConfigurationFile extends .org.fenixedu.benn
 		String fileId;
 	}
 	
-		relation ForwardPaymentConfigurationFileDomainObjectBennu {
+		relation ForwardPaymentConfigurationFileDomainObjectDomainRoot {
 	       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole virtualTPACertificateDomainObject {
 	           multiplicity *;
 	       }
@@ -2365,17 +2361,17 @@ class forwardpayments.ForwardPaymentLog {
 		String fileId;
 	}
 	
-		relation ForwardPaymentLogRequestLogFile {
-			forwardpayments.ForwardPaymentLogFileDomainObject playsRole requestLogFileDomainObject {
+		relation ForwardPaymentLogFileDomainObjectDomainRoot {
+			forwardpayments.ForwardPaymentLogFileDomainObject playsRole forwardPaymentLogFileDomainObject {
 				multiplicity *;
 			}
 			
 			.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
-				multiplicity *;
+				multiplicity 1..1;
 			}
 		}
 		
-		relation ForwardPaymentLogRequestLogFile {
+		relation ForwardPaymentLogRequestLogFileDomainObject {
 			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
 				multiplicity 0..1;
 			}
@@ -2385,7 +2381,7 @@ class forwardpayments.ForwardPaymentLog {
 			}
 		}
 		
-		relation ForwardPaymentLogResponseLogFile {
+		relation ForwardPaymentLogResponseLogFileDomainObject {
 	
 			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
 				multiplicity 0..1;
@@ -2424,6 +2420,33 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 		}
 	}
 	
+	class forwardpayments.PostForwardPaymentsReportFileDomainObject {
+		DateTime postForwardPaymentsExecutionDate;
+		DateTime beginDate;
+		DateTime endDate;
+		String fileId;
+	}
+	
+		relation PostForwardPaymentsReportFileDomainObjectDomainRoot {
+			forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole postForwardPaymentsReportFilesDomainObject {
+				multiplicity *;
+			}
+
+			.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+				multiplicity 1..1;
+			}
+		}
+		
+		relation PostForwardPaymentsReportFilePostForwardPaymentsReportFileDomainObject {
+			forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole postForwardPaymentsReportFile {
+				multiplicity 0..1;
+			}
+		
+			forwardpayments.PostForwardPaymentsReportFile playsRole treasuryFile {
+				multiplicity 0..1;
+			}
+		}
+		
 	
 /* GenericFile Migration */
 

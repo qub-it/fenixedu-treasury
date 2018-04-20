@@ -44,12 +44,12 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
 
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
-
+        this.setDomainRoot(null);
+        
         deleteDomainObject();
     }
     
     public static OperationFileDomainObject copyAndAssociate(final OperationFile operationFile) {
-
         OperationFileDomainObject domainObject = new OperationFileDomainObject();
         domainObject.setIntegrationOperation(operationFile.getIntegrationOperation());
         domainObject.setLogIntegrationOperation(operationFile.getLogIntegrationOperation());

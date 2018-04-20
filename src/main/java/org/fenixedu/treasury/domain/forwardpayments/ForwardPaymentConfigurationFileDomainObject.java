@@ -16,7 +16,7 @@ public class ForwardPaymentConfigurationFileDomainObject extends ForwardPaymentC
         return TreasuryAccessControl.getInstance().isManager(arg0);
     }
 
-    public static ForwardPaymentConfigurationFileDomainObject create(ForwardPaymentConfigurationFile forwardPaymentConfigurationFile) {
+    public static ForwardPaymentConfigurationFileDomainObject copyAndAssociate(ForwardPaymentConfigurationFile forwardPaymentConfigurationFile) {
         final ForwardPaymentConfigurationFileDomainObject domainObject = new ForwardPaymentConfigurationFileDomainObject();
         
         domainObject.setTreasuryFile(forwardPaymentConfigurationFile);

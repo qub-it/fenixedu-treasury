@@ -28,19 +28,14 @@
 package org.fenixedu.treasury.domain.document;
 
 import static org.fenixedu.bennu.core.domain.Bennu.getInstance;
-import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
 
-import java.io.InputStream;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
-import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
-import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.FenixFramework;
 
 public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base /* implements IGenericFile */ {
 

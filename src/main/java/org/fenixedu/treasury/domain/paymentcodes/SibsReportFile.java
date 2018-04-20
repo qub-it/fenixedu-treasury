@@ -60,8 +60,6 @@ public class SibsReportFile extends SibsReportFile_Base {
         this.init(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
 
         checkRules();
-        
-        SibsReportFileDomainObject.copyAndAssociate(this);
     }
 
     protected void init(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount, final BigDecimal totalCost,
@@ -129,8 +127,10 @@ public class SibsReportFile extends SibsReportFile_Base {
     @Atomic
     public static SibsReportFile create(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
             final BigDecimal totalCost, final String displayName, final String fileName, final byte[] content) {
-        return new SibsReportFile(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
+        final SibsReportFile result = new SibsReportFile(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
+        SibsReportFileDomainObject.copyAndAssociate(result);
 
+        return result;
     }
 
     protected static byte[] buildContentFor(final SIBSImportationFileDTO reportFileDTO) {

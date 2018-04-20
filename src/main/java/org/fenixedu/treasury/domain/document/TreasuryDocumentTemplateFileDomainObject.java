@@ -69,21 +69,15 @@ public class TreasuryDocumentTemplateFileDomainObject extends TreasuryDocumentTe
         deleteDomainObject();
     }
 
-    @Atomic
-    static TreasuryDocumentTemplateFileDomainObject create(final TreasuryDocumentTemplate documentTemplate, final String displayName,
-            final String fileName, final byte[] content) {
-        TreasuryDocumentTemplateFileDomainObject documentTemplateFile =
-                new TreasuryDocumentTemplateFileDomainObject(documentTemplate, false, displayName, fileName, content);
-        return documentTemplateFile;
-    }
+    public static TreasuryDocumentTemplateFileDomainObject copyAndAssociate(final TreasuryDocumentTemplateFile file) {
 
-    public static void copyAndAssociate(final TreasuryDocumentTemplateFile file) {
+        TreasuryDocumentTemplateFileDomainObject domainObject = new TreasuryDocumentTemplateFileDomainObject();
 
-//        TreasuryDocumentTemplateFileDomainObject domainObject = new TreasuryDocumentTemplateFileDomainObject();
-//
-//        domainObject.setTreasuryDocumentTemplate(file.getTreasuryDocumentTemplate());
-//        domainObject.setActive(file.getActive());
-//        domainObject.setTreasuryFile(file);
+        domainObject.setTreasuryDocumentTemplate(file.getTreasuryDocumentTemplate());
+        domainObject.setActive(file.getActive());
+        domainObject.setTreasuryFile(file);
+        
+        return domainObject;
     }
     
     public static Stream<TreasuryDocumentTemplateFileDomainObject> findAll() {
