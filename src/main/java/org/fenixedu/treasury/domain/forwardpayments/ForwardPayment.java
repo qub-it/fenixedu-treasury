@@ -3,7 +3,6 @@ package org.fenixedu.treasury.domain.forwardpayments;
 import static org.fenixedu.treasury.util.Constants.treasuryBundle;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +16,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.poi.ss.usermodel.Row;
-import pt.ist.fenixframework.DomainRoot;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.Product;
@@ -41,6 +39,7 @@ import org.fenixedu.treasury.util.streaming.spreadsheet.Spreadsheet;
 import org.fenixedu.treasury.util.streaming.spreadsheet.SpreadsheetRow;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -465,7 +464,7 @@ public class ForwardPayment extends ForwardPayment_Base {
 
                 if (reportBean != null) {
                     // @formatter:off
-                    logWriter.format("C\tPAYMENT REQUEST\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
+                    logger.info(String.format("C\tPAYMENT REQUEST\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
                             reportBean.executionDate,
                             reportBean.forwardPaymentExternalId, 
                             reportBean.forwardPaymentOrderNumber, 
@@ -482,7 +481,7 @@ public class ForwardPayment extends ForwardPayment_Base {
                             reportBean.transactionId,
                             reportBean.statusCode, 
                             reportBean.statusMessage,
-                            reportBean.remarks);
+                            reportBean.remarks));
                     
                     reportBeans.add(reportBean);
                     // @formatter:on
