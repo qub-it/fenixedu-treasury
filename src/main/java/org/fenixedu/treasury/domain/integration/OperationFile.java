@@ -27,6 +27,9 @@
  */
 package org.fenixedu.treasury.domain.integration;
 
+import java.util.stream.Stream;
+
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 
@@ -37,6 +40,7 @@ public class OperationFile extends OperationFile_Base {
     public OperationFile() {
         super();
         // this.setDomainRoot(FenixFramework.getDomainRoot());
+        setBennu(Bennu.getInstance());
     }
 
     public OperationFile(String fileName, byte[] content) {
@@ -87,6 +91,10 @@ public class OperationFile extends OperationFile_Base {
         }
         
         super.delete();
+    }
+    
+    public static Stream<OperationFile> findAll() {
+        return Bennu.getInstance().getOperationFileSet().stream();
     }
 
     @Atomic

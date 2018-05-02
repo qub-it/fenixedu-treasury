@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
@@ -26,6 +27,8 @@ public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base 
     public SibsOutputFileDomainObject() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
 
     private void checkRules() {
@@ -59,6 +62,10 @@ public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base 
         setFinantialInstitution(null);
         deleteDomainObject();
     }
+    
+    public static Stream<SibsOutputFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getSibsOutputFilesDomainObjectSet().stream();
+    }
 
     public static SibsOutputFileDomainObject copyAndAssociate(final SibsOutputFile sibsOutputFile) {
         final FinantialInstitution finantialInstitution = sibsOutputFile.getFinantialInstitution();
@@ -66,6 +73,8 @@ public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base 
         
         SibsOutputFileDomainObject domainObject = new SibsOutputFileDomainObject();
         
+        domainObject.setCreationDate(sibsOutputFile.getCreationDate());
+        domainObject.setCreator(sibsOutputFile.getVersioningCreator());
         domainObject.setFinantialInstitution(sibsOutputFile.getFinantialInstitution());
         domainObject.setErrorLog(sibsOutputFile.getErrorLog());
         domainObject.setInfoLog(sibsOutputFile.getInfoLog());

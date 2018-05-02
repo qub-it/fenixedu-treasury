@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
@@ -21,6 +22,8 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
     protected SibsInputFileDomainObject() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
 
     protected SibsInputFileDomainObject(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS, String displayName,
@@ -64,6 +67,10 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
         deleteDomainObject();
     }
 
+    public static Stream<SibsInputFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getSibsInputFilesDomainObjectSet().stream();
+    }
+    
     @Atomic
     public static SibsInputFileDomainObject copyAndAssociate(final SibsInputFile sibsInputFile) {
         final FinantialInstitution finantialInstitution = sibsInputFile.getFinantialInstitution();
@@ -74,6 +81,8 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
         
         final SibsInputFileDomainObject domainObject = new SibsInputFileDomainObject(finantialInstitution, whenProcessedBySIBS, displayName, filename, null, uploader);
         
+        domainObject.setCreationDate(sibsInputFile.getCreationDate());
+        domainObject.setCreator(sibsInputFile.getVersioningCreator());
         domainObject.setTreasuryFile(sibsInputFile);
         
         return domainObject;

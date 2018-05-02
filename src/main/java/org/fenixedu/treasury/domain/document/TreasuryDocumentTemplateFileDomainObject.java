@@ -1,12 +1,12 @@
 package org.fenixedu.treasury.domain.document;
 
-import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
-
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -19,6 +19,8 @@ public class TreasuryDocumentTemplateFileDomainObject extends TreasuryDocumentTe
     protected TreasuryDocumentTemplateFileDomainObject() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
 
     protected TreasuryDocumentTemplateFileDomainObject(final TreasuryDocumentTemplate documentTemplate, final boolean active,
@@ -73,6 +75,8 @@ public class TreasuryDocumentTemplateFileDomainObject extends TreasuryDocumentTe
 
         TreasuryDocumentTemplateFileDomainObject domainObject = new TreasuryDocumentTemplateFileDomainObject();
 
+        domainObject.setCreationDate(file.getVersioningCreationDate());
+        domainObject.setCreator(file.getVersioningCreator());
         domainObject.setTreasuryDocumentTemplate(file.getTreasuryDocumentTemplate());
         domainObject.setActive(file.getActive());
         domainObject.setTreasuryFile(file);

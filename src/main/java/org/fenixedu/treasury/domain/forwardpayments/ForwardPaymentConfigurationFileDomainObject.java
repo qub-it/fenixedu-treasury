@@ -1,7 +1,11 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+import java.util.stream.Stream;
+
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
 
@@ -10,18 +14,12 @@ public class ForwardPaymentConfigurationFileDomainObject extends ForwardPaymentC
     protected ForwardPaymentConfigurationFileDomainObject() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
     
     public boolean isAccessible(User arg0) {
         return TreasuryAccessControl.getInstance().isManager(arg0);
-    }
-
-    public static ForwardPaymentConfigurationFileDomainObject copyAndAssociate(ForwardPaymentConfigurationFile forwardPaymentConfigurationFile) {
-        final ForwardPaymentConfigurationFileDomainObject domainObject = new ForwardPaymentConfigurationFileDomainObject();
-        
-        domainObject.setTreasuryFile(forwardPaymentConfigurationFile);
-        
-        return domainObject;
     }
     
     public void delete() {
@@ -29,6 +27,22 @@ public class ForwardPaymentConfigurationFileDomainObject extends ForwardPaymentC
         setDomainRoot(null);
         
         deleteDomainObject();
+    }
+
+    public static Stream<ForwardPaymentConfigurationFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getVirtualTPACertificateDomainObjectSet().stream();
+    }
+    
+    public static ForwardPaymentConfigurationFileDomainObject copyAndAssociate(ForwardPaymentConfigurationFile forwardPaymentConfigurationFile) {
+        final ForwardPaymentConfigurationFileDomainObject domainObject = new ForwardPaymentConfigurationFileDomainObject();
+        
+        domainObject.setCreationDate(forwardPaymentConfigurationFile.getCreationDate());
+        domainObject.setCreator(forwardPaymentConfigurationFile.getVersioningCreator());
+        domainObject.setTreasuryFile(forwardPaymentConfigurationFile);
+        
+        domainObject.getForwardPaymentConfigurationSet().addAll(forwardPaymentConfigurationFile.getForwardPaymentConfigurationSet());
+        
+        return domainObject;
     }
     
 }

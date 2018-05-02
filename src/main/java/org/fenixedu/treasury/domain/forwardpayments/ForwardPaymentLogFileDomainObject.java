@@ -1,5 +1,7 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+import java.util.stream.Stream;
+
 import org.fenixedu.bennu.core.domain.User;
 import org.joda.time.DateTime;
 
@@ -30,10 +32,16 @@ public class ForwardPaymentLogFileDomainObject extends ForwardPaymentLogFileDoma
      * ********
      */
     // @formatter:on
+
+    public static Stream<ForwardPaymentLogFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getForwardPaymentLogFileDomainObjectSet().stream();
+    }
     
     public static ForwardPaymentLogFileDomainObject copyAndAssociate(final ForwardPaymentLogFile forwardPaymentLogFile) {
         ForwardPaymentLogFileDomainObject domainObject = new ForwardPaymentLogFileDomainObject();
         
+        domainObject.setCreationDate(forwardPaymentLogFile.getCreationDate());
+        domainObject.setCreator(forwardPaymentLogFile.getVersioningCreator());
         domainObject.setForwardPaymentLogsForRequest(forwardPaymentLogFile.getForwardPaymentLogsForRequest());
         domainObject.setForwardPaymentLogsForResponse(forwardPaymentLogFile.getForwardPaymentLogsForResponse());
         

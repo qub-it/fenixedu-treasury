@@ -1,7 +1,11 @@
 package org.fenixedu.treasury.domain.integration;
 
+import java.util.stream.Stream;
+
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -12,6 +16,8 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
     public OperationFileDomainObject() {
         super();
         this.setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
 
     // TODO: Implement
@@ -49,8 +55,15 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
         deleteDomainObject();
     }
     
+    public static Stream<OperationFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getOperationFileDomainObjectSet().stream();
+    }
+    
     public static OperationFileDomainObject copyAndAssociate(final OperationFile operationFile) {
-        OperationFileDomainObject domainObject = new OperationFileDomainObject();
+        final OperationFileDomainObject domainObject = new OperationFileDomainObject();
+        
+        domainObject.setCreationDate(operationFile.getCreationDate());
+        domainObject.setCreator(operationFile.getVersioningCreator());
         domainObject.setIntegrationOperation(operationFile.getIntegrationOperation());
         domainObject.setLogIntegrationOperation(operationFile.getLogIntegrationOperation());
         

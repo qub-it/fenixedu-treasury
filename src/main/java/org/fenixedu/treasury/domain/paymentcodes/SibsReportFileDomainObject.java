@@ -1,7 +1,9 @@
 package org.fenixedu.treasury.domain.paymentcodes;
 
 import java.math.BigDecimal;
+import java.util.stream.Stream;
 
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.payments.sibs.SIBSPaymentsImporter.ProcessResult;
 import org.joda.time.DateTime;
@@ -17,6 +19,8 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
     protected SibsReportFileDomainObject() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
+        setCreator(Authenticate.getUser().getUsername());
     }
 
     protected SibsReportFileDomainObject(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
@@ -76,6 +80,8 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
         
         final SibsReportFileDomainObject domainObject = new SibsReportFileDomainObject(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, null);
 
+        domainObject.setCreationDate(sibsReportFile.getCreationDate());
+        domainObject.setCreator(sibsReportFile.getVersioningCreator());
         domainObject.setInfoLog(sibsReportFile.getInfoLog());
         domainObject.setErrorLog(sibsReportFile.getErrorLog());
         domainObject.getSibsTransactionsSet().addAll(sibsReportFile.getSibsTransactionsSet());
@@ -97,6 +103,10 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
             build.append(s + "\n");
         }
         this.setInfoLog(build.toString());
+    }
+    
+    public static Stream<SibsReportFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getSibsReportFilesDomainObjectSet().stream();
     }
     
 }
