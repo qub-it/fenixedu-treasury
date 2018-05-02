@@ -38,6 +38,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.fenixedu.bennu.io.domain.GenericFile;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration;
+import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfigurationFile;
 import org.joda.time.DateTime;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -318,7 +319,7 @@ public class TPAInvocationUtil {
     }
 
     private SSLSocketFactory getFactory() throws Exception {
-        final GenericFile pKeyFile = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificate();
+        final ForwardPaymentConfigurationFile pKeyFile = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificate();
         final String pKeyPassword = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificatePassword();
 
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");

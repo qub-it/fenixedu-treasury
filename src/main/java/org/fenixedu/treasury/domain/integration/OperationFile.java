@@ -27,49 +27,39 @@
  */
 package org.fenixedu.treasury.domain.integration;
 
+import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
+
+import java.io.InputStream;
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class OperationFile extends OperationFile_Base {
+public class OperationFile extends OperationFile_Base implements IGenericFile {
 
+    public static final String CONTENT_TYPE = "application/octet-stream";
+    
     public OperationFile() {
         super();
-        // this.setDomainRoot(FenixFramework.getDomainRoot());
-        setBennu(Bennu.getInstance());
+        this.setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     public OperationFile(String fileName, byte[] content) {
         this();
-        this.init(fileName, fileName, content);
-    }
-
-    @Override
-    // TODO: Implement
-    public boolean isAccessible(User arg0) {
-        throw new RuntimeException("not implemented");
     }
 
     private void checkRules() {
-        //
-        // CHANGE_ME add more busines validations
-        //
-
-        // CHANGE_ME In order to validate UNIQUE restrictions
+        // Check that file is associated
+        treasuryPlatformServices().getFileSize(this);
     }
 
     @Atomic
     public void edit() {
         checkRules();
-
-        if(getOperationFile() != null) {
-            getOperationFile().edit();
-        }
-        
     }
 
     public boolean isDeletable() {
@@ -86,24 +76,59 @@ public class OperationFile extends OperationFile_Base {
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
 
-        if(getOperationFile() != null) {
-            getOperationFile().delete();
-        }
-        
-        super.delete();
+        super.deleteDomainObject();
     }
     
+    /* FROM IGenericFile */
+    
+    @Override
+    public byte[] getContent() {
+        return treasuryPlatformServices().getFileContent(this);
+    }
+
+    @Override
+    public Long getSize() {
+        return treasuryPlatformServices().getFileSize(this);
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return treasuryPlatformServices().getFileCreationDate(this);
+    }
+
+    @Override
+    public String getFilename() {
+        return treasuryPlatformServices().getFilename(this);
+    }
+
+    @Override
+    public InputStream getStream() {
+        return treasuryPlatformServices().getFileStream(this);
+    }
+
+    @Override
+    public String getContentType() {
+        return treasuryPlatformServices().getFileContentType(this);
+    }
+
+    @Override
+    public boolean isAccessible(String username) {
+        throw new RuntimeException("not implemented");
+    }
+
+    /* SERVICES */
+    
     public static Stream<OperationFile> findAll() {
-        return Bennu.getInstance().getOperationFileSet().stream();
+        return FenixFramework.getDomainRoot().getOperationFileSet().stream();
     }
 
     @Atomic
     public static OperationFile create(String fileName, byte[] bytes, IntegrationOperation operation) {
         OperationFile operationFile = new OperationFile();
-        operationFile.init(fileName, fileName, bytes);
+
+        treasuryPlatformServices().createFile(operationFile, fileName, CONTENT_TYPE, bytes);
+
         operationFile.setIntegrationOperation(operation);
-        
-        OperationFileDomainObject.copyAndAssociate(operationFile);
         
         return operationFile;
     }
@@ -111,10 +136,10 @@ public class OperationFile extends OperationFile_Base {
     @Atomic
     public static OperationFile createLog(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
         OperationFile operationFile = new OperationFile();
-        operationFile.init(fileName, fileName, bytes);
-        operationFile.setLogIntegrationOperation(operation);
 
-        OperationFileDomainObject.copyAndAssociate(operationFile);
+        treasuryPlatformServices().createFile(operationFile, fileName, CONTENT_TYPE, bytes);
+
+        operationFile.setLogIntegrationOperation(operation);
 
         return operationFile;
     }

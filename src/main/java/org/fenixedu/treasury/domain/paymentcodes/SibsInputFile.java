@@ -27,6 +27,9 @@
  */
 package org.fenixedu.treasury.domain.paymentcodes;
 
+import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
+
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,19 +37,21 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class SibsInputFile extends SibsInputFile_Base {
+public class SibsInputFile extends SibsInputFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "text/plain";
 
     protected SibsInputFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     protected SibsInputFile(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS, String displayName,
@@ -57,23 +62,24 @@ public class SibsInputFile extends SibsInputFile_Base {
 
     protected void init(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS, String displayName,
             String filename, byte[] content, User uploader) {
-        super.init(displayName, filename, content);
+
         setWhenProcessedBySibs(whenProcessedBySIBS);
         setUploader(uploader);
         setFinantialInstitution(finantialInstitution);
+        
+        treasuryPlatformServices().createFile(this, filename, CONTENT_TYPE, content);
+        
         checkRules();
     }
 
     private void checkRules() {
+        // Check that file is associated
+        treasuryPlatformServices().getFileSize(this);
     }
 
     @Atomic
     public void edit() {
         checkRules();
-        
-        if(getSibsInputFile() != null) {
-            getSibsInputFile().edit();
-        }        
     }
 
     public boolean isDeletable() {
@@ -90,19 +96,52 @@ public class SibsInputFile extends SibsInputFile_Base {
         setFinantialInstitution(null);
         setUploader(null);
         
-        if(getSibsInputFile() != null) {
-            getSibsInputFile().delete();
-        }
-        
-        super.delete();
+        super.deleteDomainObject();
     }
 
+    /* FROM IGenericFile */
+    
+    @Override
+    public byte[] getContent() {
+        return treasuryPlatformServices().getFileContent(this);
+    }
+
+    @Override
+    public Long getSize() {
+        return treasuryPlatformServices().getFileSize(this);
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return treasuryPlatformServices().getFileCreationDate(this);
+    }
+
+    @Override
+    public String getFilename() {
+        return treasuryPlatformServices().getFilename(this);
+    }
+
+    @Override
+    public InputStream getStream() {
+        return treasuryPlatformServices().getFileStream(this);
+    }
+
+    @Override
+    public String getContentType() {
+        return treasuryPlatformServices().getFileContentType(this);
+    }
+
+    @Override
+    public boolean isAccessible(String username) {
+        return User.findByUsername(username) != null;
+    }
+
+    /* SERVICES */
+    
     @Atomic
     public static SibsInputFile create(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS,
             String displayName, String filename, byte[] content, User uploader) {
         SibsInputFile result = new SibsInputFile(finantialInstitution, whenProcessedBySIBS, displayName, filename, content, uploader);
-        
-        SibsInputFileDomainObject.copyAndAssociate(result);
         
         return result;
 
@@ -113,16 +152,12 @@ public class SibsInputFile extends SibsInputFile_Base {
         for (FinantialInstitution finantialInstitution : FinantialInstitution.findAll().collect(Collectors.toList())) {
             result.addAll(finantialInstitution.getSibsInputFilesSet());
         }
+
         return result.stream();
     }
 
     public static Stream<SibsInputFile> findByUploader(final User uploader) {
         return uploader.getSibsInputFilesSet().stream();
-    }
-
-    @Override
-    public boolean isAccessible(User arg0) {
-        return true;
     }
     
 }

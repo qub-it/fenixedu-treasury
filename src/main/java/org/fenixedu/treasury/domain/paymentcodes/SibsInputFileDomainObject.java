@@ -75,11 +75,10 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
     public static SibsInputFileDomainObject copyAndAssociate(final SibsInputFile sibsInputFile) {
         final FinantialInstitution finantialInstitution = sibsInputFile.getFinantialInstitution();
         final DateTime whenProcessedBySIBS = sibsInputFile.getWhenProcessedBySibs();
-        final String displayName = sibsInputFile.getDisplayName();
         final String filename = sibsInputFile.getFilename();
         final User uploader = sibsInputFile.getUploader();
         
-        final SibsInputFileDomainObject domainObject = new SibsInputFileDomainObject(finantialInstitution, whenProcessedBySIBS, displayName, filename, null, uploader);
+        final SibsInputFileDomainObject domainObject = new SibsInputFileDomainObject(finantialInstitution, whenProcessedBySIBS, filename, filename, null, uploader);
         
         domainObject.setCreationDate(sibsInputFile.getCreationDate());
         domainObject.setCreator(sibsInputFile.getVersioningCreator());

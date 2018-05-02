@@ -28,23 +28,29 @@
 package org.fenixedu.treasury.domain.document;
 
 import static org.fenixedu.bennu.core.domain.Bennu.getInstance;
+import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
 
+import java.io.InputStream;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.file.TreasuryFile;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base /* implements IGenericFile */ {
+public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "application/vnd.oasis.opendocument.text";
     public static final String FILE_EXTENSION = ".odt";
 
     protected TreasuryDocumentTemplateFile() {
         super();
-        setBennu(getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     protected TreasuryDocumentTemplateFile(final TreasuryDocumentTemplate documentTemplate, final boolean active,
@@ -55,9 +61,10 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         
         documentTemplate.activateFile(this);
         
+        treasuryPlatformServices().createFile(this, fileName, CONTENT_TYPE, content);
+        
         checkRules();
 
-        TreasuryDocumentTemplateFileDomainObject.copyAndAssociate(this);
     }
 
     private void checkRules() {
@@ -69,6 +76,9 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         if(getCreationDate() == null) {
             throw new TreasuryDomainException("error.TreasuryDocumentTemplateFile.file.required");
         }
+        
+        // Check that file is associated
+        treasuryPlatformServices().getFileSize(this);
     }
 
     @Atomic
@@ -77,10 +87,6 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         setActive(active);
 
         checkRules();
-        
-        if(getTreasuryDocumentTemplateFile() != null) {
-            getTreasuryDocumentTemplateFile().edit(documentTemplate, active);
-        }
     }
 
     public boolean isDeletable() {
@@ -94,52 +100,48 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
             throw new TreasuryDomainException("error.TreasuryDocumentTemplateFile.cannot.delete");
         }
 
-        setBennu(null);
+        setDomainRoot(null);
         setTreasuryDocumentTemplate(null);
         
-        if(getTreasuryDocumentTemplateFile() != null) {
-            getTreasuryDocumentTemplateFile().delete(); 
-        }
-        
-        super.delete();
+        super.deleteDomainObject();
     }
 
     /* FROM IGenericFile */
     
-//    @Override
-//    public byte[] getContent() {
-//        return treasuryPlatformServices().getFileContent(this);
-//    }
-//
-//    @Override
-//    public Long getSize() {
-//        return treasuryPlatformServices().getFileSize(this);
-//    }
-//
-//    @Override
-//    public DateTime getCreationDate() {
-//        return treasuryPlatformServices().getFileCreationDate(this);
-//    }
-//
-//    @Override
-//    public String getFilename() {
-//        return treasuryPlatformServices().getFilename(this);
-//    }
-//
-//    @Override
-//    public InputStream getStream() {
-//        return treasuryPlatformServices().getFileStream(this);
-//    }
-//
-//    @Override
-//    public String getContentType() {
-//        return treasuryPlatformServices().getFileContentType(this);
-//    }
+    @Override
+    public byte[] getContent() {
+        return treasuryPlatformServices().getFileContent(this);
+    }
 
-//    @Override
-//    public boolean isAccessible(String username) {
-//        return User.findByUsername(username) != null;
-//    }
+    @Override
+    public Long getSize() {
+        return treasuryPlatformServices().getFileSize(this);
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return treasuryPlatformServices().getFileCreationDate(this);
+    }
+
+    @Override
+    public String getFilename() {
+        return treasuryPlatformServices().getFilename(this);
+    }
+
+    @Override
+    public InputStream getStream() {
+        return treasuryPlatformServices().getFileStream(this);
+    }
+
+    @Override
+    public String getContentType() {
+        return treasuryPlatformServices().getFileContentType(this);
+    }
+
+    @Override
+    public boolean isAccessible(String username) {
+        return User.findByUsername(username) != null;
+    }
 
     /* SERVICES */
     
@@ -152,16 +154,11 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     }
 
     public static Stream<TreasuryDocumentTemplateFile> findAll() {
-        return Bennu.getInstance().getTreasuryDocumentTemplateFilesSet().stream();
+        return FenixFramework.getDomainRoot().getTreasuryDocumentTemplateFilesSet().stream();
     }
 
     public static Stream<TreasuryDocumentTemplateFile> findByDocumentTemplate(final TreasuryDocumentTemplate documentTemplate) {
         return documentTemplate.getTreasuryDocumentTemplateFilesSet().stream();
-    }
-
-    @Override
-    public boolean isAccessible(User user) {
-        return user != null;
     }
     
 }

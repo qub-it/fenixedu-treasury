@@ -27,13 +27,16 @@
  */
 package org.fenixedu.treasury.domain.paymentcodes;
 
+import static org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory.treasuryPlatformServices;
 import static org.fenixedu.treasury.util.Constants.treasuryBundle;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.payments.sibs.SIBSImportationFileDTO;
 import org.fenixedu.treasury.services.payments.sibs.SIBSPaymentsImporter.ProcessResult;
@@ -43,15 +46,16 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class SibsReportFile extends SibsReportFile_Base {
+public class SibsReportFile extends SibsReportFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "text/plain";
     public static final String FILE_EXTENSION = ".idm";
 
     protected SibsReportFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     protected SibsReportFile(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
@@ -65,14 +69,18 @@ public class SibsReportFile extends SibsReportFile_Base {
     protected void init(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount, final BigDecimal totalCost,
             final String displayName, final String fileName, final byte[] content) {
 
-        super.init(displayName, fileName, content);
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
+        
+        treasuryPlatformServices().createFile(this, fileName, CONTENT_TYPE, content);
+        
         checkRules();
     }
 
     private void checkRules() {
+        // Check that file is associated
+        treasuryPlatformServices().getFileSize(this);
     }
 
     @Atomic
@@ -80,11 +88,8 @@ public class SibsReportFile extends SibsReportFile_Base {
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
+
         checkRules();
-        
-        if(getSibsReportFile() != null) {
-            getSibsReportFile().edit(whenProcessedBySibs, transactionsTotalAmount, totalCost);
-        }
     }
 
     public boolean isDeletable() {
@@ -98,13 +103,53 @@ public class SibsReportFile extends SibsReportFile_Base {
             throw new TreasuryDomainException("error.SibsReportFile.cannot.delete");
         }
 
-        setBennu(null);
+        setDomainRoot(null);
 
-        super.delete();
+        super.deleteDomainObject();
     }
 
+    /* FROM IGenericFile */
+    
+    @Override
+    public byte[] getContent() {
+        return treasuryPlatformServices().getFileContent(this);
+    }
+
+    @Override
+    public Long getSize() {
+        return treasuryPlatformServices().getFileSize(this);
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return treasuryPlatformServices().getFileCreationDate(this);
+    }
+
+    @Override
+    public String getFilename() {
+        return treasuryPlatformServices().getFilename(this);
+    }
+
+    @Override
+    public InputStream getStream() {
+        return treasuryPlatformServices().getFileStream(this);
+    }
+
+    @Override
+    public String getContentType() {
+        return treasuryPlatformServices().getFileContentType(this);
+    }
+
+    @Override
+    public boolean isAccessible(String username) {
+        return true;
+    }
+
+    /* SERVICES */
+    
+    
     public static Stream<SibsReportFile> findAll() {
-        return Bennu.getInstance().getSibsReportFilesSet().stream();
+        return FenixFramework.getDomainRoot().getSibsReportFilesSet().stream();
     }
 
     public static Stream<SibsReportFile> findByWhenProcessedBySibs(final LocalDate whenProcessedBySibs) {
@@ -117,11 +162,6 @@ public class SibsReportFile extends SibsReportFile_Base {
 
     public static Stream<SibsReportFile> findByTotalCost(final BigDecimal totalCost) {
         return findAll().filter(i -> totalCost.equals(i.getTotalCost()));
-    }
-
-    @Override
-    public boolean isAccessible(User arg0) {
-        return true;
     }
 
     @Atomic
@@ -211,4 +251,5 @@ public class SibsReportFile extends SibsReportFile_Base {
             getSibsReportFile().updateLogMessages(result);
         }
     }
+
 }

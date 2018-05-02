@@ -75,10 +75,9 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
         final BigDecimal transactionsTotalAmount = sibsReportFile.getTransactionsTotalAmount();
         
         final BigDecimal totalCost = sibsReportFile.getTotalCost(); 
-        final String displayName = sibsReportFile.getDisplayName(); 
         final String fileName = sibsReportFile.getFilename(); 
         
-        final SibsReportFileDomainObject domainObject = new SibsReportFileDomainObject(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, null);
+        final SibsReportFileDomainObject domainObject = new SibsReportFileDomainObject(whenProcessedBySibs, transactionsTotalAmount, totalCost, fileName, fileName, null);
 
         domainObject.setCreationDate(sibsReportFile.getCreationDate());
         domainObject.setCreator(sibsReportFile.getVersioningCreator());
