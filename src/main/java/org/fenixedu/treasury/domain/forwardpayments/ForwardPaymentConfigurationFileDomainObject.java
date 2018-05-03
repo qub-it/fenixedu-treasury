@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
@@ -34,6 +35,11 @@ public class ForwardPaymentConfigurationFileDomainObject extends ForwardPaymentC
     }
     
     public static ForwardPaymentConfigurationFileDomainObject copyAndAssociate(ForwardPaymentConfigurationFile forwardPaymentConfigurationFile) {
+
+        if(forwardPaymentConfigurationFile.getVirtualTPACertificate() != null)  {
+            throw new TreasuryDomainException("error.ForwardPaymentConfigurationFileDomainObject.already.with.copy");
+        }
+        
         final ForwardPaymentConfigurationFileDomainObject domainObject = new ForwardPaymentConfigurationFileDomainObject();
         
         domainObject.setCreationDate(forwardPaymentConfigurationFile.getCreationDate());

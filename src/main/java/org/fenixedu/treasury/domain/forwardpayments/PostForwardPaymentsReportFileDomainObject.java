@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
 import org.joda.time.DateTime;
 
@@ -38,6 +39,10 @@ public class PostForwardPaymentsReportFileDomainObject extends PostForwardPaymen
     }
     
     public static PostForwardPaymentsReportFileDomainObject copyAndAssociate(final PostForwardPaymentsReportFile file) {
+        
+        if(file.getPostForwardPaymentsReportFile() != null) {
+            throw new TreasuryDomainException("error.PostForwardPaymentsReportFileDomainObject.already.with.copy");
+        }
         
         DateTime postForwardPaymentsExecutionDate = file.getPostForwardPaymentsExecutionDate();
         DateTime beginDate = file.getBeginDate();

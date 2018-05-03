@@ -60,6 +60,11 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
     }
     
     public static OperationFileDomainObject copyAndAssociate(final OperationFile operationFile) {
+        
+        if(operationFile.getOperationFile() != null)  {
+            throw new TreasuryDomainException("error.OperationFileDomainObject.already.with.copy");
+        }
+        
         final OperationFileDomainObject domainObject = new OperationFileDomainObject();
         
         domainObject.setCreationDate(operationFile.getCreationDate());

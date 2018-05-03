@@ -2490,6 +2490,31 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 class file.TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 }
 
+	class file.TreasuryFileForTreasuryDocumentTemplateFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForSibsReportFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForSibsInputFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForSibsOutputFile extends file.TreasuryFile {
+	}
+				
+	class file.TreasuryFileForOperationFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForForwardPaymentConfigurationFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForForwardPaymentLogFile extends file.TreasuryFile {
+	}
+
+	class file.TreasuryFileForPostForwardPaymentsReportFile extends file.TreasuryFile {
+	}
+
+
 	relation TreasuryFileBennu {
 	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
 	        multiplicity 1..1;
@@ -2500,14 +2525,3 @@ class file.TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 		}
 	}
 
-/*
-		relation TreasuryDocumentTemplateFileTreasuryFile {
-			file.TreasuryFile playsRole treasuryFile {
-				multiplicity 0..1;
-			}
-		
-			document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFile {
-				multiplicity 0..1;
-			}
-		}
-*/

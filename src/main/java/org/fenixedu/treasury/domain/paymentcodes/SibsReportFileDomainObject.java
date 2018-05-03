@@ -71,6 +71,10 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
     @Atomic
     public static SibsReportFileDomainObject copyAndAssociate(final SibsReportFile sibsReportFile) {
         
+        if(sibsReportFile.getSibsReportFile() != null)  {
+            throw new TreasuryDomainException("error.TreasuryDocumentTemplateFileDomainObject.already.with.copy");
+        }
+        
         final DateTime whenProcessedBySibs = sibsReportFile.getWhenProcessedBySibs();
         final BigDecimal transactionsTotalAmount = sibsReportFile.getTransactionsTotalAmount();
         

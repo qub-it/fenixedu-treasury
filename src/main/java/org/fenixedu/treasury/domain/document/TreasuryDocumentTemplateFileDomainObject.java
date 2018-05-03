@@ -73,6 +73,10 @@ public class TreasuryDocumentTemplateFileDomainObject extends TreasuryDocumentTe
 
     public static TreasuryDocumentTemplateFileDomainObject copyAndAssociate(final TreasuryDocumentTemplateFile file) {
 
+        if(file.getTreasuryDocumentTemplateFile() != null)  {
+            throw new TreasuryDomainException("error.TreasuryDocumentTemplateFileDomainObject.already.with.copy");
+        }
+        
         TreasuryDocumentTemplateFileDomainObject domainObject = new TreasuryDocumentTemplateFileDomainObject();
 
         domainObject.setCreationDate(file.getVersioningCreationDate());

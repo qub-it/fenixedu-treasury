@@ -68,8 +68,10 @@ public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base 
     }
 
     public static SibsOutputFileDomainObject copyAndAssociate(final SibsOutputFile sibsOutputFile) {
-        final FinantialInstitution finantialInstitution = sibsOutputFile.getFinantialInstitution();
-        final DateTime lastSuccessfulSentDateTime = sibsOutputFile.getLastSuccessfulExportation();
+        
+        if(sibsOutputFile.getSibsOutputFile() != null)  {
+            throw new TreasuryDomainException("error.SibsOutputFileDomainObject.already.with.copy");
+        }
         
         SibsOutputFileDomainObject domainObject = new SibsOutputFileDomainObject();
         

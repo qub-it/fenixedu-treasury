@@ -73,6 +73,11 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
     
     @Atomic
     public static SibsInputFileDomainObject copyAndAssociate(final SibsInputFile sibsInputFile) {
+        
+        if(sibsInputFile.getSibsInputFile() != null)  {
+            throw new TreasuryDomainException("error.SibsInputFileDomainObject.already.with.copy");
+        }
+        
         final FinantialInstitution finantialInstitution = sibsInputFile.getFinantialInstitution();
         final DateTime whenProcessedBySIBS = sibsInputFile.getWhenProcessedBySibs();
         final String displayName = sibsInputFile.getDisplayName();
