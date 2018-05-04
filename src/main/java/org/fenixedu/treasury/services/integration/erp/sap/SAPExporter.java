@@ -1574,11 +1574,12 @@ public class SAPExporter implements IERPExporter {
         }
         String fileName = operation.getFinantialInstitution().getFiscalNumber() + "_"
                 + operation.getExecutionDate().toString("ddMMyyyy_hhmm") + ".xml";
-        OperationFile binaryStream = new OperationFile(fileName, bytes);
+
         if (operation.getFile() != null) {
             operation.getFile().delete();
         }
-        operation.setFile(binaryStream);
+
+        OperationFile binaryStream = OperationFile.create(fileName, bytes, operation);
 
         return binaryStream;
     }

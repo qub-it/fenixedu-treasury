@@ -5,10 +5,7 @@ import static org.fenixedu.treasury.services.integration.TreasuryPlataformDepend
 import java.io.InputStream;
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.io.domain.IGenericFile;
-import org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
@@ -32,8 +29,11 @@ public class ForwardPaymentConfigurationFile extends ForwardPaymentConfiguration
     
     @Override
     public void delete() {
-
         setDomainRoot(null);
+        getForwardPaymentConfigurationSet().clear();
+        
+        getTreasuryFile().delete();
+        
         super.deleteDomainObject();
     }
 

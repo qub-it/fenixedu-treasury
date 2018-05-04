@@ -23,6 +23,21 @@ public class TreasuryFile extends TreasuryFile_Base {
             throw new TreasuryDomainException("error.TreasuryFile.bennu.required");
         }
     }
+    
+    @Override
+    public void delete() {
+        super.setBennu(null);
+
+        super.setForwardPaymentConfigurationFile(null);
+        super.setForwardPaymentLogFile(null);
+        super.setOperationFile(null);
+        super.setPostForwardPaymentsReportFile(null);
+        super.setSibsInputFile(null);
+        super.setSibsOutputFile(null);
+        super.setSibsReportFile(null);
+        
+        super.delete();
+    }
 
     @Override
     public boolean isAccessible(final User user) {

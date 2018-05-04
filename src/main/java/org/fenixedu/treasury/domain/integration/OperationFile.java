@@ -50,6 +50,8 @@ public class OperationFile extends OperationFile_Base implements IGenericFile {
 
     public OperationFile(String fileName, byte[] content) {
         this();
+
+        treasuryPlatformServices().createFile(this, fileName, CONTENT_TYPE, content);
     }
 
     private void checkRules() {
@@ -73,9 +75,12 @@ public class OperationFile extends OperationFile_Base implements IGenericFile {
             throw new TreasuryDomainException("error.OperationFile.cannot.delete");
         }
 
+        this.setDomainRoot(null);
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
 
+        treasuryPlatformServices().deleteFile(this);
+        
         super.deleteDomainObject();
     }
     
@@ -124,22 +129,22 @@ public class OperationFile extends OperationFile_Base implements IGenericFile {
 
     @Atomic
     public static OperationFile create(String fileName, byte[] bytes, IntegrationOperation operation) {
-        OperationFile operationFile = new OperationFile();
-
-        treasuryPlatformServices().createFile(operationFile, fileName, CONTENT_TYPE, bytes);
+        OperationFile operationFile = new OperationFile(fileName, bytes);
 
         operationFile.setIntegrationOperation(operation);
+        
+        operationFile.checkRules();
         
         return operationFile;
     }
 
     @Atomic
     public static OperationFile createLog(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
-        OperationFile operationFile = new OperationFile();
-
-        treasuryPlatformServices().createFile(operationFile, fileName, CONTENT_TYPE, bytes);
+        OperationFile operationFile = new OperationFile(fileName, bytes);
 
         operationFile.setLogIntegrationOperation(operation);
+
+        operationFile.checkRules();
 
         return operationFile;
     }

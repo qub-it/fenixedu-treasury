@@ -1,12 +1,16 @@
 package org.fenixedu.treasury.ui.administration.forwardpayments;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.document.Series;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration;
+import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfigurationFile;
 import org.fenixedu.treasury.dto.forwardpayments.ForwardPaymentConfigurationBean;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.administration.managefinantialinstitution.FinantialInstitutionController;
@@ -115,12 +119,24 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     private static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI = "/downloadvirtualtpacertificate";
     public static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL = CONTROLLER_URL + DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI;
 
-    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.POST)
+    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.GET)
     @ResponseBody
-    public Object downloadvirtualtpacertificate(final FinantialInstitution finantialInstitution, final Model model) {
+    public Object downloadvirtualtpacertificate(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution, final Model model, final HttpServletResponse response) {
         if (!finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
-            return finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().getVirtualTPACertificate()
-                    .getContent();
+            final ForwardPaymentConfigurationFile virtualTPACertificate = finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().getVirtualTPACertificate();
+            final byte[] content = virtualTPACertificate.getContent();
+
+            response.setContentLength(content.length);
+            response.setContentType(virtualTPACertificate.getContentType());
+            response.setHeader("Content-disposition", "attachment; filename=" + virtualTPACertificate.getFilename());
+
+            try {
+                response.getOutputStream().write(content);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+            return content;
         }
 
         return null;
