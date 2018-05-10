@@ -42,8 +42,14 @@ public class ForwardPaymentConfigurationFileDomainObject extends ForwardPaymentC
         
         final ForwardPaymentConfigurationFileDomainObject domainObject = new ForwardPaymentConfigurationFileDomainObject();
         
-        domainObject.setCreationDate(forwardPaymentConfigurationFile.getCreationDate());
-        domainObject.setCreator(forwardPaymentConfigurationFile.getVersioningCreator());
+        if(forwardPaymentConfigurationFile.getCreationDate() != null) {
+            domainObject.setCreationDate(forwardPaymentConfigurationFile.getCreationDate());
+        }
+        
+        if(forwardPaymentConfigurationFile.getVersioningCreator() != null) {
+            domainObject.setCreator(forwardPaymentConfigurationFile.getVersioningCreator());
+        }
+        
         domainObject.setTreasuryFile(forwardPaymentConfigurationFile);
         
         domainObject.getForwardPaymentConfigurationSet().addAll(forwardPaymentConfigurationFile.getForwardPaymentConfigurationSet());

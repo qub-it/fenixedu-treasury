@@ -46,10 +46,17 @@ public class ForwardPaymentLogFileDomainObject extends ForwardPaymentLogFileDoma
         
         ForwardPaymentLogFileDomainObject domainObject = new ForwardPaymentLogFileDomainObject();
         
-        domainObject.setCreationDate(forwardPaymentLogFile.getCreationDate());
-        domainObject.setCreator(forwardPaymentLogFile.getVersioningCreator());
+        if(forwardPaymentLogFile.getCreationDate() != null) {
+            domainObject.setCreationDate(forwardPaymentLogFile.getCreationDate());
+        }
+        
+        if(forwardPaymentLogFile.getVersioningCreator() != null) {
+            domainObject.setCreator(forwardPaymentLogFile.getVersioningCreator());
+        }
+        
         domainObject.setForwardPaymentLogsForRequest(forwardPaymentLogFile.getForwardPaymentLogsForRequest());
         domainObject.setForwardPaymentLogsForResponse(forwardPaymentLogFile.getForwardPaymentLogsForResponse());
+        domainObject.setTreasuryFile(forwardPaymentLogFile);
         
         return domainObject;
     }

@@ -120,8 +120,18 @@ public class TreasuryDocumentTemplate extends TreasuryDocumentTemplate_Base impl
     void activateFile(TreasuryDocumentTemplateFile treasuryDocumentTemplateFile) {
         for (TreasuryDocumentTemplateFile file : getTreasuryDocumentTemplateFilesSet()) {
             file.setActive(false);
+            
+            if(file.getTreasuryDocumentTemplateFile() != null) {
+                file.getTreasuryDocumentTemplateFile().setActive(false);
+            }
         }
+        
         treasuryDocumentTemplateFile.setActive(true);
+
+        if(treasuryDocumentTemplateFile.getTreasuryDocumentTemplateFile() != null) {
+            treasuryDocumentTemplateFile.getTreasuryDocumentTemplateFile().setActive(true);
+        }
+    
     }
 
     @Atomic

@@ -50,6 +50,7 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     protected TreasuryDocumentTemplateFile(final TreasuryDocumentTemplate documentTemplate, final boolean active,
             final String displayName, final String fileName, final byte[] content) {
         this();
+        this.init(displayName, fileName, content);
         setTreasuryDocumentTemplate(documentTemplate);
         setActive(active);
         

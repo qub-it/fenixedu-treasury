@@ -86,8 +86,14 @@ public class SibsInputFileDomainObject extends SibsInputFileDomainObject_Base {
         
         final SibsInputFileDomainObject domainObject = new SibsInputFileDomainObject(finantialInstitution, whenProcessedBySIBS, displayName, filename, null, uploader);
         
-        domainObject.setCreationDate(sibsInputFile.getCreationDate());
-        domainObject.setCreator(sibsInputFile.getVersioningCreator());
+        if(sibsInputFile.getCreationDate() != null) {
+            domainObject.setCreationDate(sibsInputFile.getCreationDate());
+        }
+        
+        if(sibsInputFile.getVersioningCreator() != null) {
+            domainObject.setCreator(sibsInputFile.getVersioningCreator());
+        }
+        
         domainObject.setTreasuryFile(sibsInputFile);
         
         return domainObject;

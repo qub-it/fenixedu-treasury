@@ -75,8 +75,14 @@ public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base 
         
         SibsOutputFileDomainObject domainObject = new SibsOutputFileDomainObject();
         
-        domainObject.setCreationDate(sibsOutputFile.getCreationDate());
-        domainObject.setCreator(sibsOutputFile.getVersioningCreator());
+        if(sibsOutputFile.getCreationDate() != null) {
+            domainObject.setCreationDate(sibsOutputFile.getCreationDate());
+        }
+        
+        if(sibsOutputFile.getVersioningCreator() != null) {
+            domainObject.setCreator(sibsOutputFile.getVersioningCreator());
+        }
+        
         domainObject.setFinantialInstitution(sibsOutputFile.getFinantialInstitution());
         domainObject.setErrorLog(sibsOutputFile.getErrorLog());
         domainObject.setInfoLog(sibsOutputFile.getInfoLog());

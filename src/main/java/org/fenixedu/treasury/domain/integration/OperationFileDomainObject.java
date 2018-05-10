@@ -51,6 +51,7 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
         this.setDomainRoot(null);
+        this.setTreasuryFile(null);
         
         deleteDomainObject();
     }
@@ -67,8 +68,14 @@ public class OperationFileDomainObject extends OperationFileDomainObject_Base {
         
         final OperationFileDomainObject domainObject = new OperationFileDomainObject();
         
-        domainObject.setCreationDate(operationFile.getCreationDate());
-        domainObject.setCreator(operationFile.getVersioningCreator());
+        if(operationFile.getCreationDate() != null) {
+            domainObject.setCreationDate(operationFile.getCreationDate());
+        }
+        
+        if(operationFile.getVersioningCreator() != null) {
+            domainObject.setCreator(operationFile.getVersioningCreator());
+        }
+        
         domainObject.setIntegrationOperation(operationFile.getIntegrationOperation());
         domainObject.setLogIntegrationOperation(operationFile.getLogIntegrationOperation());
         

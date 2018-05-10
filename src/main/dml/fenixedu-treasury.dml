@@ -253,7 +253,7 @@ class document.TreasuryDocumentTemplateFile extends .org.fenixedu.bennu.io.domai
 			}
 		
 			document.TreasuryDocumentTemplateFile playsRole treasuryFile {
-				multiplicity 0..1;
+				multiplicity 1..1;
 			}
 		}
 
@@ -840,7 +840,7 @@ class paymentcodes.PaymentReferenceCode
 			}
 
 			paymentcodes.SibsReportFile playsRole treasuryFile {
-				multiplicity 0..1;
+				multiplicity 1..1;
 			}
         }
         
@@ -924,7 +924,7 @@ class paymentcodes.PaymentReferenceCode
 				}
 				  
 				paymentcodes.SibsInputFile playsRole treasuryFile {
-					multiplicity 0..1;
+					multiplicity 1..1;
 				}
 			}
 			
@@ -993,7 +993,7 @@ class paymentcodes.PaymentReferenceCode
 				}
 				  
 				paymentcodes.SibsOutputFile playsRole treasuryFile {
-					multiplicity 0..1;
+					multiplicity 1..1;
 				}
 			}
         
@@ -1098,7 +1098,7 @@ class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFil
 			    }
 			    
 			    integration.OperationFile playsRole treasuryFile {
-			    	multiplicity 0..1;
+			    	multiplicity 1..1;
 			    }
 			}
 
@@ -2252,7 +2252,7 @@ class forwardpayments.ForwardPaymentConfigurationFile extends .org.fenixedu.benn
 	       }
 		
 	       forwardpayments.ForwardPaymentConfigurationFile playsRole treasuryFile {
-	           multiplicity 0..1;
+	           multiplicity 1..1;
 	       }
 		}
 		
@@ -2433,7 +2433,7 @@ class forwardpayments.ForwardPaymentLog {
 			}			
 			
 			forwardpayments.ForwardPaymentLogFile playsRole treasuryFile {
-				multiplicity 0..1;
+				multiplicity 1..1;
 			}			
 		}
 	
@@ -2480,7 +2480,7 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 			}
 		
 			forwardpayments.PostForwardPaymentsReportFile playsRole treasuryFile {
-				multiplicity 0..1;
+				multiplicity 1..1;
 			}
 		}
 		

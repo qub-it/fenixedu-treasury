@@ -51,8 +51,14 @@ public class PostForwardPaymentsReportFileDomainObject extends PostForwardPaymen
         PostForwardPaymentsReportFileDomainObject domainObject = new PostForwardPaymentsReportFileDomainObject(postForwardPaymentsExecutionDate,
                 beginDate, endDate);
         
-        domainObject.setCreationDate(file.getCreationDate());
-        domainObject.setCreator(file.getVersioningCreator());
+        if(file.getCreationDate() != null) {
+            domainObject.setCreationDate(file.getCreationDate());
+        }
+        
+        if(file.getVersioningCreator() != null) {
+            domainObject.setCreator(file.getVersioningCreator());
+        }
+        
         domainObject.setTreasuryFile(file);
         
         return domainObject;

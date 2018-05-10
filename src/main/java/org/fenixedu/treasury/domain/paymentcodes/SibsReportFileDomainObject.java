@@ -84,8 +84,14 @@ public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base 
         
         final SibsReportFileDomainObject domainObject = new SibsReportFileDomainObject(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, null);
 
-        domainObject.setCreationDate(sibsReportFile.getCreationDate());
-        domainObject.setCreator(sibsReportFile.getVersioningCreator());
+        if(sibsReportFile.getCreationDate() != null) {
+            domainObject.setCreationDate(sibsReportFile.getCreationDate());
+        }
+        
+        if(sibsReportFile.getVersioningCreator() != null) {
+            domainObject.setCreator(sibsReportFile.getVersioningCreator());
+        }
+        
         domainObject.setInfoLog(sibsReportFile.getInfoLog());
         domainObject.setErrorLog(sibsReportFile.getErrorLog());
         domainObject.getSibsTransactionsSet().addAll(sibsReportFile.getSibsTransactionsSet());

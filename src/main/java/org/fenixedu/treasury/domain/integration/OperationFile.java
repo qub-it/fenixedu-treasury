@@ -83,6 +83,7 @@ public class OperationFile extends OperationFile_Base {
             throw new TreasuryDomainException("error.OperationFile.cannot.delete");
         }
 
+        this.setBennu(null);
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
 

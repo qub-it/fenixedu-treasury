@@ -79,8 +79,14 @@ public class TreasuryDocumentTemplateFileDomainObject extends TreasuryDocumentTe
         
         TreasuryDocumentTemplateFileDomainObject domainObject = new TreasuryDocumentTemplateFileDomainObject();
 
-        domainObject.setCreationDate(file.getVersioningCreationDate());
-        domainObject.setCreator(file.getVersioningCreator());
+        if(file.getCreationDate() != null) {
+            domainObject.setCreationDate(file.getCreationDate());
+        }
+        
+        if(file.getVersioningCreator() != null) {
+            domainObject.setCreator(file.getVersioningCreator());
+        }
+        
         domainObject.setTreasuryDocumentTemplate(file.getTreasuryDocumentTemplate());
         domainObject.setActive(file.getActive());
         domainObject.setTreasuryFile(file);
