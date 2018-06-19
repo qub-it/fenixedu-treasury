@@ -66,7 +66,7 @@ public class Constants {
     public static final Locale DEFAULT_LANGUAGE = new Locale("PT");
     public static final String DEFAULT_COUNTRY = "PT";
 
-    private static final int ORIGIN_DOCUMENT_LIMIT = 30;
+    private static final int ORIGIN_DOCUMENT_LIMIT = 60;
 
     public static final String DATE_FORMAT = "dd/MM/yyyy";
 
