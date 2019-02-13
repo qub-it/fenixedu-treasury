@@ -2099,4 +2099,31 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 			multiplicity *;
 		}
 	}
+
+
+class FiscalYear {
+	int year;
+	LocalDate settlementAnnulmentEndDate;
+}
+
+	relation FiscalYearDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+			multiplicity 1..1;
+		}
+	
+		FiscalYear playsRole fiscalYears {
+			multiplicity *;
+		}
+	}
+	
+	relation FiscalYearFinantialInstitution {
+		
+		FinantialInstitution playsRole finantialInstitution {
+			multiplicity 1..1;
+		}
+			
+		FiscalYear playsRole fiscalYears {
+			multiplicity *;
+		}
+	}
 	
