@@ -1,6 +1,7 @@
 package org.fenixedu.treasury.services.accesscontrol.spi;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -9,8 +10,12 @@ import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.DynamicGroup;
 import org.fenixedu.treasury.domain.FinantialEntity;
 import org.fenixedu.treasury.domain.FinantialInstitution;
-
-import com.google.common.base.Strings;
+import org.fenixedu.treasury.domain.FiscalYear;
+import org.fenixedu.treasury.domain.document.SettlementNote;
+import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
+import org.joda.time.DateTime;
 
 public class TreasuryUIAccessControlExtension implements ITreasuryAccessControlExtension {
 
@@ -19,6 +24,8 @@ public class TreasuryUIAccessControlExtension implements ITreasuryAccessControlE
     private static final String TREASURY_BACK_OFFICE = "treasuryBackOffice";
 
     private static final String TREASURY_FRONT_OFFICE = "treasuryFrontOffice";
+
+    private static final String TREASURY_ALLOW_TO_ANNUL_SETTLEMENT_NOTES_WITHOUT_RESTRICTIONS = "treasuryAllowAnnulSettlementsWithoutAnyRestriction";
 
 	@Override
 	public boolean isFrontOfficeMember(final String username) {
@@ -76,6 +83,41 @@ public class TreasuryUIAccessControlExtension implements ITreasuryAccessControlE
 		return getOrCreateDynamicGroup(TREASURY_FRONT_OFFICE).isMember(user);
 	}
 
+    @Override
+    public boolean isAllowToConditionallyAnnulSettlementNote(final String username, final SettlementNote settlementNote) {
+        final FinantialInstitution finantialInstitution = settlementNote.getDebtAccount().getFinantialInstitution();
+
+        if (!TreasuryAccessControlAPI.isAllowToModifySettlements(username, finantialInstitution)) {
+            return false;
+        }
+        
+        final int year = settlementNote.getDocumentDate().getYear();
+        
+        if(!FiscalYear.findUnique(finantialInstitution, year).isPresent()) {
+            return false;
+        }
+        
+        FiscalYear fiscalYear = FiscalYear.findUnique(finantialInstitution, year).get();
+        
+        if(fiscalYear.getSettlementAnnulmentLimitDate() == null) {
+            return false;
+        }
+        
+        final DateTime limitDateTime = fiscalYear.getSettlementAnnulmentLimitDate().toDateTimeAtStartOfDay().plusDays(1).minusSeconds(1);
+        if(!new DateTime().isAfter(limitDateTime)) {
+            return true;
+        }
+        
+        return false;
+    }
+	
+	@Override
+    public boolean isAllowToAnnulSettlementNoteWithoutAnyRestriction(final String username, final SettlementNote settlementNote) {
+        final User user = User.findByUsername(username);
+        
+        return getOrCreateDynamicGroup(TREASURY_ALLOW_TO_ANNUL_SETTLEMENT_NOTES_WITHOUT_RESTRICTIONS).isMember(user);
+    }
+	
     private DynamicGroup getOrCreateDynamicGroup(final String dynamicGroupName) {
         final DynamicGroup dynamicGroup = DynamicGroup.get(dynamicGroupName);
 

@@ -1,10 +1,8 @@
 package org.fenixedu.treasury.services.accesscontrol.spi;
 
-import java.util.Collection;
-
-import org.apache.poi.ss.formula.functions.T;
 import org.fenixedu.treasury.domain.FinantialEntity;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.document.SettlementNote;
 
 import com.google.common.reflect.TypeToken;
 
@@ -49,7 +47,15 @@ public interface ITreasuryAccessControlExtension<T> {
     default public boolean isAllowToModifyInvoices(final String username, final FinantialInstitution finantialInstitution) {
         return false;
     }
-    
+
+    default public boolean isAllowToConditionallyAnnulSettlementNote(String username, SettlementNote settlementNote) {
+        return false;
+    }
+
+    default public boolean isAllowToAnnulSettlementNoteWithoutAnyRestriction(String username, SettlementNote settlementNote) {
+        return false;
+    }
+
     default public boolean isContextObjectApplied(final Object context) {
         final TypeToken<T> typeToken = new TypeToken<T>(getClass()){};
         return context.getClass().isAssignableFrom(typeToken.getRawType());

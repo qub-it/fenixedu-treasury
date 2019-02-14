@@ -1,6 +1,8 @@
 package org.fenixedu.treasury.domain;
 
 import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.joda.time.LocalDate;
@@ -25,11 +27,11 @@ public class FiscalYear extends FiscalYear_Base {
         setDomainRoot(FenixFramework.getDomainRoot());
     }
     
-    public FiscalYear(final FinantialInstitution finantialInstitution, final int year, final LocalDate settlementAnnulmentEndDate) {
+    public FiscalYear(final FinantialInstitution finantialInstitution, final int year, final LocalDate settlementAnnulmentLimitDate) {
         this();
         setFinantialInstitution(finantialInstitution);
         setYear(year);
-        setSettlementAnnulmentEndDate(settlementAnnulmentEndDate);
+        setSettlementAnnulmentLimitDate(settlementAnnulmentLimitDate);
         
         checkRules();
     }
@@ -43,14 +45,19 @@ public class FiscalYear extends FiscalYear_Base {
             throw new TreasuryDomainException("error.FiscalYear.finantialInstitution.required");
         }
         
-        if(getSettlementAnnulmentEndDate() == null) {
-            throw new TreasuryDomainException("error.FiscalYear.settlementAnnulmentEndDate.required");
+        if(getSettlementAnnulmentLimitDate() == null) {
+            throw new TreasuryDomainException("error.FiscalYear.settlementAnnulmentLimitDate.required");
         }
+        
+        if(FiscalYear.find(getFinantialInstitution(), getYear()).count() > 1) {
+            throw new TreasuryDomainException("error.FiscalYear.already.defined.for.finantial.institution.and.year");
+        }
+        
     }
 
     @Atomic
-    public void editSettlementAnnulmentEndDate(final LocalDate endDate) {
-        setSettlementAnnulmentEndDate(endDate);
+    public void editSettlementAnnulmentLimitDate(final LocalDate limitDate) {
+        setSettlementAnnulmentLimitDate(limitDate);
         
         checkRules();
     }
@@ -62,8 +69,20 @@ public class FiscalYear extends FiscalYear_Base {
      */
     // @formatter:on
     
+    public static Stream<FiscalYear> findAll() {
+        return FenixFramework.getDomainRoot().getFiscalYearsSet().stream();
+    }
+    
+    public static Stream<FiscalYear> find(final FinantialInstitution finantialInstitution, final int year) {
+        return finantialInstitution.getFiscalYearsSet().stream().filter(fy -> fy.getYear() == year);
+    }
+    
+    public static Optional<FiscalYear> findUnique(final FinantialInstitution finantialInstitution, final int year) {
+        return find(finantialInstitution, year).findFirst();
+    }
+    
     @Atomic
-    public static FiscalYear create(final FinantialInstitution finantialInstitution, final int year, final LocalDate settlementAnnulmentEndDate) {
-        return new FiscalYear(finantialInstitution, year, settlementAnnulmentEndDate);
+    public static FiscalYear create(final FinantialInstitution finantialInstitution, final int year, final LocalDate settlementAnnulmentLimitDate) {
+        return new FiscalYear(finantialInstitution, year, settlementAnnulmentLimitDate);
     }
 }

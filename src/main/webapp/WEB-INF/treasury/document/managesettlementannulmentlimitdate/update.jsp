@@ -1,4 +1,4 @@
-<%@page import="org.fenixedu.treasury.ui.document.managesettlementannulment.ManageSettlementAnnulmentEndDateController"%>
+<%@page import="org.fenixedu.treasury.ui.document.managesettlementannulment.ManageSettlementAnnulmentLimitDateController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
@@ -33,7 +33,7 @@ ${portal.angularToolkit()}
 <%-- TITLE --%>
 <div class="page-header">
     <h1>
-        <spring:message code="label.ManageSettlementAnnulmentEndDateController.update" />
+        <spring:message code="label.ManageSettlementAnnulmentLimitDateController.update" />
         <small></small>
     </h1>
 </div>
@@ -76,7 +76,7 @@ ${portal.angularToolkit()}
 
 angular.module('App', ['ngSanitize', 'ui.select','bennuToolkit']).controller('Controller', ['$scope', function($scope) {
 
-	$scope.settlementAnnulmentEndDate = "${fiscalYear.settlementAnnulmentEndDate.toString('yyyy-MM-dd')}";
+	$scope.settlementAnnulmentLimitDate = "${fiscalYear.settlementAnnulmentLimitDate.toString('yyyy-MM-dd')}";
 
 	$scope.submit = function() {
 		$('#form').submit();
@@ -86,22 +86,22 @@ angular.module('App', ['ngSanitize', 'ui.select','bennuToolkit']).controller('Co
 </script>
 
 <form id="backForm" method="get"
-	action='${pageContext.request.contextPath}<%= ManageSettlementAnnulmentEndDateController.SEARCH_URL %>/${finantialInstitution.externalId}'>
+	action='${pageContext.request.contextPath}<%= ManageSettlementAnnulmentLimitDateController.SEARCH_URL %>/${finantialInstitution.externalId}'>
 </form>
 
 <form id="form" name='form' method="post" class="form-horizontal" ng-app="App" ng-controller="Controller"
-	action='${pageContext.request.contextPath}<%= ManageSettlementAnnulmentEndDateController.UPDATE_URL %>/${finantialInstitution.externalId}/${fiscalYear.externalId}'>
+	action='${pageContext.request.contextPath}<%= ManageSettlementAnnulmentLimitDateController.UPDATE_URL %>/${finantialInstitution.externalId}/${fiscalYear.externalId}'>
 
 	<div class="panel panel-default">
 		<div class="panel-body">
 					
 			<div class="form-group row">
 				<div class="col-sm-3 control-label">
-					<spring:message code="label.ManageSettlementAnnulmentEndDateController.settlementAnnulmentEndDate" />
+					<spring:message code="label.ManageSettlementAnnulmentLimitDateController.settlementAnnulmentLimitDate" />
 				</div>
 
 				<div class="col-sm-2">
-					<input class="form-control" type="text" name="settlementAnnulmentEndDate" bennu-date="settlementAnnulmentEndDate" ng-required="true" />
+					<input class="form-control" type="text" name="settlementAnnulmentLimitDate" bennu-date="settlementAnnulmentLimitDate" ng-required="true" />
 				</div>
 			</div>
 

@@ -38,15 +38,19 @@ ${portal.toolkit()}
 <script src="${pageContext.request.contextPath}/static/treasury/js/omnis.js"></script>
 
 <%
-        SettlementNote settlementNote= (SettlementNote) request.getAttribute("settlementNote");
+SettlementNote settlementNote= (SettlementNote) request.getAttribute("settlementNote");
 FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNote.getDebtAccount().getFinantialInstitution();
-    %>
-    <% 
-                if (TreasuryAccessControlAPI.isAllowToModifySettlements(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername(), finantialInstitution)) {
+%>
+
+<% 
+if (TreasuryAccessControlAPI.isAllowToModifySettlements(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername(), finantialInstitution)) {
 %> 
 <div class="modal fade" id="anullModal">
     <div class="modal-dialog">
+	<c:choose>
+		<c:when test="${allowToConditionallyAnnulSettlementNote || allowToAnnulSettlementNoteWithoutAnyRestriction}">
         <div class="modal-content">
+
             <form id="deleteForm" action="${pageContext.request.contextPath}/treasury/document/managepayments/settlementnote/read/${settlementNote.externalId}/anullsettlement"
                 method="POST">
                 <div class="modal-header">
@@ -58,21 +62,26 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                     </h4>
                 </div>
                 <div class="modal-body">
-                    <p>
-                        <spring:message code="label.document.managePayments.readSettlementNote.confirmAnull" />
-                    </p>
-                    <br /> <br />
-                    <div class="form">
-                        <div class="form-group row">
-                            <div class="col-sm-4 control-label">
-                                <spring:message code="label.SettlementNote.annulledReason" />
-                            </div>
-
-                            <div class="col-sm-8">
-                                <input id="settlementNote_anullReason" class="form-control" type="text" name="anullReason" required value='' />
-                            </div>
-                        </div>
-                    </div>
+	                	<c:if test="${not allowToConditionallyAnnulSettlementNote && allowToAnnulSettlementNoteWithoutAnyRestriction}">
+			        	<div class="alert alert-warning" role="alert">
+							<span class="glyphicon glyphicon-warning-sign"></span>&nbsp;	
+							<spring:message code="message.SettlementNote.annul.settlement.conditionally.not.possible" />
+			        	</div>
+	                	</c:if>
+                
+	                    <p><spring:message code="label.document.managePayments.readSettlementNote.confirmAnull" /></p>
+	                    <br /><br />
+	                    <div class="form">
+	                        <div class="form-group row">
+	                            <div class="col-sm-4 control-label">
+	                                <spring:message code="label.SettlementNote.annulledReason" />
+	                            </div>
+	
+	                            <div class="col-sm-8">
+	                                <input id="settlementNote_anullReason" class="form-control" type="text" name="anullReason" required value='' />
+	                            </div>
+	                        </div>
+	                    </div>
 
                 </div>
                 <div class="modal-footer">
@@ -84,8 +93,36 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
                     </button>
                 </div>
             </form>
+		            
         </div>
+		</c:when>
+        
+		<c:otherwise>
         <!-- /.modal-content -->
+        <div class="modal-content">
+
+	        <div class="modal-header">
+	            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	                <span aria-hidden="true">&times;</span>
+	            </button>
+	            <h4 class="modal-title">
+	                <spring:message code="label.confirmation" />
+	            </h4>
+	        </div>
+	        <div class="modal-body">
+	        	<div class="alert alert-warning" role="alert">
+					<span class="glyphicon glyphicon-warning-sign"></span>&nbsp;	
+					<spring:message code="message.SettlementNote.user.not.with.permission.to.annul.settlementNote" />
+	        	</div>
+	        </div>
+	        <div class="modal-footer">
+	            <button type="button" class="btn btn-default" data-dismiss="modal">
+	                <spring:message code="label.close" />
+	            </button>
+	        </div>
+		</div>
+		</c:otherwise>
+	</c:choose>
     </div>
     <!-- /.modal-dialog -->
 </div>
@@ -252,7 +289,9 @@ FinantialInstitution finantialInstitution = (FinantialInstitution) settlementNot
         	<spring:message code="label.event.document.managePayments.anullSettlementNote" />
         </a>&nbsp;      
     </c:if>
-    <%} %>
+<%
+	} 
+%>
     <c:if test="${settlementNote.documentSeriesNumberSet}">
 |
             <div class="btn-group">

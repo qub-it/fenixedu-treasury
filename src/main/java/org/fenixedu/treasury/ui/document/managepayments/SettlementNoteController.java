@@ -65,6 +65,7 @@ import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.InterestEntryBean;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
 import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.integration.erp.ERPExporterManager;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
@@ -168,13 +169,13 @@ public class SettlementNoteController extends TreasuryBaseController {
         BigDecimal creditSum = BigDecimal.ZERO;
         boolean error = false;
         assertUserIsAllowToModifySettlements(bean.getDebtAccount().getFinantialInstitution(), model);
-        
+
         final Set<InvoiceEntry> invoiceEntriesSet = Sets.newHashSet();
         for (int i = 0; i < bean.getDebitEntries().size(); i++) {
             DebitEntryBean debitEntryBean = bean.getDebitEntries().get(i);
             if (debitEntryBean.isIncluded()) {
                 invoiceEntriesSet.add(debitEntryBean.getDebitEntry());
-                
+
                 if (debitEntryBean.getDebtAmountWithVat() == null
                         || debitEntryBean.getDebtAmountWithVat().compareTo(BigDecimal.ZERO) <= 0) {
                     debitEntryBean.setNotValid(true);
@@ -201,13 +202,12 @@ public class SettlementNoteController extends TreasuryBaseController {
 
             if (creditEntryBean.isIncluded()) {
                 invoiceEntriesSet.add(creditEntryBean.getCreditEntry());
-                
+
                 if (creditEntryBean.getCreditAmountWithVat() == null
                         || creditEntryBean.getCreditAmountWithVat().compareTo(BigDecimal.ZERO) <= 0) {
                     creditEntryBean.setNotValid(true);
                     error = true;
-                    addErrorMessage(treasuryBundle("error.CreditEntry.creditAmount.equal.zero", Integer.toString(i + 1)),
-                            model);
+                    addErrorMessage(treasuryBundle("error.CreditEntry.creditAmount.equal.zero", Integer.toString(i + 1)), model);
                 } else if (creditEntryBean.getCreditAmountWithVat()
                         .compareTo(creditEntryBean.getCreditEntry().getOpenAmount()) > 0) {
                     creditEntryBean.setNotValid(true);
@@ -271,12 +271,13 @@ public class SettlementNoteController extends TreasuryBaseController {
             error = true;
             addErrorMessage(treasuryBundle("error.SettlementNote.advancedPaymentCredit.originSettlementNote.payment.date.after",
                     settlementNote.getAdvancedPaymentCreditNote().getUiDocumentNumber(),
-                    settlementNote.getPaymentDate().toLocalDate().toString(TreasuryConstants.STANDARD_DATE_FORMAT_YYYY_MM_DD)), model);
+                    settlementNote.getPaymentDate().toLocalDate().toString(TreasuryConstants.STANDARD_DATE_FORMAT_YYYY_MM_DD)),
+                    model);
         }
-        
+
         try {
             SettlementNote.checkMixingOfInvoiceEntriesExportedInLegacyERP(invoiceEntriesSet);
-        } catch(final TreasuryDomainException e) {
+        } catch (final TreasuryDomainException e) {
             error = true;
             addErrorMessage(e.getLocalizedMessage(), model);
         }
@@ -288,8 +289,8 @@ public class SettlementNoteController extends TreasuryBaseController {
 
         bean.setInterestEntries(new ArrayList<InterestEntryBean>());
         for (DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
-            if (debitEntryBean.isIncluded()
-                    && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
+            if (debitEntryBean.isIncluded() && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(),
+                    debitEntryBean.getDebtAmount())) {
 
                 //Calculate interest only if we are making a FullPayment
                 InterestRateBean debitInterest = debitEntryBean.getDebitEntry().calculateUndebitedInterestValue(bean.getDate());
@@ -312,14 +313,14 @@ public class SettlementNoteController extends TreasuryBaseController {
             assertUserIsAllowToModifySettlements(bean.getDebtAccount().getFinantialInstitution(), model);
 
             SettlementNote.checkMixingOfInvoiceEntriesExportedInLegacyERP(bean.getIncludedInvoiceEntryBeans());
-            
+
             for (DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
                 if (debitEntryBean.isIncluded() && debitEntryBean.getDebitEntry().getFinantialDocument() == null) {
                     setSettlementNoteBean(bean, model);
                     return "treasury/document/managepayments/settlementnote/createDebitNote";
                 }
             }
-            
+
             for (InterestEntryBean interestEntryBean : bean.getInterestEntries()) {
                 if (interestEntryBean.isIncluded()) {
                     setSettlementNoteBean(bean, model);
@@ -513,8 +514,18 @@ public class SettlementNoteController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = READ_URI + "{oid}")
-    public String read(@PathVariable("oid") SettlementNote settlementNote, Model model) {
+    public String read(@PathVariable("oid") final SettlementNote settlementNote, final Model model) {
         setSettlementNote(settlementNote, model);
+
+        final String loggedUsername = TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername();
+        final boolean allowToConditionallyAnnulSettlementNote = TreasuryAccessControlAPI.isAllowToConditionallyAnnulSettlementNote(
+                loggedUsername, settlementNote);
+
+        final boolean allowToAnnulSettlementNoteWithoutAnyRestriction = TreasuryAccessControlAPI.isAllowToAnnulSettlementNoteWithoutAnyRestriction(loggedUsername, settlementNote);
+        
+        model.addAttribute("allowToConditionallyAnnulSettlementNote", allowToConditionallyAnnulSettlementNote);
+        model.addAttribute("allowToAnnulSettlementNoteWithoutAnyRestriction", allowToAnnulSettlementNoteWithoutAnyRestriction);
+        
         return "treasury/document/managepayments/settlementnote/read";
     }
 
@@ -582,7 +593,7 @@ public class SettlementNoteController extends TreasuryBaseController {
     public String processReadToAnullSettlementNote(@PathVariable("oid") SettlementNote settlementNote,
             @RequestParam("anullReason") String anullReason, Model model, RedirectAttributes redirectAttributes) {
         final String loggedUsername = TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername();
-        
+
         setSettlementNote(settlementNote, model);
 
         try {
@@ -590,7 +601,8 @@ public class SettlementNoteController extends TreasuryBaseController {
                 throw new TreasuryDomainException("error.SettlementNote.reimbursement.must.be.rejected.in.erp");
             }
 
-            assertUserIsAllowToModifySettlements(settlementNote.getDebtAccount().getFinantialInstitution(), model);
+            assertUserIsAllowToAnnulSettlementNote(settlementNote, model);
+
             anullReason = anullReason + " - [" + loggedUsername + "] " + new DateTime().toString("YYYY-MM-dd HH:mm");
 
             settlementNote.anullDocument(anullReason, true);
@@ -599,6 +611,21 @@ public class SettlementNoteController extends TreasuryBaseController {
             addErrorMessage(ex.getLocalizedMessage(), model);
         }
         return redirect(READ_URL + getSettlementNote(model).getExternalId(), model, redirectAttributes);
+    }
+
+    protected void assertUserIsAllowToAnnulSettlementNote(final SettlementNote settlementNote, final Model model) {
+        final String loggedUsername = TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername();
+
+        if (TreasuryAccessControlAPI.isAllowToConditionallyAnnulSettlementNote(loggedUsername, settlementNote)) {
+            return;
+        }
+
+        if (TreasuryAccessControlAPI.isAllowToAnnulSettlementNoteWithoutAnyRestriction(loggedUsername, settlementNote)) {
+            return;
+        }
+
+        addErrorMessage(treasuryBundle("error.authorization.not.allow.to.annul.settlements"), model);
+        throw new SecurityException(treasuryBundle("error.authorization.not.allow.to.annul.settlements"));
     }
 
     @RequestMapping(value = "/read/{oid}/exportintegrationfile", produces = "text/xml;charset=Windows-1252")
@@ -681,7 +708,8 @@ public class SettlementNoteController extends TreasuryBaseController {
                     required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate documentDateTo,
             Model model) {
         if (Days.daysBetween(documentDateFrom, documentDateTo).getDays() > SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD) {
-            addErrorMessage(treasuryBundle("error.SettlementNote.day.limit.exceeded", String.valueOf(SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD)), model);
+            addErrorMessage(treasuryBundle("error.SettlementNote.day.limit.exceeded",
+                    String.valueOf(SEARCH_SETTLEMENT_ENTRY_LIMIT_DAYS_PERIOD)), model);
         } else {
             //TODO: THE FILTER TO INTERNAL SERIES SHOULD BE A GET PARAMETER
             List<SettlementNote> notes =

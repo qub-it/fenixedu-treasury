@@ -22,12 +22,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.google.common.collect.Lists;
 
-@SpringFunctionality(app = TreasuryController.class, title = "label.ManageSettlementAnnulmentEndDateController.title", accessGroup = "treasuryManagers")
-@RequestMapping(ManageSettlementAnnulmentEndDateController.CONTROLLER_URL)
-public class ManageSettlementAnnulmentEndDateController extends TreasuryBaseController {
+@SpringFunctionality(app = TreasuryController.class, title = "label.ManageSettlementAnnulmentLimitDateController.title", accessGroup = "treasuryManagers")
+@RequestMapping(ManageSettlementAnnulmentLimitDateController.CONTROLLER_URL)
+public class ManageSettlementAnnulmentLimitDateController extends TreasuryBaseController {
     
-    public static final String CONTROLLER_URL = "/treasury/document/managesettlementannulmentenddate";
-    private static final String JSP_PATH = "treasury/document/managesettlementannulmentenddate";
+    public static final String CONTROLLER_URL = "/treasury/document/managesettlementannulmentlimitdate";
+    private static final String JSP_PATH = "treasury/document/managesettlementannulmentlimitdate";
 
     @RequestMapping
     public String home(Model model, final RedirectAttributes redirectAttributes) {
@@ -81,10 +81,10 @@ public class ManageSettlementAnnulmentEndDateController extends TreasuryBaseCont
     
     @RequestMapping(value = _UPDATE_URI + "/{finantialInstitutionId}/{fiscalYearId}", method=RequestMethod.POST)
     public String updatepost(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution, @PathVariable("fiscalYearId") final FiscalYear fiscalYear, 
-            @RequestParam("settlementAnnulmentEndDate") @DateTimeFormat(iso = ISO.DATE) final LocalDate settlementAnnulmentEndDate, final Model model, final RedirectAttributes redirectAttributes) {
+            @RequestParam("settlementAnnulmentLimitDate") @DateTimeFormat(iso = ISO.DATE) final LocalDate settlementAnnulmentLimitDate, final Model model, final RedirectAttributes redirectAttributes) {
 
         try {
-            fiscalYear.editSettlementAnnulmentEndDate(settlementAnnulmentEndDate);
+            fiscalYear.editSettlementAnnulmentLimitDate(settlementAnnulmentLimitDate);
             
             return redirect(SEARCH_URL + "/" + finantialInstitution.getExternalId(), model, redirectAttributes);
         } catch(final DomainException e) {

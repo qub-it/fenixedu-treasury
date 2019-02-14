@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.fenixedu.treasury.domain.FinantialEntity;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.services.accesscontrol.spi.ITreasuryAccessControlExtension;
 import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
 import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
@@ -167,6 +168,25 @@ public class TreasuryAccessControl {
         return false;
     }
 
+    public boolean isAllowToConditionallyAnnulSettlementNote(final String username, final SettlementNote settlementNote) {
+        for (ITreasuryAccessControlExtension iTreasuryAccessControlExtension : extensions) {
+            if (iTreasuryAccessControlExtension.isAllowToConditionallyAnnulSettlementNote(username, settlementNote)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isAllowToAnnulSettlementNoteWithoutAnyRestriction(final String username, final SettlementNote settlementNote) {
+        for (ITreasuryAccessControlExtension iTreasuryAccessControlExtension : extensions) {
+            if (iTreasuryAccessControlExtension.isAllowToAnnulSettlementNoteWithoutAnyRestriction(username, settlementNote)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     
     public java.util.Set<String> getFrontOfficeMemberUsernames() {
         final java.util.Set<String> result = Sets.newHashSet();

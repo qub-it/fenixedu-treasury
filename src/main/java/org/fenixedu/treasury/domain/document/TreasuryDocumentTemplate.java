@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.fenixedu.treasury.domain.FinantialEntity;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.joda.time.DateTime;
 
 import com.qubit.terra.docs.core.IDocumentTemplate;
@@ -177,7 +178,7 @@ public class TreasuryDocumentTemplate extends TreasuryDocumentTemplate_Base impl
 
     @Override
     public DateTime getUpdateDate() {
-        return getAtiveDocumentTemplateFile().getVersioningUpdateDate().getDate();
+        return TreasuryPlataformDependentServicesFactory.implementation().versioningUpdateDate(this);
     }
 
     @Override

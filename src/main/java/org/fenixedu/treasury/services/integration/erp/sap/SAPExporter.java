@@ -57,6 +57,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.Product;
@@ -108,6 +109,8 @@ import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingD
 import org.fenixedu.treasury.generated.sources.saft.sap.SourceDocuments.WorkingDocuments.WorkDocument.Line.Metadata;
 import org.fenixedu.treasury.generated.sources.saft.sap.Tax;
 import org.fenixedu.treasury.generated.sources.saft.sap.TaxTableEntry;
+import org.fenixedu.treasury.services.integration.FenixEDUTreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.integration.erp.IERPExporter;
 import org.fenixedu.treasury.services.integration.erp.IERPExternalService;
 import org.fenixedu.treasury.services.integration.erp.SaftConfig;
@@ -451,10 +454,12 @@ public class SAPExporter implements IERPExporter {
             } else {
                 status.setPaymentStatus("N");
             }
-            if (document.getVersioningUpdateDate() != null) {
-                status.setPaymentStatusDate(convertToXMLDateTime(dataTypeFactory, document.getVersioningUpdateDate().getDate()));
+            
+            DateTime versioningUpdateDate = TreasuryPlataformDependentServicesFactory.implementation().versioningUpdateDate(document);
+            if (versioningUpdateDate != null) {
+                status.setPaymentStatusDate(convertToXMLDateTime(dataTypeFactory, versioningUpdateDate));
                 // Utilizador responsável pelo estado atual do docu-mento.
-                status.setSourceID(document.getVersioningUpdatedBy().getUsername());
+                status.setSourceID(TreasuryPlataformDependentServicesFactory.implementation().versioningUpdatorUsername(document));
             } else {
                 status.setPaymentStatusDate(payment.getSystemEntryDate());
                 // Utilizador responsável pelo estado atual do docu-mento.
@@ -747,10 +752,11 @@ public class SAPExporter implements IERPExporter {
                 status.setWorkStatus("N");
             }
 
-            if (document.getVersioningUpdateDate() != null) {
-                status.setWorkStatusDate(convertToXMLDateTime(dataTypeFactory, document.getVersioningUpdateDate().getDate()));
+            final DateTime versioningUpdateDate = TreasuryPlataformDependentServicesFactory.implementation().versioningUpdateDate(document);
+            if (versioningUpdateDate != null) {
+                status.setWorkStatusDate(convertToXMLDateTime(dataTypeFactory, versioningUpdateDate));
                 // Utilizador responsável pelo estado atual do docu-mento.
-                status.setSourceID(document.getVersioningUpdatedBy().getUsername());
+                status.setSourceID(TreasuryPlataformDependentServicesFactory.implementation().versioningUpdatorUsername(document));
             } else {
                 status.setWorkStatusDate(workDocument.getSystemEntryDate());
                 // Utilizador responsável pelo estado atual do docu-mento.

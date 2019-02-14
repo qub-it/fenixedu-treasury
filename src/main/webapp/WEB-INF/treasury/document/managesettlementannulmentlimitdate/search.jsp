@@ -1,4 +1,4 @@
-<%@page import="org.fenixedu.treasury.ui.document.managesettlementannulment.ManageSettlementAnnulmentEndDateController"%>
+<%@page import="org.fenixedu.treasury.ui.document.managesettlementannulment.ManageSettlementAnnulmentLimitDateController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt"%>
@@ -44,7 +44,7 @@ ${portal.angularToolkit()}
 <%-- TITLE --%>
 <div class="page-header">
     <h1>
-        <spring:message code="label.ManageSettlementAnnulmentEndDateController.search" />
+        <spring:message code="label.ManageSettlementAnnulmentLimitDateController.search" />
         <small></small>
     </h1>
 </div>
@@ -83,7 +83,7 @@ ${portal.angularToolkit()}
 <%-- Choose Finantial Institution --%>
 <div ng-app="App" ng-controller="Controller" style="margin-bottom: 20px" class="row">
     <div class="col-xs-1">
-        <strong><spring:message code="label.ManageSettlementAnnulmentEndDateController.finantialInstitution" /></strong>
+        <strong><spring:message code="label.ManageSettlementAnnulmentLimitDateController.finantialInstitution" /></strong>
     </div>
     <div class="col-xs-4">
         <select id="finantialInstitutionOptions" class="js-example-basic-single form-control" name="finantialInstitutionId"
@@ -99,7 +99,7 @@ ${portal.angularToolkit()}
 <script type="text/javascript">
 
 angular.module('App', ['bennuToolkit']).controller('Controller', ['$scope', function($scope) {
-	var postbackUrl = "${pageContext.request.contextPath}<%= ManageSettlementAnnulmentEndDateController.SEARCH_URL %>";
+	var postbackUrl = "${pageContext.request.contextPath}<%= ManageSettlementAnnulmentLimitDateController.SEARCH_URL %>";
 	
 	$scope.finantialInstitutionId = ${finantialInstitution.externalId};
 	$scope.change = function(newValue, oldValue) {
@@ -118,8 +118,8 @@ angular.module('App', ['bennuToolkit']).controller('Controller', ['$scope', func
             <thead>
                 <tr>
                     <%--!!!  Field names here --%>
-                    <th><spring:message code="label.ManageSettlementAnnulmentEndDateController.year" /></th>
-                    <th><spring:message code="label.ManageSettlementAnnulmentEndDateController.settlementAnnulmentEndDate" /></th>
+                    <th><spring:message code="label.ManageSettlementAnnulmentLimitDateController.year" /></th>
+                    <th><spring:message code="label.ManageSettlementAnnulmentLimitDateController.settlementAnnulmentLimitDate" /></th>
                     <th></th>
                 </tr>
             </thead>
@@ -127,9 +127,10 @@ angular.module('App', ['bennuToolkit']).controller('Controller', ['$scope', func
 				<c:forEach var="r" items="${result}">
 					<tr>
 						<td><c:out value='${r.year}' /></td>
-						<td><c:out value='${r.settlementAnnulmentEndDate.toString("yyyy-MM-dd")}' /></td>	
+						<td><c:out value='${r.settlementAnnulmentLimitDate.toString("yyyy-MM-dd")}' /></td>	
 						<td>
-							<a class="btn btn-default" href="${pageContext.request.contextPath}<%= ManageSettlementAnnulmentEndDateController.UPDATE_URL %>/${finantialInstitution.externalId}/${r.externalId}">
+							<a class="btn btn-default" href="${pageContext.request.contextPath}<%= ManageSettlementAnnulmentLimitDateController.UPDATE_URL %>/${finantialInstitution.externalId}/${r.externalId}">
+								<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;
 								<spring:message code="label.update" />
 							</a>
 						</td>

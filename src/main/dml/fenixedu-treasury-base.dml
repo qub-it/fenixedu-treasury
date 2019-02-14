@@ -2103,7 +2103,7 @@ class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.
 
 class FiscalYear {
 	int year;
-	LocalDate settlementAnnulmentEndDate;
+	LocalDate settlementAnnulmentLimitDate;
 }
 
 	relation FiscalYearDomainRoot {

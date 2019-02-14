@@ -3,6 +3,7 @@ package org.fenixedu.treasury.services.accesscontrol;
 import org.fenixedu.treasury.domain.FinantialEntity;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.accesscontrol.TreasuryAccessControl;
+import org.fenixedu.treasury.domain.document.SettlementNote;
 import org.fenixedu.treasury.services.accesscontrol.spi.ITreasuryAccessControlExtension;
 
 public class TreasuryAccessControlAPI {
@@ -21,6 +22,14 @@ public class TreasuryAccessControlAPI {
 
     public static boolean isAllowToModifySettlements(final String username, final FinantialInstitution finantialInstitution) {
         return TreasuryAccessControl.getInstance().isAllowToModifySettlements(username, finantialInstitution);
+    }
+    
+    public static boolean isAllowToConditionallyAnnulSettlementNote(final String username, final SettlementNote settlementNote) {
+        return TreasuryAccessControl.getInstance().isAllowToConditionallyAnnulSettlementNote(username, settlementNote);
+    }
+
+    public static boolean isAllowToAnnulSettlementNoteWithoutAnyRestriction(final String username, final SettlementNote settlementNote) {
+        return TreasuryAccessControl.getInstance().isAllowToAnnulSettlementNoteWithoutAnyRestriction(username, settlementNote);
     }
 
     public static boolean isFrontOfficeMember(final String username) {
