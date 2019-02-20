@@ -156,6 +156,10 @@ class FinantialEntity {
 
 class Customer {
 	String erpCustomerId;
+	String address;
+	String districtSubdivision;
+	String zipCode;
+	String addressCountryCode;
 }
 
 	class FiscalDataUpdateLog {
@@ -197,10 +201,6 @@ class AdhocCustomer extends Customer {
 	String fiscalNumber;
 	String identificationNumber;
 	String name;
-	String address;
-	String districtSubdivision;
-	String zipCode;
-	String addressCountryCode;
 	String countryCode;
 }
 

@@ -71,7 +71,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     protected AdhocCustomer(final CustomerType customerType, final String fiscalNumber, final String name, final String address,
-            final String districtSubdivision, final String zipCode, final String addressCountryCode, final String countryCode,
+            final String districtSubdivision, final String zipCode, final String addressCountryCode,
             final String identificationNumber, final List<FinantialInstitution> finantialInstitutions) {
         this();
         setCustomerType(customerType);
@@ -81,8 +81,10 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setAddress(address);
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
+
         setAddressCountryCode(addressCountryCode);
-        setCountryCode(countryCode);
+        setCountryCode(addressCountryCode);
+        
         setIdentificationNumber(identificationNumber);
         
         if(TreasuryConstants.isDefaultCountry(getCountryCode()) && !FiscalCodeValidation.isValidFiscalNumber(getCountryCode(), getFiscalNumber())) {
@@ -97,7 +99,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     @Override
     protected void checkRules() {
         super.checkRules();
-
     }
 
     @Override
@@ -107,7 +108,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
 
     @Atomic
     public void edit(final CustomerType customerType, final String name, final String address, final String districtSubdivision,
-            final String zipCode, final String addressCountryCode, final String identificationNumber, final List<FinantialInstitution> newFinantialInstitutions) {
+            final String zipCode, final String identificationNumber, final List<FinantialInstitution> newFinantialInstitutions) {
         registerFinantialInstitutions(newFinantialInstitutions);
         
         setCustomerType(customerType);
@@ -115,7 +116,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setAddress(address);
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
-        setAddressCountryCode(addressCountryCode);
         setIdentificationNumber(identificationNumber);
 
         checkRules();
@@ -139,7 +139,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
             throw new TreasuryDomainException("message.Customer.changeFiscalNumber.confirmation");
         }
         
-        final String countryCode = bean.getCountryCode();
+        final String countryCode = bean.getAddressCountryCode();
         final String fiscalNumber = bean.getFiscalNumber();
         
         if(Strings.isNullOrEmpty(countryCode)) {
@@ -258,11 +258,6 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Override
-    public String getDistrict() {
-        return getDistrictSubdivision();
-    }
-
-    @Override
     public String getNationalityCountryCode() {
         return null;
     }
@@ -325,9 +320,9 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     @Atomic
     public static AdhocCustomer create(final CustomerType customerType, final String fiscalNumber, final String name,
             final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
-            final String countryCode, final String identificationNumber, final List<FinantialInstitution> finantialInstitutions) {
+            final String identificationNumber, final List<FinantialInstitution> finantialInstitutions) {
         return new AdhocCustomer(customerType, fiscalNumber, name, address, districtSubdivision, zipCode, addressCountryCode,
-                countryCode, identificationNumber, finantialInstitutions);
+                identificationNumber, finantialInstitutions);
     }
 
     public static Stream<AdhocCustomer> findAll() {

@@ -54,7 +54,7 @@ import com.google.common.collect.Sets;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-public abstract class Customer extends Customer_Base implements IFiscalContributor {
+public abstract class Customer extends Customer_Base {
 
     public static final String DEFAULT_FISCAL_NUMBER = "999999990";
     public static final int MAX_CODE_LENGHT = 20;
@@ -75,7 +75,6 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract String getCode();
 
-    @Override
     public abstract String getFiscalNumber();
 
     public abstract String getName();
@@ -86,16 +85,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract String getIdentificationNumber();
 
-    public abstract String getAddress();
-
-    public abstract String getDistrictSubdivision();
-
-    public abstract String getDistrict();
-
-    public abstract String getZipCode();
-
-    public abstract String getAddressCountryCode();
-
+    @Deprecated
     public abstract String getCountryCode();
 
     public abstract String getNationalityCountryCode();
@@ -145,11 +135,11 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     }
 
     protected void checkRules() {
-        if (LocalizedStringUtil.isTrimmedEmpty(getCode())) {
+        if (Strings.isNullOrEmpty(getCode())) {
             throw new TreasuryDomainException("error.Customer.code.required");
         }
 
-        if (LocalizedStringUtil.isTrimmedEmpty(getName())) {
+        if (Strings.isNullOrEmpty(getName())) {
             throw new TreasuryDomainException("error.Customer.name.required");
         }
 
@@ -160,7 +150,19 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         if (this.getCode().length() > Customer.MAX_CODE_LENGHT) {
             throw new TreasuryDomainException("error.Customer.code.maxlenght");
         }
+        
+        if(Strings.isNullOrEmpty(getFiscalNumber())) {
+            throw new TreasuryDomainException("error.Customer.fiscalNumber.required");
+        }
 
+        if(Strings.isNullOrEmpty(getAddressCountryCode())) {
+            throw new TreasuryDomainException("error.Customer.addressCountryCode.required");
+        }
+
+        if(!getAddressCountryCode().equals(getCountryCode())) {
+            throw new TreasuryDomainException("error.Customer.fiscal.information.invalid");
+        }
+        
         if (!TreasuryConstants.isDefaultCountry(getFiscalCountry()) || !DEFAULT_FISCAL_NUMBER.equals(getFiscalNumber())) {
             final Set<Customer> customers = findByFiscalInformation(getFiscalCountry(), getFiscalNumber())
                     .filter(c -> c.isActive()).collect(Collectors.<Customer> toSet());
@@ -393,10 +395,6 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         
         if(!Strings.isNullOrEmpty(getDistrictSubdivision())) {
             sb.append(getDistrictSubdivision()).append(", ");
-        }
-        
-        if(!Strings.isNullOrEmpty(getDistrict())) {
-            sb.append(getDistrict()).append(", ");
         }
         
         if(!Strings.isNullOrEmpty(getAddressCountryCode())) {

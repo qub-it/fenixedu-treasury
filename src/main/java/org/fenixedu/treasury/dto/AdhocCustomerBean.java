@@ -31,12 +31,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fenixedu.treasury.dto.ITreasuryBean;
-import org.fenixedu.treasury.dto.TreasuryTupleDataSourceBean;
 import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.CustomerType;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.util.TreasuryConstants;
 
 import com.google.common.collect.Lists;
 
@@ -54,7 +53,6 @@ public class AdhocCustomerBean implements ITreasuryBean {
     private String districtSubdivision;
     private String zipCode;
     private String addressCountryCode;
-    private String countryCode;
     private List<FinantialInstitution> finantialInstitutions;
 
     private List<TreasuryTupleDataSourceBean> finantialInstitutionsDataSource;
@@ -62,6 +60,32 @@ public class AdhocCustomerBean implements ITreasuryBean {
     private List<TreasuryTupleDataSourceBean> countryCodesDataSource;
     
     private boolean changeFiscalNumberConfirmed;
+    private boolean addressCountryDefault;
+
+    public AdhocCustomerBean() {
+        this.setFinantialInstitutionsDataSource(FinantialInstitution.findAll().collect(Collectors.toList()));
+        this.setCustomerTypesDataSource(CustomerType.findAll().collect(Collectors.toList()));
+        this.setCountryCodesDataSource(Lists.newArrayList(Planet.getEarth().getPlaces()));
+        this.update();
+    }
+
+    public AdhocCustomerBean(Customer customer) {
+        this();
+        this.setCustomerType(customer.getCustomerType());
+        this.code = customer.getCode();
+        this.setFiscalNumber(customer.getFiscalNumber());
+        this.setIdentificationNumber(customer.getIdentificationNumber());
+        this.setName(customer.getName());
+        this.setAddress(customer.getAddress());
+        this.setDistrictSubdivision(customer.getDistrictSubdivision());
+        this.setZipCode(customer.getZipCode());
+        this.setAddressCountryCode(customer.getAddressCountryCode());
+        this.setFinantialInstitutions(customer.getDebtAccountsSet().stream().filter(x -> x.getClosed() == false)
+                .map(x -> x.getFinantialInstitution()).collect(Collectors.toList()));
+        
+        this.update();
+    }
+    
     
     public String getCode() {
         return code;
@@ -123,14 +147,6 @@ public class AdhocCustomerBean implements ITreasuryBean {
         this.addressCountryCode = addressCountryCode;
     }
 
-    public java.lang.String getCountryCode() {
-        return countryCode;
-    }
-
-    public void setCountryCode(java.lang.String value) {
-        countryCode = value;
-    }
-
     public CustomerType getCustomerType() {
         return customerType;
     }
@@ -147,26 +163,12 @@ public class AdhocCustomerBean implements ITreasuryBean {
         changeFiscalNumberConfirmed = value;
     }
 
-    public AdhocCustomerBean() {
-        this.setFinantialInstitutionsDataSource(FinantialInstitution.findAll().collect(Collectors.toList()));
-        this.setCustomerTypesDataSource(CustomerType.findAll().collect(Collectors.toList()));
-        this.setCountryCodesDataSource(Lists.newArrayList(Planet.getEarth().getPlaces()));
+    public void update() {
+        this.addressCountryDefault = TreasuryConstants.DEFAULT_COUNTRY.toUpperCase().equals(getAddressCountryCode());
     }
-
-    public AdhocCustomerBean(Customer customer) {
-        this();
-        this.setCustomerType(customer.getCustomerType());
-        this.code = customer.getCode();
-        this.setFiscalNumber(customer.getFiscalNumber());
-        this.setIdentificationNumber(customer.getIdentificationNumber());
-        this.setName(customer.getName());
-        this.setAddress(customer.getAddress());
-        this.setDistrictSubdivision(customer.getDistrictSubdivision());
-        this.setZipCode(customer.getZipCode());
-        this.setAddressCountryCode(customer.getAddressCountryCode());
-        this.setCountryCode(customer.getCountryCode());
-        this.setFinantialInstitutions(customer.getDebtAccountsSet().stream().filter(x -> x.getClosed() == false)
-                .map(x -> x.getFinantialInstitution()).collect(Collectors.toList()));
+    
+    public boolean isAddressCountryDefault() {
+        return this.addressCountryDefault;
     }
 
     public List<FinantialInstitution> getFinantialInstitutions() {
