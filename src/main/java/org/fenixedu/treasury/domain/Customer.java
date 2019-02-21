@@ -49,6 +49,7 @@ import org.fenixedu.treasury.util.LocalizedStringUtil;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
@@ -134,7 +135,7 @@ public abstract class Customer extends Customer_Base {
         deleteDomainObject();
     }
 
-    protected void checkRules() {
+    public void checkRules() {
         if (Strings.isNullOrEmpty(getCode())) {
             throw new TreasuryDomainException("error.Customer.code.required");
         }
@@ -155,7 +156,7 @@ public abstract class Customer extends Customer_Base {
             throw new TreasuryDomainException("error.Customer.fiscalNumber.required");
         }
 
-        if(Strings.isNullOrEmpty(getAddressCountryCode())) {
+        if(Strings.isNullOrEmpty(super.getAddressCountryCode())) {
             throw new TreasuryDomainException("error.Customer.addressCountryCode.required");
         }
 
@@ -382,30 +383,25 @@ public abstract class Customer extends Customer_Base {
     }
     
     public String getUiCompleteAddress() {
-
-        final StringBuilder sb = new StringBuilder();
+        final List<String> addressCompoundList = Lists.newArrayList();
         
         if(!Strings.isNullOrEmpty(getAddress())) {
-            sb.append(getAddress()).append(", ");
+            addressCompoundList.add(getAddress());
         }
         
         if(!Strings.isNullOrEmpty(getZipCode())) {
-            sb.append(getZipCode()).append(", ");
+            addressCompoundList.add(getZipCode());
         }
         
         if(!Strings.isNullOrEmpty(getDistrictSubdivision())) {
-            sb.append(getDistrictSubdivision()).append(", ");
+            addressCompoundList.add(getDistrictSubdivision());
         }
         
         if(!Strings.isNullOrEmpty(getAddressCountryCode())) {
-            sb.append(getAddressCountryCode()).append(", ");
+            addressCompoundList.add(getAddressCountryCode());
         }
         
-        if(sb.length() > 0) {
-            sb.delete(sb.length() - 2, sb.length());
-        }
-        
-        return sb.toString();
+        return String.join(", ", addressCompoundList);
     }
     
     public abstract Set<? extends TreasuryEvent> getTreasuryEventsSet();

@@ -82,8 +82,8 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
 
-        setAddressCountryCode(addressCountryCode);
-        setCountryCode(addressCountryCode);
+        setAddressCountryCode(addressCountryCode.toUpperCase());
+        setCountryCode(addressCountryCode.toUpperCase());
         
         setIdentificationNumber(identificationNumber);
         
@@ -97,7 +97,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Override
-    protected void checkRules() {
+    public void checkRules() {
         super.checkRules();
     }
 
