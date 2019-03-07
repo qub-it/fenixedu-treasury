@@ -115,19 +115,25 @@ ${portal.angularToolkit()}
 
 				$scope.object = ${customerBeanJson};
 
+				$scope.postBack = createAngularPostbackFunction($scope);
+				
 				//Begin here of Custom Screen business JS - code
 				$scope.clear = function($event) {
 					   $event.stopPropagation(); 
 					   $scope.object.customerType = undefined;
 				};
 				
+				$scope.onCountryChange = function(country, model) {
+					$scope.postBack(model);
+				}
+
 				$scope.checkConfirmationAndProceed = function() {
 					if($scope.object.changeFiscalNumberConfirmed !== true) {
 						$('#confirmationModal').modal();
 						return;
 					}
 					
-					$('#mainForm').attr('action', "${pageContext.request.contextPath}/treasury/accounting/managecustomer/customer/changefiscalnumber/${customer.externalId}");
+					$('#mainForm').attr('action', "${pageContext.request.contextPath}/treasury/accounting/managecustomer/changefiscalnumber/change/${customer.externalId}");
 					$('#mainForm').submit();
 					$('#mainForm').attr('action', undefined);
 				}
@@ -154,8 +160,8 @@ ${portal.angularToolkit()}
                         <td><c:out value='${customer.name}' /></td>
                     </tr>
                     <tr>
-                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.countryCode" /></th>
-                        <td><c:out value='${customer.fiscalCountry}' /></td>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.addressCountryCode" /></th>
+                        <td><c:out value='${customer.addressCountryCode}' /></td>
                     </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
@@ -178,6 +184,8 @@ ${portal.angularToolkit()}
 
     <input name="bean" type="hidden" value="{{ object }}" />
 
+	<input type="hidden" name="postback" value='${pageContext.request.contextPath}/treasury/accounting/managecustomer/changefiscalnumber/changepostback/${customer.externalId}' />
+
     <div class="panel panel-default">
         <div class="panel-body">
          
@@ -187,6 +195,7 @@ ${portal.angularToolkit()}
 			<ol>
 				<li><spring:message code="message.Customer.changeFiscalNumber.validate.current.fiscal.data.invalid" /></li>
 				<li><spring:message code="message.Customer.changeFiscalNumber.check.customer.in.erp.short" /></li>
+				<li><spring:message code="message.AdhocCustomer.changeFiscalNumber.select.address.equal.fiscalNumber.country" /></li>
 			</ol>
 			
 			<div class="alert alert-warning" role="alert">
@@ -197,34 +206,67 @@ ${portal.angularToolkit()}
 
            	<p><spring:message code="message.Customer.changeFiscalNumber.after.validation.proceed" /></p>
             <p>&nbsp;</p>
+            
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.countryCode" />
+                    <spring:message code="label.AdhocCustomer.fiscalNumber" />
                 </div>
 
                 <div class="col-sm-10">
-                    <ui-select id="adhocCustomer_countryCode" ng-model="$parent.object.countryCode" theme="bootstrap"> 
+	                <input id="adhocCustomer_fiscalNumber" class="form-control" type="text" ng-model="object.fiscalNumber" name="fiscalnumber"
+	                    value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : customer.fiscalNumber }'/>' />
+                </div>
+			</div>
+			                
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.AdhocCustomer.addressCountryCode" />
+                </div>
+
+                <div class="col-sm-10">
+                    <ui-select id="adhocCustomer_addressCountryCode" name="addressCountryCode" ng-model="$parent.object.addressCountryCode" 
+                    	theme="bootstrap" ng-required="true" ng-change="onCountryChange($addressCountryCode, $model);"> 
                         <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
                         <ui-select-choices repeat="c.id as c in object.countryCodesDataSource| filter: $select.search">
 		                    <span ng-bind-html="c.text | highlight: $select.search"></span>
                     	</ui-select-choices>
                     </ui-select>
+	               	<p class="label label-warning"><spring:message code="message.AdhocCustomer.changeFiscalNumber.select.address.equal.fiscalNumber.country" /></p>
+                </div>
+                
+            </div>
+            
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.AdhocCustomer.address" />
+                </div>
+
+                <div class="col-sm-10">
+	                 <input id="adhocCustomer_address" class="form-control" type="text" ng-model="object.address" name="fiscalnumber"
+	                        value='<c:out value='${not empty param.address ? param.address : customer.address }'/>' ng-required="true" />
                 </div>
             </div>
             
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.fiscalNumber" />
+                    <spring:message code="label.AdhocCustomer.districtSubdivision" />
                 </div>
 
                 <div class="col-sm-10">
-	                <input id="adhocCustomer_fiscalNumber"
-	                    class="form-control" type="text"
-	                    ng-model="object.fiscalNumber"
-	                    name="fiscalnumber"
-	                    value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : customer.fiscalNumber }'/>' />
+	                  <input id="adhocCustomer_districtSubdivision" class="form-control" type="text" ng-model="object.districtSubdivision" name="districtsubdivision"
+	                      value='<c:out value='${not empty param.districtsubdivision ? param.districtsubdivision : customer.districtSubdivision}'/>' ng-required="true" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
+                    <spring:message code="label.AdhocCustomer.zipCode" />
+                </div>
+
+                <div class="col-sm-10">
+	                <input id="adhocCustomer_zipCode" class="form-control" type="text" ng-model="object.zipCode" name="zipcode"
+		                value='<c:out value='${not empty param.zipcode ? param.zipcode : customer.zipCode }'/>' 
+		                ng-required="object.addressCountryDefault" />
                 </div>
             </div>
 

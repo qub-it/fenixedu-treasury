@@ -176,6 +176,7 @@ ${portal.angularToolkit()}
 		                    <span ng-bind-html="c.text | highlight: $select.search"></span>
                     	</ui-select-choices>
                     </ui-select>
+	               	<p class="label label-warning"><spring:message code="message.AdhocCustomer.changeFiscalNumber.select.address.equal.fiscalNumber.country" /></p>
                 </div>
             </div>
             

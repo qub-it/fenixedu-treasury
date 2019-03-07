@@ -249,10 +249,20 @@ ${portal.toolkit()}
 			                               	</a>
 			                               
 											<c:if test="${debtAccount.customer.ableToChangeFiscalNumber}">
-											<% if (TreasuryAccessControlAPI.isBackOfficeMember(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername())) { %>        
+											<% if (TreasuryAccessControlAPI.isBackOfficeMember(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername())) { %>
+											
+											<c:choose>
+												<c:when test="${debtAccount.customer.personCustomer}">
+													<c:set var="changeFiscalNumberUrl" value="/academictreasury/accounting/managecustomer/changefiscalnumber/changefiscalnumberactionconfirm" />
+												</c:when>
+												<c:when test="${debtAccount.customer.adhocCustomer}">
+													<c:set var="changeFiscalNumberUrl" value="/treasury/accounting/managecustomer/changefiscalnumber/changefiscalnumberactionconfirm" />
+												</c:when>
+											</c:choose>
+											
 											&nbsp;
 											<a class="btn btn-primary btn-xs" 
-												href="${pageContext.request.contextPath}<%= CustomerController.CHANGE_FISCAL_NUMBER_ACTION_CONFIRM_URL %>/${debtAccount.customer.externalId}">
+												href="${pageContext.request.contextPath}${changeFiscalNumberUrl}/${debtAccount.customer.externalId}">
 												<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 												&nbsp;
 												<spring:message code="label.Customer.changeFiscalNumber" />
@@ -313,17 +323,37 @@ ${portal.toolkit()}
 												</a>
 												
 			                               		<c:if test="${debtAccount.customer.personCustomer}">
+												<% if (TreasuryAccessControlAPI.isBackOfficeMember(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername())) { %>
 												<c:if test="${debtAccount.customer.ableToChangeFiscalNumber}">
-												<% if (TreasuryAccessControlAPI.isBackOfficeMember(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername())) { %>        
 												&nbsp;
+												
+												<c:choose>
+													<c:when test="${debtAccount.customer.personCustomer}">
+														<c:set var="changeFiscalNumberUrl" value="/academictreasury/accounting/managecustomer/changefiscalnumber/changefiscalnumberactionconfirm" />
+													</c:when>
+													<c:when test="${debtAccount.customer.adhocCustomer}">
+														<c:set var="changeFiscalNumberUrl" value="/treasury/accounting/managecustomer/changefiscalnumber" />
+													</c:when>
+												</c:choose>
+												
 												<a class="btn btn-primary btn-xs" 
-													href="${pageContext.request.contextPath}<%= CustomerController.CHANGE_FISCAL_NUMBER_ACTION_CONFIRM_URL %>/${debtAccount.customer.externalId}">
+													href="${pageContext.request.contextPath}${changeFiscalNumberUrl}/${debtAccount.customer.externalId}">
 													<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 													&nbsp;
 													<spring:message code="label.Customer.changeFiscalNumber" />
 												</a>
-												<% } %>
+												
 												</c:if>
+												<% } %>
+
+												&nbsp;
+												<a class="btn btn-primary btn-xs" 
+													href="${pageContext.request.contextPath}/academictreasury/accounting/managecustomer/changefiscalnumber/updateFiscalAddress/${debtAccount.customer.externalId}">
+													<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+													&nbsp;
+													<spring:message code="label.PersonCustomer.update.fiscal.address" />
+												</a>
+
 												</c:if>
 												 
 				                               <c:if test="${debtAccount.closed}">

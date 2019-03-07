@@ -188,22 +188,6 @@ ${portal.angularToolkit()}
                 </div>
             </div>
             
-            <%--  
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message code="label.AdhocCustomer.countryCode" />
-                </div>
-
-                <div class="col-sm-10">
-                    <input id="adhocCustomer_countryCode"
-                        class="form-control" type="text"
-                        ng-model="object.countryCode"
-                        name="countrycode"
-                        value='<c:out value='${not empty param.countrycode ? param.countrycode : adhocCustomer.countryCode }'/>' readonly="readonly" />
-                </div>
-            </div>
-            --%>
-            
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
                     <spring:message code="label.AdhocCustomer.fiscalNumber" />
@@ -249,7 +233,7 @@ ${portal.angularToolkit()}
 	                    <input id="adhocCustomer_address"
 	                        class="form-control" type="text"
 	                        ng-model="object.address"
-	                        name="fiscalnumber"
+	                        name="address"
 	                        value='<c:out value='${not empty param.address ? param.address : adhocCustomer.address }'/>' 
 	                        required />
 					</c:if>

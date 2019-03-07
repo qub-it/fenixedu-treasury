@@ -121,8 +121,6 @@ public abstract class Customer extends Customer_Base {
 
     public abstract Customer getActiveCustomer();
 
-    public abstract void changeFiscalNumber(final AdhocCustomerBean bean);
-    
     @Atomic
     public void delete() {
         if (!isDeletable()) {
@@ -162,6 +160,10 @@ public abstract class Customer extends Customer_Base {
 
         if(!getAddressCountryCode().equals(getCountryCode())) {
             throw new TreasuryDomainException("error.Customer.fiscal.information.invalid");
+        }
+        
+        if(getCustomerType() == null) {
+            throw new TreasuryDomainException("error.Customer.customerType.required");
         }
         
         if (!TreasuryConstants.isDefaultCountry(getFiscalCountry()) || !DEFAULT_FISCAL_NUMBER.equals(getFiscalNumber())) {

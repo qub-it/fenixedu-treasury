@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.accounting.managecustomer;
 
+import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.dto.AdhocCustomerBean;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
+import org.fenixedu.treasury.util.TreasuryConstants;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +48,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.google.common.base.Strings;
 
 import pt.ist.fenixframework.Atomic;
 
@@ -136,7 +141,12 @@ public class AdhocCustomerController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsBackOfficeMember(model);
-
+            
+            if(Strings.isNullOrEmpty(bean.getAddressCountryCode())) {
+                addErrorMessage(treasuryBundle("error.Customer.addressCountryCode.required"), model);
+                return _create(bean, model);
+            }
+            
             if(bean.getFinantialInstitutions() == null || bean.getFinantialInstitutions().isEmpty()) {
                 throw new TreasuryDomainException("error.AdhocCustomer.specify.at.least.one.finantial.instituition");
             }
@@ -148,8 +158,8 @@ public class AdhocCustomerController extends TreasuryBaseController {
             return redirect(CustomerController.READ_URL + adhocCustomer.getExternalId(), model, redirectAttributes);
         } catch (DomainException ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
+            return _create(bean, model);
         }
-        return _create(bean, model);
     }
 
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
