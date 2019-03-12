@@ -118,7 +118,7 @@ ${portal.angularToolkit()}
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.Customer.customerType" />
                 </div>
                 <div class="col-sm-10">
@@ -146,7 +146,7 @@ ${portal.angularToolkit()}
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.name" />
                 </div>
 
@@ -166,7 +166,7 @@ ${portal.angularToolkit()}
             </div>
 
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.identificationNumber" />
                 </div>
 
@@ -189,7 +189,7 @@ ${portal.angularToolkit()}
             </div>
             
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.fiscalNumber" />
                 </div>
 
@@ -202,7 +202,7 @@ ${portal.angularToolkit()}
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.addressCountryCode" />
                 </div>
 
@@ -217,7 +217,7 @@ ${portal.angularToolkit()}
 
 
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.address" />
                 </div>
 
@@ -240,7 +240,7 @@ ${portal.angularToolkit()}
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.AdhocCustomer.districtSubdivision" />
                 </div>
 
@@ -263,7 +263,7 @@ ${portal.angularToolkit()}
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label" ng-class="object.addressCountryDefault ? 'required-field' : '' ">
                     <spring:message code="label.AdhocCustomer.zipCode" />
                 </div>
 
@@ -329,3 +329,16 @@ ${portal.angularToolkit()}
 
 	});
 </script>
+
+<style type="text/css">
+
+	.required-field:after {
+		content: '*';
+		color: #e06565;
+		font-weight: 900;
+		margin-left: 2px;
+		font-size: 14px;
+		display: inline;
+	}
+	
+</style>
