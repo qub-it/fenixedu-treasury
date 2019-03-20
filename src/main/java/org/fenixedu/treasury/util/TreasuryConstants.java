@@ -95,7 +95,7 @@ public class TreasuryConstants {
             return false;
         }
 
-        return DEFAULT_COUNTRY.equals(country.toUpperCase());
+        return isSameCountryCode(DEFAULT_COUNTRY, country);
     }
 
     public static boolean isSameCountryCode(final String leftCountryCode, final String rightCountryCode) {

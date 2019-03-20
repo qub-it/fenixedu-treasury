@@ -29,6 +29,7 @@ package org.fenixedu.treasury.domain;
 
 import static org.fenixedu.treasury.util.FiscalCodeValidation.isValidFiscalNumber;
 import static org.fenixedu.treasury.util.FiscalCodeValidation.isValidationAppliedToFiscalCountry;
+import static org.fenixedu.treasury.util.TreasuryConstants.isDefaultCountry;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -72,7 +73,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     protected AdhocCustomer(final CustomerType customerType, final String fiscalNumber, final String name, final String address,
-            final String districtSubdivision, final String zipCode, final String addressCountryCode,
+            final String districtSubdivision, final String region, final String zipCode, final String addressCountryCode,
             final String identificationNumber, final List<FinantialInstitution> finantialInstitutions) {
         this();
         setCustomerType(customerType);
@@ -80,6 +81,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
         setFiscalNumber(fiscalNumber);
         setName(name);
         setAddress(address);
+        setRegion(region);
         setDistrictSubdivision(districtSubdivision);
         setZipCode(zipCode);
 
@@ -108,14 +110,16 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     }
 
     @Atomic
-    public void edit(final CustomerType customerType, final String name, final String address, final String districtSubdivision,
-            final String zipCode, final String identificationNumber, final List<FinantialInstitution> newFinantialInstitutions) {
+    public void edit(final CustomerType customerType, final String name, final String address, 
+            final String districtSubdivision, final String region, final String zipCode, 
+            final String identificationNumber, final List<FinantialInstitution> newFinantialInstitutions) {
         registerFinantialInstitutions(newFinantialInstitutions);
         
         setCustomerType(customerType);
         setName(name);
         setAddress(address);
         setDistrictSubdivision(districtSubdivision);
+        setRegion(region);
         setZipCode(zipCode);
         setIdentificationNumber(identificationNumber);
 
@@ -178,6 +182,7 @@ public class AdhocCustomer extends AdhocCustomer_Base {
 
         setAddress(bean.getAddress());
         setDistrictSubdivision(bean.getDistrictSubdivision());
+        setRegion(bean.getRegion());
         setZipCode(bean.getZipCode());
         setIdentificationNumber(bean.getIdentificationNumber());
         
@@ -326,9 +331,9 @@ public class AdhocCustomer extends AdhocCustomer_Base {
 
     @Atomic
     public static AdhocCustomer create(final CustomerType customerType, final String fiscalNumber, final String name,
-            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
+            final String address, final String districtSubdivision, final String region, final String zipCode, final String addressCountryCode,
             final String identificationNumber, final List<FinantialInstitution> finantialInstitutions) {
-        return new AdhocCustomer(customerType, fiscalNumber, name, address, districtSubdivision, zipCode, addressCountryCode,
+        return new AdhocCustomer(customerType, fiscalNumber, name, address, districtSubdivision, region, zipCode, addressCountryCode,
                 identificationNumber, finantialInstitutions);
     }
 
@@ -364,5 +369,5 @@ public class AdhocCustomer extends AdhocCustomer_Base {
     public static Stream<AdhocCustomer> findByCode(final String code) {
         return findAll().filter(i -> code.equalsIgnoreCase(i.getCode()));
     }
-
+    
 }

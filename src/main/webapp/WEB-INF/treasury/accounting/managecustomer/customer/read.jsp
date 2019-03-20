@@ -182,6 +182,10 @@ ${portal.toolkit()}
                         <td><c:out value='${customer.districtSubdivision}' /></td>
                     </tr>
                     <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.region" /></th>
+                        <td><c:out value='${customer.region}' /></td>
+                    </tr>
+                    <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.zipCode" /></th>
                         <td><c:out value='${customer.zipCode}' /></td>
                     </tr>

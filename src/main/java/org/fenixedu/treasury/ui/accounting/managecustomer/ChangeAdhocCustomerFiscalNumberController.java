@@ -96,6 +96,10 @@ public class ChangeAdhocCustomerFiscalNumberController extends TreasuryBaseContr
                 return _changefiscalnumberactionconfirm(adhocCustomer, model, bean);
             }
             
+            if(!bean.isAddressValid()) {
+                throw new TreasuryDomainException("error.AdhocCustomer.fill.required.address.fields");
+            }
+            
             adhocCustomer.changeFiscalNumber(bean);
 
             return "forward:" + CustomerController.READ_URL + adhocCustomer.getExternalId();

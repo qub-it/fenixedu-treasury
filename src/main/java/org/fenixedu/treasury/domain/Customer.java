@@ -399,6 +399,10 @@ public abstract class Customer extends Customer_Base {
             addressCompoundList.add(getDistrictSubdivision());
         }
         
+        if(!Strings.isNullOrEmpty(getRegion())) {
+            addressCompoundList.add(getRegion());
+        }
+        
         if(!Strings.isNullOrEmpty(getAddressCountryCode())) {
             addressCompoundList.add(getAddressCountryCode());
         }
@@ -428,6 +432,46 @@ public abstract class Customer extends Customer_Base {
     public boolean isIbanDefined() {
         return !isNullOrEmpty(getIban());
     }
+
+    // @formatter:off
+    /* ****************************
+     * BEGIN OF SAFT ADDRESS FIELDS
+     * ****************************
+     */
+    // @formatter:on
+    
+    
+    public String getSaftBillingAddressCountry() {
+        return getAddressCountryCode();
+    }
+    
+    public String getSaftBillingAddressStreetName() {
+        return getAddress();
+    }
+    
+    public String getSaftBillingAddressDetail() {
+        return getAddress();
+    }
+    
+    public String getSaftBillingAddressCity() {
+        return getDistrictSubdivision();
+    }
+    
+    public String getSaftBillingAddressPostalCode() {
+        return getZipCode();
+    }
+    
+    public String getSaftBillingAddressRegion() {
+        return getRegion();
+    }
+    
+
+    // @formatter:off
+    /* **************************
+     * END OF SAFT ADDRESS FIELDS
+     * **************************
+     */
+    // @formatter:on
 
     protected static String lowerCase(final String value) {
         if (value == null) {

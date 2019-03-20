@@ -260,6 +260,17 @@ ${portal.angularToolkit()}
 
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
+                    <spring:message code="label.AdhocCustomer.region" />
+                </div>
+
+                <div class="col-sm-10">
+	                  <input id="adhocCustomer_region" class="form-control" type="text" ng-model="object.region" name="region"
+	                      value='<c:out value='${not empty param.region ? param.region : customer.region}'/>' ng-required="object.addressCountryDefault" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-2 control-label">
                     <spring:message code="label.AdhocCustomer.zipCode" />
                 </div>
 

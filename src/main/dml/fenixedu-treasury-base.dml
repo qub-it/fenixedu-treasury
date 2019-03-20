@@ -157,6 +157,7 @@ class FinantialEntity {
 class Customer {
 	String erpCustomerId;
 	String address;
+	String region;
 	String districtSubdivision;
 	String zipCode;
 	String addressCountryCode;

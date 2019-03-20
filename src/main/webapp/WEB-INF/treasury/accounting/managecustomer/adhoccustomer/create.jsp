@@ -190,15 +190,26 @@ ${portal.angularToolkit()}
 	                        value='<c:out value='${not empty param.address ? param.address : adhocCustomer.address }'/>' ng-required="true" />
                 </div>
             </div>
+            
             <div class="form-group row">
                 <div class="col-sm-2 control-label required-field">
-                    <spring:message
-                        code="label.AdhocCustomer.districtSubdivision" />
+                    <spring:message code="label.AdhocCustomer.districtSubdivision" />
                 </div>
 
                 <div class="col-sm-10">
 	                  <input id="adhocCustomer_districtSubdivision" class="form-control" type="text" ng-model="object.districtSubdivision" name="districtsubdivision"
 	                      value='<c:out value='${not empty param.districtsubdivision ? param.districtsubdivision : adhocCustomer.districtSubdivision}'/>' ng-required="true" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-2 control-label" ng-class="object.addressCountryDefault ? 'required-field' : ''">
+                    <spring:message code="label.AdhocCustomer.region" />
+                </div>
+
+                <div class="col-sm-10">
+	                  <input id="adhocCustomer_region" class="form-control" type="text" ng-model="object.region" name="region"
+	                      value='<c:out value='${not empty param.region ? param.region : adhocCustomer.region}'/>' ng-required="object.addressCountryDefault" />
                 </div>
             </div>
 

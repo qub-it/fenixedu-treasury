@@ -147,12 +147,16 @@ public class AdhocCustomerController extends TreasuryBaseController {
                 return _create(bean, model);
             }
             
+            if(!bean.isAddressValid()) {
+                throw new TreasuryDomainException("error.AdhocCustomer.fill.required.address.fields");
+            }
+            
             if(bean.getFinantialInstitutions() == null || bean.getFinantialInstitutions().isEmpty()) {
                 throw new TreasuryDomainException("error.AdhocCustomer.specify.at.least.one.finantial.instituition");
             }
             
             final Customer adhocCustomer = AdhocCustomer.create(bean.getCustomerType(), bean.getFiscalNumber(), bean.getName(),
-                    bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(),
+                    bean.getAddress(), bean.getDistrictSubdivision(), bean.getRegion(), bean.getZipCode(),
                     bean.getAddressCountryCode(), bean.getIdentificationNumber(), bean.getFinantialInstitutions());
             
             return redirect(CustomerController.READ_URL + adhocCustomer.getExternalId(), model, redirectAttributes);
@@ -188,8 +192,12 @@ public class AdhocCustomerController extends TreasuryBaseController {
         try {
             assertUserIsBackOfficeMember(model);
 
+            if(!bean.isAddressValid()) {
+                throw new TreasuryDomainException("error.AdhocCustomer.fill.required.address.fields");
+            }
+            
             if (adhocCustomer.isAdhocCustomer()) {
-                ((AdhocCustomer) adhocCustomer).edit(bean.getCustomerType(), bean.getName(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(),
+                ((AdhocCustomer) adhocCustomer).edit(bean.getCustomerType(), bean.getName(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getRegion(), bean.getZipCode(),
                         bean.getIdentificationNumber(), bean.getFinantialInstitutions());
             } else if(adhocCustomer.isPersonCustomer()) {
                 adhocCustomer.registerFinantialInstitutions(bean.getFinantialInstitutions());
