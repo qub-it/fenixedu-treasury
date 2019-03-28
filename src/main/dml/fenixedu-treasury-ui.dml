@@ -44,3 +44,358 @@ class accesscontrol.PersistentTreasuryManagersGroup extends .org.fenixedu.bennu.
 	        multiplicity 0..1;
 	    }
 	}
+
+
+/****************
+ * GENERIC FILES
+ ****************/
+	
+class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+}
+	
+class document.TreasuryDocumentTemplateFile extends TreasuryFile {
+    boolean active;
+}
+
+	/* --- Document Template File --- */
+	
+	relation TreasuryDocumentTemplateDocumentTemplateFile {
+	    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
+	        multiplicity 1..1;
+	    }
+	    
+	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
+	        multiplicity *;
+	    }
+	}
+	
+	relation TreasuryDocumentTemplateFileBennu {
+	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+	        multiplicity 1..1;
+	    }
+	    
+	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
+	        multiplicity *;
+	    }
+	}
+
+
+	/* --- DocumentTemplateFileDomainObject--- */
+
+ 	relation TreasuryDocumentTemplateFileDomainObjectTreasuryFile {
+		
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+	    document.TreasuryDocumentTemplateFileDomainObject playsRole {
+	        multiplicity *;
+	    }
+ 	}
+
+ 	
+ 	/* --- SibsReportFile --- */
+ 	
+	class paymentcodes.SibsReportFile extends TreasuryFile {
+	  DateTime whenProcessedBySibs;
+	  BigDecimalT transactionsTotalAmount;
+	  BigDecimalT totalCost;
+	  String errorLog;
+	  String infoLog;
+	}
+
+		relation SibsReportFileBennu {
+			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+				multiplicity 1..1;
+			}
+			
+			paymentcodes.SibsReportFile playsRole sibsReportFiles {
+				multiplicity *;
+			}
+		}
+
+        relation SibsTransactionDetailSibsReportFile  {
+            paymentcodes.SibsReportFile playsRole sibsReport {
+                multiplicity 1..1;
+            }
+            
+            paymentcodes.SibsTransactionDetail playsRole sibsTransactions {
+            	multiplicity *;
+            }
+        }
+	
+		relation PaymentReferenceCodeSibsReportFile {
+			paymentcodes.SibsReportFile playsRole reportedInFiles {
+				multiplicity *;
+			}
+		   
+			paymentcodes.PaymentReferenceCode playsRole referenceCodes{
+				multiplicity *;
+			}
+		}
+ 	
+ 	/* --- SibsReportFileDomainObject ---*/
+ 	
+ 	relation SibsReportFileTreasuryFile {
+ 		
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+ 		paymentcodes.SibsReportFileDomainObject playsRole {
+ 			multiplicity 0..1;
+ 		}
+ 	}
+ 	
+ 	/* --- SibsInputFile ---*/
+ 	
+	class paymentcodes.SibsInputFile extends TreasuryFile {
+		DateTime whenProcessedBySibs;
+		String uploaderUsername;
+	}
+
+	    relation SibsInputFinantialInstitution {
+	      paymentcodes.SibsInputFile playsRole sibsInputFiles {
+	        multiplicity *;
+	      }
+	      
+	      FinantialInstitution playsRole finantialInstitution {
+	        multiplicity 1..1;
+	      }
+	    }
+	
+	    relation SibsInputFileBennu {
+			  paymentcodes.SibsInputFile playsRole sibsInputFiles {
+			    multiplicity *;
+			  }
+	      
+			.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+				multiplicity 1..1;
+			}
+	    }
+		
+ 	
+ 	/* --- SibsInputFileDomainObject --- */
+ 	
+ 	relation SibsInputFileDomainObjectTreasuryFile {
+ 	
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+ 		paymentcodes.SibsInputFileDomainObject playsRole {
+ 			multiplicity *;
+ 		}
+ 	}
+
+	/* --- SibsOutputFile --- */
+	class paymentcodes.SibsOutputFile extends TreasuryFile {
+		String errorLog;
+		String infoLog;
+		String printedPaymentCodes;
+		DateTime lastSuccessfulExportation;
+	}
+
+		relation SibsOutputFileFinantialInstitution {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
+				multiplicity *;
+			}
+			      
+			FinantialInstitution playsRole finantialInstitution {
+				multiplicity 1..1;
+			}      
+		}
+
+		relation SibsOutputFileBennu {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
+				multiplicity *;
+			}
+			  
+			.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+				multiplicity 1..1;
+			}
+		}
+
+	/* --- SibsOutputFileDomainObject --- */
+ 	
+ 	relation SibsOutputFileDomainObjectTreasuryFile {
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+		paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+			multiplicity *;
+		}
+		
+ 	}
+ 	
+ 	/* --- ForwardPaymentConfigurationFile --- */
+ 	
+	class forwardpayments.ForwardPaymentConfigurationFile extends TreasuryFile {
+	}
+	
+		relation ForwardPaymentConfigurationFileBennu {
+	       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
+	           multiplicity *;
+	       }
+			
+			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+				multiplicity 1..1;
+			}
+		}
+		
+		relation ForwardPaymentConfigurationVirtualTPACertificate {
+			forwardpayments.ForwardPaymentConfiguration playsRole {
+				multiplicity *;
+			}
+			
+	       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
+	           multiplicity 0..1;
+	       }
+		}
+	
+	/* --- ForwardPaymentConfigurationFileDomainObject --- */
+
+ 	relation ForwardPaymentConfigurationFileDomainObjectTreasuryFile {
+
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+		 	
+       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole {
+           multiplicity *;
+       }
+ 	}
+ 
+ 
+	/* ---  OperationFile --- */
+ 
+	class integration.OperationFile extends TreasuryFile  {
+	}
+	
+		relation OperationFileBennu {
+		
+			integration.OperationFile playsRole operationFiles {
+				multiplicity *;
+			}
+						
+			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+				multiplicity 0..1;
+			}
+		}
+	
+		relation IntegrationOperationOperationFile {
+		    integration.OperationFile playsRole file {
+		        multiplicity 1..1;
+		    }
+		    
+		    integration.IntegrationOperation playsRole integrationOperation {
+		        multiplicity 0..1;
+		    }
+		}
+		
+		relation IntegrationOperationLogFile {
+			integration.OperationFile playsRole logFile {
+				multiplicity 0..1;
+			}
+			
+			integration.IntegrationOperation playsRole logIntegrationOperation {
+				multiplicity 0..1;
+			}
+		}
+
+ 	/* ---  OperationFileDomainObject --- */
+ 	
+ 	relation OperationFileDomainObjectTreasuryFile {
+ 		
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+		integration.OperationFileDomainObject playsRole operationFileDomainObjects {
+			multiplicity *;
+		}
+ 	}
+
+
+	/* --- ForwardPaymentLogFile --- */
+	
+	class forwardpayments.ForwardPaymentLogFile extends TreasuryFile {
+	}
+		
+		relation ForwardPaymentLogFileBennu {
+			forwardpayments.ForwardPaymentLogFile playsRole forwardPaymentLogFiles {
+				multiplicity *;
+			}
+						
+			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+				multiplicity 0..1;
+			}
+		}
+	
+		relation ForwardPaymentLogRequestLogFile {
+			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
+				multiplicity 0..1;
+			}
+		
+			forwardpayments.ForwardPaymentLogFile playsRole requestLogFile {
+				multiplicity 0..1;
+			}
+		}
+		
+		relation ForwardPaymentLogResponseLogFile {
+	
+			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
+				multiplicity 0..1;
+			}
+		
+			forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {
+				multiplicity 0..1;
+			}
+		}
+
+ 	/* --- ForwardPaymentLogFileDomainObject --- */
+ 	
+ 	relation ForwardPaymentLogFileDomainObjectTreasuryFile {
+ 	
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+		forwardpayments.ForwardPaymentLogFileDomainObject playsRole {
+			multiplicity *;
+		}
+ 	}
+ 	
+ 	/* --- PostForwardPaymentsReportFile --- */
+ 	
+	class forwardpayments.PostForwardPaymentsReportFile extends TreasuryFile {
+		DateTime postForwardPaymentsExecutionDate;
+		DateTime beginDate;
+		DateTime endDate;
+	}
+	
+		relation PostForwardPaymentsReportFileBennu {
+			.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+				multiplicity 1..1;
+			}
+	
+			forwardpayments.PostForwardPaymentsReportFile playsRole postForwardPaymentsReportFiles {
+				multiplicity *;
+			}
+		}
+
+ 	
+ 	/* --- PostForwardPaymentsReportFileDomainObject --- */
+ 	
+ 	relation PostForwardPaymentsReportFileDomainObjectTreasuryFile {
+ 		
+		TreasuryFile playsRole treasuryFile {
+			multiplicity 1..1;
+		}
+ 		
+		forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole {
+			multiplicity *;
+		}
+ 	}
+ 	

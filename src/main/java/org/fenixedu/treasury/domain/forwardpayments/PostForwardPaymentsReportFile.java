@@ -47,7 +47,11 @@ public class PostForwardPaymentsReportFile extends PostForwardPaymentsReportFile
     @Atomic
     public static PostForwardPaymentsReportFile create(final DateTime postForwardPaymentsExecutionDate, final DateTime beginDate, final DateTime endDate, 
             final String filename, final byte[] content) {
-        return new PostForwardPaymentsReportFile(postForwardPaymentsExecutionDate, beginDate, endDate, filename, content);
+        PostForwardPaymentsReportFile file = new PostForwardPaymentsReportFile(postForwardPaymentsExecutionDate, beginDate, endDate, filename, content);
+        
+        PostForwardPaymentsReportFileDomainObject.createFromPostForwardPaymentsReportFile(file);
+        
+        return file;
     }
 
 }

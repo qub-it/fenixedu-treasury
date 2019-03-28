@@ -1,6 +1,7 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 import org.joda.time.DateTime;
 
@@ -44,6 +45,18 @@ public class ForwardPaymentLog extends ForwardPaymentLog_Base {
         }
         
         deleteDomainObject();
+    }
+
+    
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+    
+    public static Stream<ForwardPaymentLog> findAll() {
+        return FenixFramework.getDomainRoot().getForwardPaymentLogsSet().stream();
     }
     
 }

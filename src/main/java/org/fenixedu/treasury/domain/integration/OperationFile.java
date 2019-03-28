@@ -27,6 +27,11 @@
  */
 package org.fenixedu.treasury.domain.integration;
 
+import static java.util.stream.Stream.concat;
+
+import java.util.stream.Stream;
+
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 
@@ -36,19 +41,21 @@ public class OperationFile extends OperationFile_Base {
 
     public OperationFile() {
         super();
-        // this.setDomainRoot(FenixFramework.getDomainRoot());
+        setBennu(Bennu.getInstance());
     }
 
     public OperationFile(String fileName, byte[] content) {
         this();
         this.init(fileName, fileName, content);
+
+        OperationFileDomainObject.createFromOperationFile(this);
     }
 
     @Override
     public boolean isAccessible(User arg0) {
         throw new RuntimeException("not implemented");
     }
-    
+
     public boolean isAccessible(final String username) {
         throw new RuntimeException("not implemented");
     }
@@ -64,6 +71,8 @@ public class OperationFile extends OperationFile_Base {
     @Atomic
     public void edit() {
         checkRules();
+
+        OperationFileDomainObject.findUniqueByOperationFile(this).get().edit();
     }
 
     public boolean isDeletable() {
@@ -81,6 +90,8 @@ public class OperationFile extends OperationFile_Base {
         this.setIntegrationOperation(null);
 
         super.delete();
+
+        OperationFileDomainObject.findUniqueByOperationFile(this).get().delete();
     }
 
     @Atomic
@@ -88,6 +99,9 @@ public class OperationFile extends OperationFile_Base {
         OperationFile operationFile = new OperationFile();
         operationFile.init(fileName, fileName, bytes);
         operationFile.setIntegrationOperation(operation);
+
+        OperationFileDomainObject.createFromOperationFile(operationFile);
+
         return operationFile;
     }
 
@@ -96,7 +110,18 @@ public class OperationFile extends OperationFile_Base {
         OperationFile operationFile = new OperationFile();
         operationFile.init(fileName, fileName, bytes);
         operationFile.setLogIntegrationOperation(operation);
+
+        OperationFileDomainObject.createFromOperationFile(operationFile);
+
         return operationFile;
+    }
+
+    public static Stream<OperationFile> findAll() {
+        return concat(
+                concat(concat(ERPExportOperation.findAll().filter(o -> o.getFile() != null).map(o -> o.getFile()),
+                        ERPExportOperation.findAll().filter(o -> o.getLogFile() != null).map(o -> o.getLogFile())),
+                        ERPImportOperation.findAll().filter(o -> o.getFile() != null).map(o -> o.getFile())),
+                ERPImportOperation.findAll().filter(o -> o.getLogFile() != null).map(o -> o.getFile()));
     }
 
 }

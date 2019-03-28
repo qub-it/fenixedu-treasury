@@ -30,11 +30,17 @@ package org.fenixedu.treasury.domain.paymentcodes;
 import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.FenixEDUTreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.payments.sibs.SIBSImportationFileDTO;
 import org.fenixedu.treasury.services.payments.sibs.SIBSPaymentsImporter.ProcessResult;
 import org.fenixedu.treasury.util.TreasuryConstants;
@@ -46,30 +52,30 @@ import org.joda.time.LocalDate;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-public class SibsReportFile extends SibsReportFile_Base {
+public class SibsReportFileDomainObject extends SibsReportFileDomainObject_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "text/plain";
     public static final String FILE_EXTENSION = ".idm";
 
-    protected SibsReportFile() {
+    protected SibsReportFileDomainObject() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
-    protected SibsReportFile(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
-            final BigDecimal totalCost, final String displayName, final String fileName, final byte[] content) {
-        this();
-        this.init(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
-
-        checkRules();
-
-        SibsReportFileDomainObject.createFromSibsReportFile(this);
-    }
-
+//    protected SibsReportFileDomainObject(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
+//            final BigDecimal totalCost, final String displayName, final String fileName, final byte[] content) {
+//        this();
+//
+//        this.init(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
+//
+//        checkRules();
+//    }
+//
     protected void init(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount, final BigDecimal totalCost,
             final String displayName, final String fileName, final byte[] content) {
 
-        super.init(displayName, fileName, content);
+        TreasuryPlataformDependentServicesFactory.implementation().createFile(this, fileName, CONTENT_TYPE, content);
+
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
@@ -84,10 +90,8 @@ public class SibsReportFile extends SibsReportFile_Base {
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
+        
         checkRules();
-
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get()
-                .edit(whenProcessedBySibs, transactionsTotalAmount, totalCost);
     }
 
     public boolean isDeletable() {
@@ -97,47 +101,69 @@ public class SibsReportFile extends SibsReportFile_Base {
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         if (!isDeletable()) {
             throw new TreasuryDomainException("error.SibsReportFile.cannot.delete");
         }
 
-        setBennu(null);
-
-        super.delete();
-
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get().delete();
+        setDomainRoot(null);
+        
+        // services.deleteFile(this);
+        
+        super.deleteDomainObject();
     }
 
-    public static Stream<SibsReportFile> findAll() {
-        return Bennu.getInstance().getSibsReportFilesSet().stream();
+    public static Stream<SibsReportFileDomainObject> findAll() {
+        return FenixFramework.getDomainRoot().getSibsReportFileDomainObjectsSet().stream();
     }
 
-    public static Stream<SibsReportFile> findByWhenProcessedBySibs(final LocalDate whenProcessedBySibs) {
-        return findAll().filter(i -> whenProcessedBySibs.equals(i.getWhenProcessedBySibs()));
-    }
-
-    public static Stream<SibsReportFile> findByTransactionsTotalAmount(final BigDecimal transactionsTotalAmount) {
+    public static Stream<SibsReportFileDomainObject> findByTransactionsTotalAmount(final BigDecimal transactionsTotalAmount) {
         return findAll().filter(i -> transactionsTotalAmount.equals(i.getTransactionsTotalAmount()));
     }
 
-    public static Stream<SibsReportFile> findByTotalCost(final BigDecimal totalCost) {
+    public static Stream<SibsReportFileDomainObject> findByTotalCost(final BigDecimal totalCost) {
         return findAll().filter(i -> totalCost.equals(i.getTotalCost()));
+    }
+    
+    public static Optional<SibsReportFileDomainObject> findUniqueBySibsReportFile(final SibsReportFile file) {
+        return findAll().filter(o -> o.getTreasuryFile() == file).findFirst();
     }
 
     @Override
-    public boolean isAccessible(User arg0) {
-        return true;
+    public boolean isAccessible(final String username) {
+        return TreasuryAccessControlAPI.isBackOfficeMember(username);
     }
 
-    public boolean isAccessible(final String username) {
-        return true;
-    }
+//    @Atomic
+//    public static SibsReportFileDomainObject create(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
+//            final BigDecimal totalCost, final String displayName, final String fileName, final byte[] content) {
+//        return new SibsReportFileDomainObject(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
+//
+//    }
 
     @Atomic
-    public static SibsReportFile create(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
-            final BigDecimal totalCost, final String displayName, final String fileName, final byte[] content) {
-        return new SibsReportFile(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
+    public static SibsReportFileDomainObject createFromSibsReportFile(final SibsReportFile file) {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
 
+        SibsReportFileDomainObject result = new SibsReportFileDomainObject();
+        
+        result.setWhenProcessedBySibs(file.getWhenProcessedBySibs());
+        result.setTransactionsTotalAmount(file.getTransactionsTotalAmount());
+        result.setTotalCost(file.getTotalCost());
+        result.setErrorLog(file.getErrorLog());
+        result.setInfoLog(file.getInfoLog());
+        result.setCreationDate(file.getCreationDate());
+        result.setCreator(services.versioningCreatorUsername(file));
+        result.setTreasuryFile(file);
+        result.setFileId(file.getExternalId());
+        
+        result.getReferenceCodesSet().addAll(file.getReferenceCodesSet());
+        result.getSibsTransactionsSet().addAll(file.getSibsTransactionsSet());
+        
+        result.checkRules();
+        
+        return result;
     }
 
     protected static byte[] buildContentFor(final SIBSImportationFileDTO reportFileDTO) {
@@ -166,15 +192,16 @@ public class SibsReportFile extends SibsReportFile_Base {
         return "Relatorio-SIBS-" + date;
     }
 
-    @Atomic
-    public static SibsReportFile processSIBSIncommingFile(final SIBSImportationFileDTO reportDTO) {
-        byte[] content = buildContentFor(reportDTO);
-        SibsReportFile result = SibsReportFile.create(reportDTO.getWhenProcessedBySibs(), reportDTO.getTransactionsTotalAmount(),
-                reportDTO.getTotalCost(), displayNameFor(reportDTO), filenameFor(reportDTO), content);
+//    @Atomic
+//    public static SibsReportFileDomainObject processSIBSIncommingFile(final SIBSImportationFileDTO reportDTO) {
+//        byte[] content = buildContentFor(reportDTO);
+//        SibsReportFile result = SibsReportFileDomainObject.create(reportDTO.getWhenProcessedBySibs(), reportDTO.getTransactionsTotalAmount(),
+//                reportDTO.getTotalCost(), displayNameFor(reportDTO), filenameFor(reportDTO), content);
+//
+//        return result;
+//    }
 
-        return result;
-    }
-
+    
     public Integer getNumberOfTransactions() {
         return this.getSibsTransactionsSet().size();
     }
@@ -213,8 +240,6 @@ public class SibsReportFile extends SibsReportFile_Base {
             build.append(s + "\n");
         }
         this.setInfoLog(build.toString());
-
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get()
-                .updateLogMessages(result);
     }
+
 }

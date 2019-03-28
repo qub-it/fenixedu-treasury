@@ -4,15 +4,17 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.payments.sibs.outgoing.SibsOutgoingPaymentFile;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -21,57 +23,31 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.FenixFramework;
 
-public class SibsOutputFile extends SibsOutputFile_Base {
+public class SibsOutputFileDomainObject extends SibsOutputFileDomainObject_Base implements IGenericFile {
 
-    public SibsOutputFile() {
+    public static final String CONTENT_TYPE = "text/plain";
+
+    public SibsOutputFileDomainObject() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
-    public static SibsOutputFile create(FinantialInstitution finantialInstitution, DateTime lastSuccessfulSentDateTime) {
-        SibsOutputFile file = new SibsOutputFile();
-
-        try {
-            StringBuilder errorsBuilder = new StringBuilder();
-            byte[] paymentFileContents =
-                    file.createPaymentFile(finantialInstitution, lastSuccessfulSentDateTime, errorsBuilder).getBytes("ASCII");
-            file.init(file.outgoingFilename(), file.outgoingFilename(), paymentFileContents);
-            file.setFinantialInstitution(finantialInstitution);
-            file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
-            file.setErrorLog(errorsBuilder.toString());
-        } catch (Exception e) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(e.getLocalizedMessage()).append("\n");
-            for (StackTraceElement el : e.getStackTrace()) {
-                builder.append(el.toString()).append("\n");
-            }
-            file.init(file.outgoingFilename(), file.outgoingFilename(), new byte[0]);
-            file.setFinantialInstitution(finantialInstitution);
-            file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
-            file.setErrorLog(builder.toString());
-        }
-
-        SibsOutputFileDomainObject.createFromSibsOutputFile(file);
-
-        return file;
-    }
-
-    protected String createPaymentFile(FinantialInstitution finantialInstiution, DateTime lastSuccessfulSentDateTime,
-            StringBuilder errorsBuilder) {
-        SibsOutgoingPaymentFile sibsOutgoingPaymentFile =
-                new SibsOutgoingPaymentFile(finantialInstiution.getSibsConfiguration().getSourceInstitutionId(),
-                        finantialInstiution.getSibsConfiguration().getDestinationInstitutionId(),
-                        finantialInstiution.getSibsConfiguration().getEntityReferenceCode(), lastSuccessfulSentDateTime);
-
-        for (PaymentReferenceCode referenceCode : getNotPayedReferenceCodes(finantialInstiution, errorsBuilder)) {
-            addCalculatedPaymentCodesFromEvent(sibsOutgoingPaymentFile, referenceCode, errorsBuilder);
-        }
-
-        this.setPrintedPaymentCodes(sibsOutgoingPaymentFile.getAssociatedPaymentCodes().exportAsString());
-        invalidateOldPaymentCodes(sibsOutgoingPaymentFile, finantialInstiution, errorsBuilder);
-
-        return sibsOutgoingPaymentFile.render();
-    }
+//    protected String createPaymentFile(FinantialInstitution finantialInstiution, DateTime lastSuccessfulSentDateTime,
+//            StringBuilder errorsBuilder) {
+//        SibsOutgoingPaymentFile sibsOutgoingPaymentFile =
+//                new SibsOutgoingPaymentFile(finantialInstiution.getSibsConfiguration().getSourceInstitutionId(),
+//                        finantialInstiution.getSibsConfiguration().getDestinationInstitutionId(),
+//                        finantialInstiution.getSibsConfiguration().getEntityReferenceCode(), lastSuccessfulSentDateTime);
+//
+//        for (PaymentReferenceCode referenceCode : getNotPayedReferenceCodes(finantialInstiution, errorsBuilder)) {
+//            addCalculatedPaymentCodesFromEvent(sibsOutgoingPaymentFile, referenceCode, errorsBuilder);
+//        }
+//
+//        this.setPrintedPaymentCodes(sibsOutgoingPaymentFile.getAssociatedPaymentCodes().exportAsString());
+//        invalidateOldPaymentCodes(sibsOutgoingPaymentFile, finantialInstiution, errorsBuilder);
+//
+//        return sibsOutgoingPaymentFile.render();
+//    }
 
     private Set<PaymentReferenceCode> getNotPayedReferenceCodes(FinantialInstitution finantialInstitution,
             StringBuilder errorsBuilder) {
@@ -162,20 +138,17 @@ public class SibsOutputFile extends SibsOutputFile_Base {
     }
 
     @Override
-    public boolean isAccessible(User arg0) {
-        return true;
-    }
-
     public boolean isAccessible(final String username) {
         return true;
     }
 
-    protected void init(final FinantialInstitution finantialInstitution, final java.lang.String errorLog,
-            final java.lang.String infoLog, final java.lang.String printedPaymentCodes) {
+    protected void init(final FinantialInstitution finantialInstitution, final String errorLog, final String infoLog,
+            final String printedPaymentCodes) {
         setFinantialInstitution(finantialInstitution);
         setErrorLog(errorLog);
         setInfoLog(infoLog);
         setPrintedPaymentCodes(printedPaymentCodes);
+
         checkRules();
     }
 
@@ -194,9 +167,6 @@ public class SibsOutputFile extends SibsOutputFile_Base {
         setPrintedPaymentCodes(printedPaymentCodes);
 
         checkRules();
-
-        SibsOutputFileDomainObject.findUniqueBySibsOutputFile(this).get().edit(finantialInstitution, errorLog, infoLog,
-                printedPaymentCodes);
     }
 
     @Override
@@ -207,35 +177,96 @@ public class SibsOutputFile extends SibsOutputFile_Base {
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         TreasuryDomainException.throwWhenDeleteBlocked(getDeletionBlockers());
 
-        SibsOutputFileDomainObject.findUniqueBySibsOutputFile(this).get().delete();
-        
         setFinantialInstitution(null);
-        super.delete();
+        setTreasuryFile(null);
+        
+        // services.deleteFile(this);
+
+        super.deleteDomainObject();
     }
 
-    public static Stream<SibsOutputFile> findAll() {
-        Set<SibsOutputFile> result = new HashSet<SibsOutputFile>();
+//    public static SibsOutputFileDomainObject create(final FinantialInstitution finantialInstitution,
+//            final DateTime lastSuccessfulSentDateTime) {
+//        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+//
+//        SibsOutputFileDomainObject file = new SibsOutputFileDomainObject();
+//
+//        try {
+//            StringBuilder errorsBuilder = new StringBuilder();
+//            byte[] paymentFileContents =
+//                    file.createPaymentFile(finantialInstitution, lastSuccessfulSentDateTime, errorsBuilder).getBytes("ASCII");
+//
+//            services.createFile(file, file.outgoingFilename(), CONTENT_TYPE, paymentFileContents);
+//
+//            file.setFinantialInstitution(finantialInstitution);
+//            file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
+//            file.setErrorLog(errorsBuilder.toString());
+//        } catch (Exception e) {
+//            StringBuilder builder = new StringBuilder();
+//            builder.append(e.getLocalizedMessage()).append("\n");
+//            for (StackTraceElement el : e.getStackTrace()) {
+//                builder.append(el.toString()).append("\n");
+//            }
+//
+//            services.createFile(file, file.outgoingFilename(), CONTENT_TYPE, new byte[0]);
+//
+//            file.setFinantialInstitution(finantialInstitution);
+//            file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
+//            file.setErrorLog(builder.toString());
+//        }
+//
+//        return file;
+//    }
+
+    public static SibsOutputFileDomainObject createFromSibsOutputFile(final SibsOutputFile file) {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+        
+        final SibsOutputFileDomainObject result = new SibsOutputFileDomainObject();
+        
+        result.setFinantialInstitution(file.getFinantialInstitution());
+        result.setLastSuccessfulExportation(file.getLastSuccessfulExportation());
+        result.setErrorLog(file.getErrorLog());
+        
+        result.setTreasuryFile(file);
+        result.setCreationDate(file.getCreationDate());
+        result.setCreator(services.versioningCreatorUsername(file));
+        result.setFileId(file.getExternalId());
+        
+        return result;
+    }
+    
+    public static Stream<SibsOutputFileDomainObject> findAll() {
+        final Set<SibsOutputFileDomainObject> result = new HashSet<SibsOutputFileDomainObject>();
+        
         for (FinantialInstitution finantialInstitution : FinantialInstitution.findAll().collect(Collectors.toList())) {
-            result.addAll(finantialInstitution.getSibsOutputFilesSet());
+            result.addAll(finantialInstitution.getSibsOutputFileDomainObjectsSet());
         }
+        
         return result.stream();
     }
 
-    public static Stream<SibsOutputFile> findByFinantialInstitution(final FinantialInstitution finantialInstitution) {
-        return finantialInstitution.getSibsOutputFilesSet().stream();
+    public static Stream<SibsOutputFileDomainObject> findByFinantialInstitution(final FinantialInstitution finantialInstitution) {
+        return finantialInstitution.getSibsOutputFileDomainObjectsSet().stream();
     }
 
-    public static Stream<SibsOutputFile> findByErrorLog(final java.lang.String errorLog) {
+    public static Stream<SibsOutputFileDomainObject> findByErrorLog(final String errorLog) {
         return findAll().filter(i -> errorLog.equalsIgnoreCase(i.getErrorLog()));
     }
 
-    public static Stream<SibsOutputFile> findByInfoLog(final java.lang.String infoLog) {
+    public static Stream<SibsOutputFileDomainObject> findByInfoLog(final String infoLog) {
         return findAll().filter(i -> infoLog.equalsIgnoreCase(i.getInfoLog()));
     }
 
-    public static Stream<SibsOutputFile> findByPrintedPaymentCodes(final java.lang.String printedPaymentCodes) {
+    public static Stream<SibsOutputFileDomainObject> findByPrintedPaymentCodes(final String printedPaymentCodes) {
         return findAll().filter(i -> printedPaymentCodes.equalsIgnoreCase(i.getPrintedPaymentCodes()));
     }
+
+    public static Optional<SibsOutputFileDomainObject> findUniqueBySibsOutputFile(SibsOutputFile file) {
+        return findAll().filter(o -> file == o.getTreasuryFile()).findFirst();
+    }
+
 }
