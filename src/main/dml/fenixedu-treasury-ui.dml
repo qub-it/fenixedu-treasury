@@ -223,7 +223,7 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 			multiplicity 1..1;
 		}
  		
-		paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+		paymentcodes.SibsOutputFileDomainObject playsRole {
 			multiplicity *;
 		}
 		
@@ -312,7 +312,7 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 			multiplicity 1..1;
 		}
  		
-		integration.OperationFileDomainObject playsRole operationFileDomainObjects {
+		integration.OperationFileDomainObject playsRole {
 			multiplicity *;
 		}
  	}
