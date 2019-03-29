@@ -118,12 +118,6 @@ public class OperationFile extends OperationFile_Base {
 
     public static Stream<OperationFile> findAll() {
         return Bennu.getInstance().getOperationFilesSet().stream();
-        
-        //        return concat(
-//                concat(concat(ERPExportOperation.findAll().filter(o -> o.getFile() != null).map(o -> o.getFile()),
-//                        ERPExportOperation.findAll().filter(o -> o.getLogFile() != null).map(o -> o.getLogFile())),
-//                        ERPImportOperation.findAll().filter(o -> o.getFile() != null).map(o -> o.getFile())),
-//                ERPImportOperation.findAll().filter(o -> o.getLogFile() != null).map(o -> o.getLogFile()));
     }
 
 }

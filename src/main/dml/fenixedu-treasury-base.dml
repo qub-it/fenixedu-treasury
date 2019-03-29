@@ -214,32 +214,32 @@ class debt.DebtAccount {
 class document.TreasuryDocumentTemplate {
 }
 
-class document.TreasuryDocumentTemplateFileDomainObject /* implements IGenericFile */ {
+class document.TreasuryDocumentTemplateFile /* implements IGenericFile */ {
 	String fileId;
 	boolean active;
 	DateTime creationDate;
 	String creator;
 }
 	
-	relation TreasuryDocumentTemplateFileDomainObjectDomainRoot {
+	relation TreasuryDocumentTemplateFileDomainRoot {
 	    
 	    .pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 	        multiplicity 1..1;
 	    }
 	    
-	    document.TreasuryDocumentTemplateFileDomainObject playsRole treasuryDocumentTemplateFileDomainObjects {
+	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
 	        multiplicity *;
 	    }
 	    
 	}
 	
-	relation TreasuryDocumentTemplateFileDomainObjectDocumentTemplate {
+	relation TreasuryDocumentTemplateFileDocumentTemplate {
 	    
 	    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
 	        multiplicity 1..1;
 	    }
 	    
-	    document.TreasuryDocumentTemplateFileDomainObject playsRole treasuryDocumentTemplateFileDomainObjects {
+	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
 	        multiplicity *;
 	    }
 	}
@@ -723,7 +723,7 @@ class paymentcodes.PaymentReferenceCode
 		String settlementDocumentNumber;
     }
 
-	class paymentcodes.SibsReportFileDomainObject /* implements IGenericFile */ {
+	class paymentcodes.SibsReportFile /* implements IGenericFile */ {
 		String fileId;
 		DateTime whenProcessedBySibs;
 		BigDecimalT transactionsTotalAmount;
@@ -734,18 +734,18 @@ class paymentcodes.PaymentReferenceCode
 		String creator;
 	}
 		
-		relation SibsReportFileDomainObjectDomainRoot {
+		relation SibsReportFileDomainRoot {
 		    .pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 		        multiplicity 1..1;
 		    }
 		
-			paymentcodes.SibsReportFileDomainObject playsRole sibsReportFileDomainObjects {
+			paymentcodes.SibsReportFile playsRole sibsReportFiles {
 				multiplicity *;
 			}
 		}
 		
         relation SibsTransactionDetailSibsReportFileDomainObject  {
-            paymentcodes.SibsReportFileDomainObject playsRole sibsReportDomainObject {
+            paymentcodes.SibsReportFile playsRole sibsReportFile {
                 multiplicity 1..1;
             }
             
@@ -754,8 +754,8 @@ class paymentcodes.PaymentReferenceCode
             }
         }
 	
-		relation PaymentReferenceCodeSibsReportFileDomainObject {
-			paymentcodes.SibsReportFileDomainObject playsRole reportedInFileDomainObjects {
+		relation PaymentReferenceCodeSibsReportFile {
+			paymentcodes.SibsReportFile playsRole reportedInFiles {
 				multiplicity *;
 			}
 		   
@@ -764,7 +764,7 @@ class paymentcodes.PaymentReferenceCode
 			}
 		}
 
-	class paymentcodes.SibsInputFileDomainObject /* implements IGenericFile */ {
+	class paymentcodes.SibsInputFile /* implements IGenericFile */ {
 		String fileId;
 		DateTime whenProcessedBySibs;
 		String uploaderUsername;
@@ -772,8 +772,8 @@ class paymentcodes.PaymentReferenceCode
 		String creator;
 	}
 
-		relation SibsInputDomainObjectFinantialInstitution {
-			paymentcodes.SibsInputFileDomainObject playsRole sibsInputFileDomainObjects {
+		relation SibsInputFileFinantialInstitution {
+			paymentcodes.SibsInputFile playsRole sibsInputFiles {
 				multiplicity *;
 			}
 	      
@@ -783,8 +783,8 @@ class paymentcodes.PaymentReferenceCode
 			
 		}
 	
-	    relation SibsInputFileDomainObjectDomainRoot {
-			paymentcodes.SibsInputFileDomainObject playsRole sibsInputFileDomainObjects {
+	    relation SibsInputFileDomainRoot {
+			paymentcodes.SibsInputFile playsRole sibsInputFiles {
 			    multiplicity *;
 			}
 	      
@@ -793,7 +793,7 @@ class paymentcodes.PaymentReferenceCode
 			}
 	    }
 		
-	class paymentcodes.SibsOutputFileDomainObject /* implements IGenericFile */ {
+	class paymentcodes.SibsOutputFile /* implements IGenericFile */ {
 		String fileId;
 		String errorLog;
 		String infoLog;
@@ -803,8 +803,8 @@ class paymentcodes.PaymentReferenceCode
 		String creator;
 	}
 
-		relation SibsOutputFileDomainObjectFinantialInstitution {
-			paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+		relation SibsOutputFileFinantialInstitution {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
 				multiplicity *;
 			}
 			      
@@ -813,8 +813,8 @@ class paymentcodes.PaymentReferenceCode
 			}      
 		}
 
-		relation SibsOutputFileDomainObjectDomainRoot {
-			paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+		relation SibsOutputFileDomainRoot {
+			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
 				multiplicity *;
 			}
 			  
@@ -848,15 +848,15 @@ class integration.IntegrationOperation
 	    }
 	}
 
-class integration.OperationFileDomainObject /* implements IGenericFile */  {
+class integration.OperationFile /* implements IGenericFile */  {
 	String fileId;
 	DateTime creationDate;
 	String creator;
 }
 
-	relation OperationFileDomainObjectDomainRoot {
+	relation OperationFileDomainRoot {
 	
-		integration.OperationFileDomainObject playsRole operationFileDomainObjects {
+		integration.OperationFile playsRole operationFiles {
 			multiplicity *;
 		}
 					
@@ -869,6 +869,7 @@ class integration.OperationFileDomainObject /* implements IGenericFile */  {
 	    integration.OperationFileDomainObject playsRole fileDomainObject {
 	        multiplicity 0..1;
 	    }
+
 	    
 	    integration.IntegrationOperation playsRole integrationOperation {
 	        multiplicity 0..1;
@@ -884,7 +885,6 @@ class integration.OperationFileDomainObject /* implements IGenericFile */  {
 			multiplicity 0..1;
 		}
 	}
-
 
 
 /* ERP Integration */
@@ -1942,14 +1942,14 @@ class forwardpayments.ForwardPaymentConfiguration {
        }
 	}
 
-class forwardpayments.ForwardPaymentConfigurationFileDomainObject /* implements IGenericFile */ {
+class forwardpayments.ForwardPaymentConfigurationFile /* implements IGenericFile */ {
 	String fileId;
 	DateTime creationDate;
 	String creator;
 }
 
-	relation ForwardPaymentConfigurationFileDomainObjectDomainRoot {
-       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole virtualTPACertificateDomainObject {
+	relation ForwardPaymentConfigurationFileDomainRoot {
+       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificateDomainObject {
            multiplicity *;
        }
 		
@@ -1963,7 +1963,7 @@ class forwardpayments.ForwardPaymentConfigurationFileDomainObject /* implements 
 			multiplicity *;
 		}
 		
-       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole virtualTPACertificateDomainObject {
+       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificateDomainObject {
            multiplicity 0..1;
        }
 	}
@@ -2066,28 +2066,28 @@ class forwardpayments.ForwardPaymentLog {
 		}
 	}
 	
-class forwardpayments.ForwardPaymentLogFileDomainObject /* implements IGenericFile */ {
+class forwardpayments.ForwardPaymentLogFile /* implements IGenericFile */ {
 	String fileId;
 	DateTime creationDate;
 	String creator;
 }
 	
-	relation ForwardPaymentLogFileDomainObjectDomainRoot {
+	relation ForwardPaymentLogFileDomainRoot {
 		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 			multiplicity 1..1;
 		}
 
-		forwardpayments.ForwardPaymentLogFileDomainObject playsRole forwardPaymentLogFileDomainObjects {
+		forwardpayments.ForwardPaymentLogFile playsRole forwardPaymentLogFiles {
 			multiplicity *;
 		}
 	}
 
-	relation ForwardPaymentLogRequestLogFileDomainObject {
+	relation ForwardPaymentLogRequestLogFile {
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFileDomainObject playsRole requestLogFileDomainObject {
+		forwardpayments.ForwardPaymentLogFile playsRole requestLogFileDomainObject {
 			multiplicity 0..1;
 		}
 	}
@@ -2098,12 +2098,12 @@ class forwardpayments.ForwardPaymentLogFileDomainObject /* implements IGenericFi
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFileDomainObject playsRole responseLogFileDomainObject {
+		forwardpayments.ForwardPaymentLogFile playsRole responseLogFileDomainObject {
 			multiplicity 0..1;
 		}
 	}
 
-class forwardpayments.PostForwardPaymentsReportFileDomainObject /* implements IGenericFile */ {
+class forwardpayments.PostForwardPaymentsReportFile /* implements IGenericFile */ {
 	String fileId;
 	DateTime postForwardPaymentsExecutionDate;
 	DateTime beginDate;
@@ -2112,12 +2112,12 @@ class forwardpayments.PostForwardPaymentsReportFileDomainObject /* implements IG
 	String creator;
 }
 
-	relation PostForwardPaymentsReportFileDomainObjectDomainRoot {
+	relation PostForwardPaymentsReportFileDomainRoot {
 		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 			multiplicity 1..1;
 		}
 
-		forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole postForwardPaymentsReportFileDomainObjects {
+		forwardpayments.PostForwardPaymentsReportFile playsRole postForwardPaymentsReportFiles {
 			multiplicity *;
 		}
 	}

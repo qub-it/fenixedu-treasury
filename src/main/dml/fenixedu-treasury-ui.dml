@@ -49,7 +49,7 @@ class accesscontrol.PersistentTreasuryManagersGroup extends .org.fenixedu.bennu.
 /****************
  * GENERIC FILES
  ****************/
-	
+
 class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 }
 	
@@ -84,25 +84,17 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	}
 	
 	relation TreasuryDocumentTemplateFileBennu {
-	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
-	        multiplicity 1..1;
-	    }
-	    
-	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
-	        multiplicity *;
-	    }
 	}
-
 
 	/* --- DocumentTemplateFileDomainObject--- */
 
- 	relation TreasuryDocumentTemplateFileDomainObjectTreasuryFile {
+ 	relation TreasuryDocumentTemplateFileTreasuryFile {
 		
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
 		}
  		
-	    document.TreasuryDocumentTemplateFileDomainObject playsRole {
+	    document.TreasuryDocumentTemplateFile playsRole {
 	        multiplicity *;
 	    }
  	}
@@ -160,7 +152,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
  		
- 		paymentcodes.SibsReportFileDomainObject playsRole {
+ 		paymentcodes.SibsReportFile playsRole {
  			multiplicity 0..1;
  		}
  	}
@@ -205,7 +197,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
  		
- 		paymentcodes.SibsInputFileDomainObject playsRole {
+ 		paymentcodes.SibsInputFile playsRole {
  			multiplicity *;
  		}
  	}
@@ -249,10 +241,9 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
  		
-		paymentcodes.SibsOutputFileDomainObject playsRole {
+		paymentcodes.SibsOutputFile playsRole {
 			multiplicity *;
 		}
-		
  	}
  	
  	/* --- ForwardPaymentConfigurationFile --- */
@@ -292,7 +283,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
 		 	
-       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole {
+       forwardpayments.ForwardPaymentConfigurationFile playsRole {
            multiplicity *;
        }
  	}
@@ -346,11 +337,10 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
  		
-		integration.OperationFileDomainObject playsRole {
+		integration.OperationFile playsRole {
 			multiplicity *;
 		}
  	}
-
 
 	/* --- ForwardPaymentLogFile --- */
 	
@@ -400,7 +390,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 			multiplicity 1..1;
 		}
  		
-		forwardpayments.ForwardPaymentLogFileDomainObject playsRole {
+		forwardpayments.ForwardPaymentLogFile playsRole {
 			multiplicity *;
 		}
  	}
@@ -430,13 +420,13 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
  	
  	/* --- PostForwardPaymentsReportFileDomainObject --- */
  	
- 	relation PostForwardPaymentsReportFileDomainObjectTreasuryFile {
+ 	relation PostForwardPaymentsReportFileTreasuryFile {
  		
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
 		}
  		
-		forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole {
+		forwardpayments.PostForwardPaymentsReportFile playsRole {
 			multiplicity *;
 		}
  	}
