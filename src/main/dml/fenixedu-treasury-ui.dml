@@ -96,7 +96,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	        multiplicity *;
 	    }
 	
-	/* --- DocumentTemplateFileDomainObject--- */
+	/* --- DocumentTemplateFile--- */
 
  	relation TreasuryDocumentTemplateFileTreasuryFile {
 		
@@ -201,6 +201,42 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	class forwardpayments.TreasuryFileForForwardPaymentLogFile extends TreasuryFile {
 	} 
 		
+<<<<<<< f6a88409a5a3af4d20b2903c4cca545f3f097e7c
+=======
+		relation ForwardPaymentLogFileBennu {
+			forwardpayments.ForwardPaymentLogFile playsRole forwardPaymentLogFiles {
+				multiplicity *;
+			}
+						
+			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+				multiplicity 0..1;
+			}
+		}
+	
+		relation ForwardPaymentLogRequestLogFile {
+			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
+				multiplicity 0..1;
+			}
+		
+			forwardpayments.ForwardPaymentLogFile playsRole requestLogFile {
+				multiplicity 0..1;
+			}
+		}
+		
+		relation ForwardPaymentLogResponseLogFile {
+	
+			forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
+				multiplicity 0..1;
+			}
+		
+			forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {
+				multiplicity 0..1;
+			}
+		}
+
+ 	/* --- ForwardPaymentLogFileDomainObject --- */
+ 	
+>>>>>>> Rename files representation as domain objects to their original name
  	relation ForwardPaymentLogFileTreasuryFile {
  	
 		TreasuryFile playsRole treasuryFile {
