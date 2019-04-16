@@ -744,8 +744,8 @@ class paymentcodes.PaymentReferenceCode
 			}
 		}
 		
-        relation SibsTransactionDetailSibsReportFileDomainObject  {
-            paymentcodes.SibsReportFile playsRole sibsReportFile {
+        relation SibsTransactionDetailSibsReportFile  {
+            paymentcodes.SibsReportFile playsRole sibsReport {
                 multiplicity 1..1;
             }
             
@@ -868,6 +868,7 @@ class integration.OperationFile /* implements IGenericFile */  {
 	relation IntegrationOperationOperationFileDomainObject {
 	    integration.OperationFileDomainObject playsRole fileDomainObject {
 	        multiplicity 0..1;
+
 	    }
 
 	    
@@ -876,8 +877,8 @@ class integration.OperationFile /* implements IGenericFile */  {
 	    }
 	}
 	
-	relation IntegrationOperationDomainObjectLogFile {
-		integration.OperationFileDomainObject playsRole logFileDomainObject {
+	relation IntegrationOperationLogFile {
+		integration.OperationFile playsRole logFile {
 			multiplicity 0..1;
 		}
 		
@@ -1949,7 +1950,7 @@ class forwardpayments.ForwardPaymentConfigurationFile /* implements IGenericFile
 }
 
 	relation ForwardPaymentConfigurationFileDomainRoot {
-       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificateDomainObject {
+       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
            multiplicity *;
        }
 		
@@ -1958,12 +1959,12 @@ class forwardpayments.ForwardPaymentConfigurationFile /* implements IGenericFile
 		}
 	}
 	
-	relation ForwardPaymentConfigurationVirtualTPACertificateDomainObject {
+	relation ForwardPaymentConfigurationVirtualTPACertificate {
 		forwardpayments.ForwardPaymentConfiguration playsRole {
 			multiplicity *;
 		}
 		
-       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificateDomainObject {
+       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
            multiplicity 0..1;
        }
 	}
@@ -2087,18 +2088,18 @@ class forwardpayments.ForwardPaymentLogFile /* implements IGenericFile */ {
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFile playsRole requestLogFileDomainObject {
+		forwardpayments.ForwardPaymentLogFile playsRole requestLogFile {
 			multiplicity 0..1;
 		}
 	}
 	
-	relation ForwardPaymentLogResponseLogFileDomainObject {
+	relation ForwardPaymentLogResponseLogFile {
 
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFile playsRole responseLogFileDomainObject {
+		forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {
 			multiplicity 0..1;
 		}
 	}

@@ -29,35 +29,36 @@ package org.fenixedu.treasury.domain.document;
 
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base {
+public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "application/vnd.oasis.opendocument.text";
     public static final String FILE_EXTENSION = ".odt";
 
-    protected TreasuryDocumentTemplateFile() {
+    public TreasuryDocumentTemplateFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     protected TreasuryDocumentTemplateFile(final TreasuryDocumentTemplate documentTemplate, final boolean active,
             final String displayName, final String fileName, final byte[] content) {
         this();
-        this.init(displayName, fileName, content);
+
+        TreasuryPlataformDependentServicesFactory.implementation().createFile(this, fileName, CONTENT_TYPE, content);
         setTreasuryDocumentTemplate(documentTemplate);
         setActive(active);
 
         documentTemplate.activateFile(this);
 
         checkRules();
-        
-        TreasuryDocumentTemplateFileDomainObject.createFromTreasuryDocumentTemplateFile(this);
     }
 
     private void checkRules() {
@@ -72,8 +73,6 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         setActive(active);
 
         checkRules();
-        
-        TreasuryDocumentTemplateFileDomainObject.findAll().filter(o -> TreasuryDocumentTemplateFile.this == o.getTreasuryFile()).findFirst().get().edit(documentTemplate, active);
     }
 
     public boolean isDeletable() {
@@ -83,15 +82,18 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         if (!isDeletable()) {
-            throw new TreasuryDomainException("error.TreasuryDocumentTemplateFile.cannot.delete");
+            throw new TreasuryDomainException("error.TreasuryDocumentTemplateFileDomainObject.cannot.delete");
         }
 
-        setBennu(null);
+        setDomainRoot(null);
         setTreasuryDocumentTemplate(null);
-        super.delete();
         
-        TreasuryDocumentTemplateFileDomainObject.findAll().filter(o -> TreasuryDocumentTemplateFile.this == o.getTreasuryFile()).findFirst().get().delete();
+        services.deleteFile(this);
+
+        super.deleteDomainObject();
     }
 
     @Atomic
@@ -103,7 +105,7 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     }
 
     public static Stream<TreasuryDocumentTemplateFile> findAll() {
-        return Bennu.getInstance().getTreasuryDocumentTemplateFilesSet().stream();
+        return FenixFramework.getDomainRoot().getTreasuryDocumentTemplateFilesSet().stream();
     }
 
     public static Stream<TreasuryDocumentTemplateFile> findByDocumentTemplate(final TreasuryDocumentTemplate documentTemplate) {
@@ -111,7 +113,8 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
     }
 
     @Override
-    public boolean isAccessible(User user) {
-        return user != null;
+    public boolean isAccessible(final String username) {
+        return TreasuryAccessControlAPI.isBackOfficeMember(username, getTreasuryDocumentTemplate().getFinantialEntity());
     }
+
 }

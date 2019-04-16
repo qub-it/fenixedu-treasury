@@ -86,7 +86,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	relation TreasuryDocumentTemplateFileBennu {
 	}
 
-	/* --- DocumentTemplateFileDomainObject--- */
+	/* --- DocumentTemplateFile--- */
 
  	relation TreasuryDocumentTemplateFileTreasuryFile {
 		
@@ -191,7 +191,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
  	
  	/* --- SibsInputFileDomainObject --- */
  	
- 	relation SibsInputFileDomainObjectTreasuryFile {
+ 	relation SibsInputFileTreasuryFile {
  	
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
@@ -203,6 +203,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
  	}
 
 	/* --- SibsOutputFile --- */
+
 	class paymentcodes.SibsOutputFile extends TreasuryFile {
 		String errorLog;
 		String infoLog;
@@ -236,7 +237,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 
 	/* --- SibsOutputFileDomainObject --- */
  	
- 	relation SibsOutputFileDomainObjectTreasuryFile {
+ 	relation SibsOutputFileTreasuryFile {
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
 		}
@@ -277,7 +278,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	
 	/* --- ForwardPaymentConfigurationFileDomainObject --- */
 
- 	relation ForwardPaymentConfigurationFileDomainObjectTreasuryFile {
+ 	relation ForwardPaymentConfigurationFileTreasuryFile {
 
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
@@ -331,7 +332,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 
  	/* ---  OperationFileDomainObject --- */
  	
- 	relation OperationFileDomainObjectTreasuryFile {
+ 	relation OperationFileTreasuryFile {
  		
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;
@@ -384,7 +385,7 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 
  	/* --- ForwardPaymentLogFileDomainObject --- */
  	
- 	relation ForwardPaymentLogFileDomainObjectTreasuryFile {
+ 	relation ForwardPaymentLogFileTreasuryFile {
  	
 		TreasuryFile playsRole treasuryFile {
 			multiplicity 1..1;

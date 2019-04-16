@@ -10,9 +10,12 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.payments.sibs.outgoing.SibsOutgoingPaymentFile;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -21,21 +24,27 @@ import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
 import pt.ist.fenixframework.FenixFramework;
 
-public class SibsOutputFile extends SibsOutputFile_Base {
+public class SibsOutputFile extends SibsOutputFile_Base implements IGenericFile {
+
+    public static final String CONTENT_TYPE = "text/plain";
 
     public SibsOutputFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     public static SibsOutputFile create(FinantialInstitution finantialInstitution, DateTime lastSuccessfulSentDateTime) {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         SibsOutputFile file = new SibsOutputFile();
 
         try {
             StringBuilder errorsBuilder = new StringBuilder();
             byte[] paymentFileContents =
                     file.createPaymentFile(finantialInstitution, lastSuccessfulSentDateTime, errorsBuilder).getBytes("ASCII");
-            file.init(file.outgoingFilename(), file.outgoingFilename(), paymentFileContents);
+
+            services.createFile(file, file.outgoingFilename(), CONTENT_TYPE, paymentFileContents);
+
             file.setFinantialInstitution(finantialInstitution);
             file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
             file.setErrorLog(errorsBuilder.toString());
@@ -45,19 +54,19 @@ public class SibsOutputFile extends SibsOutputFile_Base {
             for (StackTraceElement el : e.getStackTrace()) {
                 builder.append(el.toString()).append("\n");
             }
-            file.init(file.outgoingFilename(), file.outgoingFilename(), new byte[0]);
+
+            services.createFile(file, file.outgoingFilename(), CONTENT_TYPE, new byte[0]);
+
             file.setFinantialInstitution(finantialInstitution);
             file.setLastSuccessfulExportation(lastSuccessfulSentDateTime);
             file.setErrorLog(builder.toString());
         }
 
-        SibsOutputFileDomainObject.createFromSibsOutputFile(file);
-
         return file;
     }
 
-    protected String createPaymentFile(FinantialInstitution finantialInstiution, DateTime lastSuccessfulSentDateTime,
-            StringBuilder errorsBuilder) {
+    protected String createPaymentFile(final FinantialInstitution finantialInstiution, final DateTime lastSuccessfulSentDateTime,
+            final StringBuilder errorsBuilder) {
         SibsOutgoingPaymentFile sibsOutgoingPaymentFile =
                 new SibsOutgoingPaymentFile(finantialInstiution.getSibsConfiguration().getSourceInstitutionId(),
                         finantialInstiution.getSibsConfiguration().getDestinationInstitutionId(),
@@ -162,10 +171,6 @@ public class SibsOutputFile extends SibsOutputFile_Base {
     }
 
     @Override
-    public boolean isAccessible(User arg0) {
-        return true;
-    }
-
     public boolean isAccessible(final String username) {
         return true;
     }
@@ -176,6 +181,7 @@ public class SibsOutputFile extends SibsOutputFile_Base {
         setErrorLog(errorLog);
         setInfoLog(infoLog);
         setPrintedPaymentCodes(printedPaymentCodes);
+
         checkRules();
     }
 
@@ -194,9 +200,6 @@ public class SibsOutputFile extends SibsOutputFile_Base {
         setPrintedPaymentCodes(printedPaymentCodes);
 
         checkRules();
-
-        SibsOutputFileDomainObject.findUniqueBySibsOutputFile(this).get().edit(finantialInstitution, errorLog, infoLog,
-                printedPaymentCodes);
     }
 
     @Override
@@ -207,20 +210,20 @@ public class SibsOutputFile extends SibsOutputFile_Base {
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         TreasuryDomainException.throwWhenDeleteBlocked(getDeletionBlockers());
 
-        SibsOutputFileDomainObject.findUniqueBySibsOutputFile(this).get().delete();
-        
         setFinantialInstitution(null);
-        super.delete();
+        setTreasuryFile(null);
+
+        services.deleteFile(this);
+
+        super.deleteDomainObject();
     }
 
     public static Stream<SibsOutputFile> findAll() {
-        Set<SibsOutputFile> result = new HashSet<SibsOutputFile>();
-        for (FinantialInstitution finantialInstitution : FinantialInstitution.findAll().collect(Collectors.toList())) {
-            result.addAll(finantialInstitution.getSibsOutputFilesSet());
-        }
-        return result.stream();
+        return FenixFramework.getDomainRoot().getSibsOutputFilesSet().stream();
     }
 
     public static Stream<SibsOutputFile> findByFinantialInstitution(final FinantialInstitution finantialInstitution) {
@@ -238,4 +241,5 @@ public class SibsOutputFile extends SibsOutputFile_Base {
     public static Stream<SibsOutputFile> findByPrintedPaymentCodes(final java.lang.String printedPaymentCodes) {
         return findAll().filter(i -> printedPaymentCodes.equalsIgnoreCase(i.getPrintedPaymentCodes()));
     }
+    
 }

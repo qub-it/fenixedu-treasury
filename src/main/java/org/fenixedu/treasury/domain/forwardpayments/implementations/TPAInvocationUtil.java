@@ -318,7 +318,7 @@ public class TPAInvocationUtil {
     }
 
     private SSLSocketFactory getFactory() throws Exception {
-        final GenericFile pKeyFile = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificate();
+        final GenericFile pKeyFile = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificate().getTreasuryFile();
         final String pKeyPassword = forwardPayment.getForwardPaymentConfiguration().getVirtualTPACertificatePassword();
 
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");

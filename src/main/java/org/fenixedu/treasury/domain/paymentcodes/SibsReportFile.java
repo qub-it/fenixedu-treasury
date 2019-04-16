@@ -34,7 +34,11 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.fenixedu.treasury.services.payments.sibs.SIBSImportationFileDTO;
 import org.fenixedu.treasury.services.payments.sibs.SIBSPaymentsImporter.ProcessResult;
 import org.fenixedu.treasury.util.TreasuryConstants;
@@ -46,14 +50,14 @@ import org.joda.time.LocalDate;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-public class SibsReportFile extends SibsReportFile_Base {
+public class SibsReportFile extends SibsReportFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "text/plain";
     public static final String FILE_EXTENSION = ".idm";
 
     protected SibsReportFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     protected SibsReportFile(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,
@@ -62,14 +66,13 @@ public class SibsReportFile extends SibsReportFile_Base {
         this.init(whenProcessedBySibs, transactionsTotalAmount, totalCost, displayName, fileName, content);
 
         checkRules();
-
-        SibsReportFileDomainObject.createFromSibsReportFile(this);
     }
 
     protected void init(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount, final BigDecimal totalCost,
             final String displayName, final String fileName, final byte[] content) {
 
-        super.init(displayName, fileName, content);
+        TreasuryPlataformDependentServicesFactory.implementation().createFile(this, fileName, CONTENT_TYPE, content);
+
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
@@ -84,10 +87,8 @@ public class SibsReportFile extends SibsReportFile_Base {
         setWhenProcessedBySibs(whenProcessedBySibs);
         setTransactionsTotalAmount(transactionsTotalAmount);
         setTotalCost(totalCost);
-        checkRules();
 
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get()
-                .edit(whenProcessedBySibs, transactionsTotalAmount, totalCost);
+        checkRules();
     }
 
     public boolean isDeletable() {
@@ -97,19 +98,21 @@ public class SibsReportFile extends SibsReportFile_Base {
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         if (!isDeletable()) {
             throw new TreasuryDomainException("error.SibsReportFile.cannot.delete");
         }
 
-        setBennu(null);
+        setDomainRoot(null);
 
-        super.delete();
+        services.deleteFile(this);
 
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get().delete();
+        super.deleteDomainObject();
     }
 
     public static Stream<SibsReportFile> findAll() {
-        return Bennu.getInstance().getSibsReportFilesSet().stream();
+        return FenixFramework.getDomainRoot().getSibsReportFilesSet().stream();
     }
 
     public static Stream<SibsReportFile> findByWhenProcessedBySibs(final LocalDate whenProcessedBySibs) {
@@ -125,12 +128,48 @@ public class SibsReportFile extends SibsReportFile_Base {
     }
 
     @Override
-    public boolean isAccessible(User arg0) {
-        return true;
+    public boolean isAccessible(final String username) {
+        return TreasuryAccessControlAPI.isBackOfficeMember(username);
     }
 
-    public boolean isAccessible(final String username) {
-        return true;
+    public Integer getNumberOfTransactions() {
+        return this.getSibsTransactionsSet().size();
+    }
+
+    public String getTransactionDescription(Integer index) {
+        if (this.getSibsTransactionsSet().size() > index) {
+            if (index > 0) {
+                return this.getSibsTransactionsSet().stream().skip(index - 1).findFirst().get().toString();
+            } else if (index == 0) {
+                return this.getSibsTransactionsSet().iterator().next().toString();
+            }
+        }
+        return "";
+    }
+
+    public BigDecimal getTransactionAmount(Integer index) {
+        if (this.getSibsTransactionsSet().size() > index) {
+            if (index > 0) {
+                return this.getSibsTransactionsSet().stream().skip(index - 1).findFirst().get().getAmountPayed();
+            } else if (index == 0) {
+                return this.getSibsTransactionsSet().iterator().next().getAmountPayed();
+            }
+        }
+        return BigDecimal.ZERO;
+    }
+
+    @Atomic
+    public void updateLogMessages(ProcessResult result) {
+        StringBuilder build = new StringBuilder();
+        for (String s : result.getErrorMessages()) {
+            build.append(s + "\n");
+        }
+        this.setErrorLog(build.toString());
+        build = new StringBuilder();
+        for (String s : result.getActionMessages()) {
+            build.append(s + "\n");
+        }
+        this.setInfoLog(build.toString());
     }
 
     @Atomic
@@ -175,46 +214,4 @@ public class SibsReportFile extends SibsReportFile_Base {
         return result;
     }
 
-    public Integer getNumberOfTransactions() {
-        return this.getSibsTransactionsSet().size();
-    }
-
-    public String getTransactionDescription(Integer index) {
-        if (this.getSibsTransactionsSet().size() > index) {
-            if (index > 0) {
-                return this.getSibsTransactionsSet().stream().skip(index - 1).findFirst().get().toString();
-            } else if (index == 0) {
-                return this.getSibsTransactionsSet().iterator().next().toString();
-            }
-        }
-        return "";
-    }
-
-    public BigDecimal getTransactionAmount(Integer index) {
-        if (this.getSibsTransactionsSet().size() > index) {
-            if (index > 0) {
-                return this.getSibsTransactionsSet().stream().skip(index - 1).findFirst().get().getAmountPayed();
-            } else if (index == 0) {
-                return this.getSibsTransactionsSet().iterator().next().getAmountPayed();
-            }
-        }
-        return BigDecimal.ZERO;
-    }
-
-    @Atomic
-    public void updateLogMessages(ProcessResult result) {
-        StringBuilder build = new StringBuilder();
-        for (String s : result.getErrorMessages()) {
-            build.append(s + "\n");
-        }
-        this.setErrorLog(build.toString());
-        build = new StringBuilder();
-        for (String s : result.getActionMessages()) {
-            build.append(s + "\n");
-        }
-        this.setInfoLog(build.toString());
-
-        SibsReportFileDomainObject.findAll().filter(o -> SibsReportFile.this == o.getTreasuryFile()).findFirst().get()
-                .updateLogMessages(result);
-    }
 }
