@@ -866,7 +866,7 @@ class integration.OperationFile /* implements IGenericFile */  {
 	}
 
 	relation IntegrationOperationOperationFileDomainObject {
-	    integration.OperationFileDomainObject playsRole fileDomainObject {
+	    integration.OperationFile playsRole file {
 	        multiplicity 0..1;
 
 	    }
