@@ -53,11 +53,17 @@ class accesscontrol.PersistentTreasuryManagersGroup extends .org.fenixedu.bennu.
 class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 }
 	
-class document.TreasuryDocumentTemplateFile extends TreasuryFile {
-    boolean active;
-}
+
 
 	/* --- Document Template File --- */
+
+	class document.TreasuryDocumentTemplateFile extends TreasuryFile {
+	    boolean active;
+	}
+
+	/* This is a replacement for existings treasury files. It should not be used */
+	class document.TreasuryFileForTreasuryDocumentTemplateFile extends TreasuryFile {
+	}
 	
 	relation TreasuryDocumentTemplateDocumentTemplateFile {
 	    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
@@ -104,6 +110,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 	  String infoLog;
 	}
 
+	/* This is a replacement for existings treasury files. It should not be used */
+	class paymentcodes.TreasuryFileForSibsReportFile extends TreasuryFile {
+	}
+
 		relation SibsReportFileBennu {
 			.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
 				multiplicity 1..1;
@@ -135,7 +145,7 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 		}
  	
  	/* --- SibsReportFileDomainObject ---*/
- 	
+
  	relation SibsReportFileTreasuryFile {
  		
 		TreasuryFile playsRole treasuryFile {
@@ -152,6 +162,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 	class paymentcodes.SibsInputFile extends TreasuryFile {
 		DateTime whenProcessedBySibs;
 		String uploaderUsername;
+	}
+
+	/* This is a replacement for existings treasury files. It should not be used */
+	class paymentcodes.TreasuryFileForSibsInputFile extends TreasuryFile {
 	}
 
 	    relation SibsInputFinantialInstitution {
@@ -196,6 +210,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 		DateTime lastSuccessfulExportation;
 	}
 
+	/* This is a replacement for existings treasury files. It should not be used */
+	class paymentcodes.TreasuryFileForSibsOutputFile extends TreasuryFile {
+	}
+	
 		relation SibsOutputFileFinantialInstitution {
 			paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
 				multiplicity *;
@@ -234,6 +252,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 	class forwardpayments.ForwardPaymentConfigurationFile extends TreasuryFile {
 	}
 	
+	/* This is a replacement for existings treasury files. It should not be used */
+	class forwardpayments.TreasuryFileForForwardPaymentConfigurationFile extends TreasuryFile {
+	} 
+	
 		relation ForwardPaymentConfigurationFileBennu {
 	       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
 	           multiplicity *;
@@ -270,7 +292,11 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
  
 	/* ---  OperationFile --- */
  
-	class integration.OperationFile extends TreasuryFile  {
+	class integration.OperationFile extends TreasuryFile {
+	}
+	
+	/* This is a replacement for existings treasury files. It should not be used */
+	class integration.TreasuryFileForOperationFile extends TreasuryFile {
 	}
 	
 		relation OperationFileBennu {
@@ -323,6 +349,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 	class forwardpayments.ForwardPaymentLogFile extends TreasuryFile {
 	}
 		
+	/* This is a replacement for existings treasury files. It should not be used */
+	class forwardpayments.TreasuryFileForForwardPaymentLogFile extends TreasuryFile {
+	} 
+		
 		relation ForwardPaymentLogFileBennu {
 			forwardpayments.ForwardPaymentLogFile playsRole forwardPaymentLogFiles {
 				multiplicity *;
@@ -373,6 +403,10 @@ class document.TreasuryDocumentTemplateFile extends TreasuryFile {
 		DateTime postForwardPaymentsExecutionDate;
 		DateTime beginDate;
 		DateTime endDate;
+	}
+		
+	/* This is a replacement for existings treasury files. It should not be used */
+	class forwardpayments.TreasuryFileForPostForwardPaymentsReportFile extends TreasuryFile {
 	}
 	
 		relation PostForwardPaymentsReportFileBennu {

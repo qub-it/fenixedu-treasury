@@ -91,7 +91,7 @@ public class OperationFile extends OperationFile_Base {
 
         super.delete();
 
-        OperationFileDomainObject.findUniqueByOperationFile(this).get().delete();
+        // OperationFileDomainObject.findUniqueByOperationFile(this).get().delete();
     }
 
     @Atomic
