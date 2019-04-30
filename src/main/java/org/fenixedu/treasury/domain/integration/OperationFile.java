@@ -84,7 +84,6 @@ public class OperationFile extends OperationFile_Base implements IGenericFile {
 
         services.deleteFile(this);
 
-        OperationFileDomainObject.findUniqueByOperationFile(this).get().delete();
         super.deleteDomainObject();
     }
 
