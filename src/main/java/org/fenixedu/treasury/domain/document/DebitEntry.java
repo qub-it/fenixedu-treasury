@@ -899,23 +899,33 @@ public class DebitEntry extends DebitEntry_Base {
 
         debitNote.anullDebitNoteWithCreditNote(reason, false);
     }
+    
+    @Atomic
+    public void creditDebitEntry(final String reason) {
+        
+        if (isAnnulled()) {
+            throw new TreasuryDomainException("error.DebitEntry.cannot.credit.is.already.annuled");
+        }
 
-//    /*******************************************************************
-//     * ALGORITHM TO CALCULATE PAYED AMOUNT WITH MONEY (OR OTHER CREDITS)
-//     * *****************************************************************
-//     */
-//
-//    public BigDecimal getPayedAmountWithMoney() {
-//        getAvailableAmountForCredit();
-//        
-//        
-//        
-//        
-//        BigDecimal appliedAmountOnDebitEntry =
-//                getSettlementEntriesSet().stream().filter(l -> !l.isAnnulled() && ).map(SettlementEntry::getAmount)
-//                        .reduce((c, a) -> a.add(a)).orElse(BigDecimal.ZERO);
-//        
-//        
-//
-//    }
+        if (getFinantialDocument() == null || getFinantialDocument().isPreparing()) {
+            throw new TreasuryDomainException("error.DebitEntry.cannot.credit.without.or.preparing.finantial.document");
+        }
+
+        if (Strings.isNullOrEmpty(reason)) {
+            throw new TreasuryDomainException("error.DebitEntry.credit.debit.entry.requires.reason");
+        }
+
+        final BigDecimal amountForCreditWithoutVat = TreasuryConstants.divide(getAvailableAmountForCredit(), BigDecimal.ONE.add(rationalRatRate(this)));;
+        
+        createCreditEntry(new DateTime(), getDescription(), null, amountForCreditWithoutVat, null, null);
+        
+        final DebitNote debitNote = DebitNote.create(getDebtAccount(), DocumentNumberSeries
+                .findUniqueDefault(FinantialDocumentType.findForDebitNote(), getDebtAccount().getFinantialInstitution()).get(),
+                new DateTime());
+
+        setFinantialDocument(debitNote);
+
+        debitNote.anullDebitNoteWithCreditNote(reason, false);
+        
+    }
 }
