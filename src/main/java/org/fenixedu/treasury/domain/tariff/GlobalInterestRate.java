@@ -28,6 +28,7 @@
 package org.fenixedu.treasury.domain.tariff;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -39,6 +40,12 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class GlobalInterestRate extends GlobalInterestRate_Base {
 
+    public static Comparator<GlobalInterestRate> COMPARATOR_BY_YEAR = (o1, o2) -> {
+        final int c = Integer.compare(o1.getYear(), o2.getYear());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+    
     protected GlobalInterestRate() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
