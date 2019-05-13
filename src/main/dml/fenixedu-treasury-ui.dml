@@ -53,7 +53,15 @@ class accesscontrol.PersistentTreasuryManagersGroup extends .org.fenixedu.bennu.
 class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 }
 	
-
+	relation TreasuryFileBennu {
+	    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+	        multiplicity 1..1;
+	    }
+	    
+	    TreasuryFile playsRole treasuryFiles {
+	        multiplicity *;
+	    }
+	}
 
 	/* --- Document Template File --- */
 

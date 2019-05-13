@@ -16,6 +16,7 @@ import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.bennu.scheduler.TaskRunner;
 import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.treasury.domain.TreasuryFile;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
@@ -81,7 +82,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public byte[] getFileContent(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getContent();
         } catch (Exception e) {
@@ -92,7 +93,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public long getFileSize(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getSize();
         } catch (Exception e) {
@@ -103,7 +104,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public DateTime getFileCreationDate(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getCreationDate();
         } catch (Exception e) {
@@ -114,7 +115,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public String getFilename(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getFilename();
         } catch (Exception e) {
@@ -125,7 +126,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public InputStream getFileStream(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getStream();
         } catch (Exception e) {
@@ -136,7 +137,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public String getFileContentType(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             return file.getContentType();
         } catch (Exception e) {
@@ -148,9 +149,9 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     public void createFile(final IGenericFile genericFile, final String fileName, final String contentType,
             final byte[] content) {
         try {
-            GenericFile file = null;
+            GenericFile file = TreasuryFile.create(fileName, contentType, content);
 
-            MethodUtils.invokeMethod(genericFile, "setGenericFile", file);
+            MethodUtils.invokeMethod(genericFile, "setTreasuryFile", file);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -160,7 +161,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public void deleteFile(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
 
             file.delete();
         } catch (Exception e) {
