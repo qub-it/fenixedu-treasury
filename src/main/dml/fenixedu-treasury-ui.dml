@@ -63,34 +63,12 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	    }
 	}
 
-	/* --- Document Template File --- */
-
-	class document.TreasuryDocumentTemplateFile extends TreasuryFile {
-	    boolean active;
-	}
-
-		
 	/* --- DocumentTemplateFile--- */
 
 	/* This is a replacement for existings treasury files. It should not be used */
 	class document.TreasuryFileForTreasuryDocumentTemplateFile extends TreasuryFile {
 	}
 	
-	relation TreasuryDocumentTemplateDocumentTemplateFile {
-	    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
-	        multiplicity 1..1;
-	    }
-	    
-	    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
-	        multiplicity *;
-	    }
-	}
-	
-	relation TreasuryDocumentTemplateFileBennu {
-	}
-
-	/* --- DocumentTemplateFile--- */
-
  	relation TreasuryDocumentTemplateFileTreasuryFile {
 		
 		TreasuryFile playsRole treasuryFile {
@@ -101,7 +79,6 @@ class TreasuryFile extends .org.fenixedu.bennu.io.domain.GenericFile {
 	        multiplicity *;
 	    }
  	}
-
  	
  	/* --- SibsReportFileDomainObject ---*/
 
