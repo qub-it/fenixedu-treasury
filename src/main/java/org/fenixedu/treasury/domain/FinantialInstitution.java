@@ -29,6 +29,7 @@ package org.fenixedu.treasury.domain;
 
 import static org.fenixedu.treasury.util.TreasuryConstants.DEFAULT_LANGUAGE;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -54,6 +55,12 @@ import pt.ist.standards.geographic.Municipality;
 
 public class FinantialInstitution extends FinantialInstitution_Base {
 
+    public static final Comparator<FinantialInstitution> COMPARATOR_BY_NAME = (o1, o2) -> {
+        int c = o1.getName().compareTo(o2.getName());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+    
     protected FinantialInstitution() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());

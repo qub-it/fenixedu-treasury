@@ -95,6 +95,10 @@ public class Vat extends Vat_Base {
 
     @Atomic
     public void edit(final BigDecimal taxRate, final DateTime beginDate, final DateTime endDate) {
+        if(!getInvoiceEntriesSet().isEmpty()) {
+            throw new TreasuryDomainException("error.Vat.edition.not.possible.due.to.existing.invoice.entries");
+        }
+        
         setTaxRate(taxRate);
 
         setBeginDate(beginDate);

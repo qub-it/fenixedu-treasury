@@ -55,12 +55,16 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class DebtAccount extends DebtAccount_Base {
 
-    public static final Comparator<DebtAccount> COMPARATOR_BY_CUSTOMER_NAME_IGNORE_CASE = new Comparator<DebtAccount>() {
-
-        @Override
-        public int compare(final DebtAccount o1, final DebtAccount o2) {
-            return Customer.COMPARE_BY_NAME_IGNORE_CASE.compare(o1.getCustomer(), o2.getCustomer());
-        }
+    public static final Comparator<DebtAccount> COMPARATOR_BY_CUSTOMER_NAME_IGNORE_CASE = (o1, o2) ->  {
+        int c = Customer.COMPARE_BY_NAME_IGNORE_CASE.compare(o1.getCustomer(), o2.getCustomer());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+    
+    public static final Comparator<DebtAccount> COMPARATOR_BY_FINANTIAL_INSTITUTION_NAME = (o1, o2) -> {
+        int c = FinantialInstitution.COMPARATOR_BY_NAME.compare(o1.getFinantialInstitution(), o2.getFinantialInstitution());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
     };
 
     public DebtAccount() {

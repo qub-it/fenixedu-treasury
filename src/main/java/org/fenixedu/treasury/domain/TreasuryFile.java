@@ -21,6 +21,13 @@ public class TreasuryFile extends TreasuryFile_Base {
         return false;
     }
     
+    @Override
+    public void delete() {
+        setBennu(null);
+        
+        super.delete();
+    }
+    
     // @formatter:off
     /* ********
      * SERVICES

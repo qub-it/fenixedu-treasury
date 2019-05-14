@@ -80,6 +80,18 @@ public class TreasuryConstants {
     public static final String STANDARD_DATE_FORMAT_YYYY_MM_DD = "yyyy-MM-dd";
 
     // @formatter:off
+    /* **************
+     * DEFAULT VALUES
+     * **************
+     */
+    // @formatter:on
+
+    public static LocalizedString getDefaultProductUnitDescription() {
+        return treasuryBundleI18N("label.TreasuryConstants.default.product.unit.description");
+    }
+    
+
+    // @formatter:off
     /* *************
      * COUNTRY UTILS
      * *************
@@ -109,7 +121,6 @@ public class TreasuryConstants {
 
         return value.toLowerCase();
     }
-
 
     // @formatter:off
     /**************

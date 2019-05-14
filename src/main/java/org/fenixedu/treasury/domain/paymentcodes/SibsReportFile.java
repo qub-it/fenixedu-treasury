@@ -30,6 +30,7 @@ package org.fenixedu.treasury.domain.paymentcodes;
 import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.domain.Bennu;
@@ -52,6 +53,12 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class SibsReportFile extends SibsReportFile_Base implements IGenericFile {
 
+    public static final Comparator<SibsReportFile> COMPARATOR_BY_CREATION_DATE = (o1, o2) -> {
+        int c = o1.getCreationDate().compareTo(o2.getCreationDate());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+    
     public static final String CONTENT_TYPE = "text/plain";
     public static final String FILE_EXTENSION = ".idm";
 
