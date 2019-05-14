@@ -80,98 +80,69 @@ ${portal.angularToolkit()}
 </c:if>
 
 <script>
-	angular
-			.module('angularAppAdhocCustomer', [ 'ngSanitize', 'ui.select' ,'bennuToolkit'])
-			.controller(
-					'AdhocCustomerController',
-					[
-							'$scope',
-							function($scope) {
+	angular.module('angularAppAdhocCustomer', [ 'ngSanitize', 'ui.select' ,'bennuToolkit']).controller('AdhocCustomerController', [ '$scope', function($scope) {
 
-								$scope.object = angular
-										.fromJson('${adhocCustomerBeanJson}');
-								$scope.postBack = createAngularPostbackFunction($scope);
+		$scope.object = ${adhocCustomerBeanJson};
+		$scope.postBack = createAngularPostbackFunction($scope);
 
-								//Begin here of Custom Screen business JS - code
-
-							} ]);
+		//Begin here of Custom Screen business JS - code
+		$scope.onCountryChange = function(country, model) {
+			$scope.postBack(model);
+		}
+	}]);
 </script>
 
 <form name='form' method="post" class="form-horizontal" ng-app="angularAppAdhocCustomer" ng-controller="AdhocCustomerController"
 	action='${pageContext.request.contextPath}/treasury/accounting/managecustomer/adhoccustomer/create'>
 
-	<input type="hidden" name="postback" value='${pageContext.request.contextPath}treasury/accounting/managecustomer/adhoccustomer/createpostback' /> <input name="bean" type="hidden"
-		value="{{ object }}" />
+	<input type="hidden" name="postback" value='${pageContext.request.contextPath}/treasury/accounting/managecustomer/adhoccustomer/createpostback' />
+	<input name="bean" type="hidden" value="{{ object }}" />
 
 	<div class="panel panel-default">
 		<div class="panel-body">
 
 			<div class="form-group row">
-				<div class="col-sm-2 control-label">
+				<div class="col-sm-2 control-label required-field">
 					<spring:message code="label.DebtAccount.finantialInstitution" />
 				</div>
 				<div class="col-sm-4">
-					<ui-select id="adhocCustomer_finantialInstitutions" ng-model="$parent.object.finantialInstitutions" theme="bootstrap" ng-disabled="disabled" multiple> <ui-select-match>{{$item.text}}</ui-select-match>
+					<ui-select id="adhocCustomer_finantialInstitutions" ng-model="$parent.object.finantialInstitutions" theme="bootstrap" ng-disabled="disabled" multiple ng-required="true">
+					<ui-select-match>{{$item.text}}</ui-select-match>
 					<ui-select-choices repeat="institution.id as institution in object.finantialInstitutionsDataSource| filter: $select.search"> <span
 						ng-bind-html="institution.text | highlight: $select.search"></span> </ui-select-choices> </ui-select>
 
 				</div>
 			</div>
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
+                <div class="col-sm-2 control-label required-field">
                     <spring:message code="label.Customer.customerType" />
                 </div>
                 <div class="col-sm-4">
                     <ui-select id="adhocCustomer_customerType"
                         ng-model="$parent.object.customerType"
-                        theme="bootstrap"
-                        > <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
-                    <ui-select-choices
-                        repeat="customerType.id as customerType in object.customerTypesDataSource| filter: $select.search">
-                    <span
-                        ng-bind-html="customerType.text | highlight: $select.search"></span>
-                    </ui-select-choices> </ui-select>
+                        theme="bootstrap" ng-required="true">
+                        <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
+	                    <ui-select-choices repeat="customerType.id as customerType in object.customerTypesDataSource| filter: $select.search">
+	                    	<span ng-bind-html="customerType.text | highlight: $select.search"></span>
+                    	</ui-select-choices>
+                    </ui-select>
 
                 </div>
             </div>
 
 			<div class="form-group row">
-				<div class="col-sm-2 control-label">
+				<div class="col-sm-2 control-label required-field">
 					<spring:message code="label.AdhocCustomer.name" />
 				</div>
 
 				<div class="col-sm-10">
 					<input id="adhocCustomer_name" class="form-control" type="text" ng-model="object.name" name="name"
-						value='<c:out value='${not empty param.name ? param.name : adhocCustomer.name }'/>' />
+						value='<c:out value='${not empty param.name ? param.name : adhocCustomer.name }'/>' ng-required="true" />
 				</div>
 			</div>
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.countryCode" />
-                </div>
 
-                <div class="col-sm-10">
-                    <ui-select id="adhocCustomer_countryCode" ng-model="$parent.object.countryCode" theme="bootstrap"> 
-                        <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
-                        <ui-select-choices repeat="c.id as c in object.countryCodesDataSource| filter: $select.search">
-		                    <span ng-bind-html="c.text | highlight: $select.search"></span>
-                    	</ui-select-choices>
-                    </ui-select>
-                </div>
-            </div>
 			<div class="form-group row">
-				<div class="col-sm-2 control-label">
-					<spring:message code="label.AdhocCustomer.fiscalNumber" />
-				</div>
-
-				<div class="col-sm-10">
-					<input id="adhocCustomer_fiscalNumber" class="form-control" type="text" ng-model="object.fiscalNumber" name="fiscalnumber"
-						value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : adhocCustomer.fiscalNumber }'/>' />
-				</div>
-			</div>
-			<div class="form-group row">
-				<div class="col-sm-2 control-label">
+				<div class="col-sm-2 control-label required-field">
 					<spring:message code="label.AdhocCustomer.identificationNumber" />
 				</div>
 
@@ -181,54 +152,80 @@ ${portal.angularToolkit()}
 				</div>
 			</div>
 			
+			<div class="form-group row">
+				<div class="col-sm-2 control-label required-field">
+					<spring:message code="label.AdhocCustomer.fiscalNumber" />
+				</div>
+
+				<div class="col-sm-10">
+					<input id="adhocCustomer_fiscalNumber" class="form-control" type="text" ng-model="object.fiscalNumber" name="fiscalnumber"
+						value='<c:out value='${not empty param.fiscalnumber ? param.fiscalnumber : adhocCustomer.fiscalNumber }'/>' ng-required="true" />
+				</div>
+			</div>
+			
             <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.address" />
+                <div class="col-sm-2 control-label required-field">
+                    <spring:message code="label.AdhocCustomer.addressCountryCode" />
                 </div>
 
                 <div class="col-sm-10">
-	                 <input id="adhocCustomer_address" class="form-control" type="text" ng-model="object.address" name="fiscalnumber"
-	                        value='<c:out value='${not empty param.address ? param.address : adhocCustomer.address }'/>' />
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.districtSubdivision" />
-                </div>
-
-                <div class="col-sm-10">
-	                  <input id="adhocCustomer_districtSubdivision" class="form-control" type="text" ng-model="object.districtSubdivision" name="districtsubdivision"
-	                      value='<c:out value='${not empty param.districtsubdivision ? param.districtsubdivision : adhocCustomer.districtSubdivision}'/>' />
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.zipCode" />
-                </div>
-
-                <div class="col-sm-10">
-                   <input id="adhocCustomer_zipCode" class="form-control" type="text" ng-model="object.zipCode" name="zipcode"
-                       value='<c:out value='${not empty param.zipcode ? param.zipcode : adhocCustomer.zipCode }'/>' />
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-sm-2 control-label">
-                    <spring:message
-                        code="label.AdhocCustomer.addressCountryCode" />
-                </div>
-
-                <div class="col-sm-10">
-                    <ui-select id="adhocCustomer_addressCountryCode" ng-model="$parent.object.addressCountryCode" theme="bootstrap"> 
+                    <ui-select id="adhocCustomer_addressCountryCode" name="addressCountryCode" ng-model="$parent.object.addressCountryCode" 
+                    	theme="bootstrap" ng-required="true" ng-change="onCountryChange($addressCountryCode, $model);"> 
                         <ui-select-match allow-clear="true">{{$select.selected.text}}</ui-select-match>
                         <ui-select-choices repeat="c.id as c in object.countryCodesDataSource| filter: $select.search">
 		                    <span ng-bind-html="c.text | highlight: $select.search"></span>
                     	</ui-select-choices>
                     </ui-select>
+	               	<p class="label label-warning"><spring:message code="message.AdhocCustomer.changeFiscalNumber.select.address.equal.fiscalNumber.country" /></p>
                 </div>
             </div>
+            
+            <div class="form-group row required-field">
+                <div class="col-sm-2 control-label required-field">
+                    <spring:message code="label.AdhocCustomer.address" />
+                </div>
+
+                <div class="col-sm-10">
+	                 <input id="adhocCustomer_address" class="form-control" type="text" ng-model="object.address" name="fiscalnumber"
+	                        value='<c:out value='${not empty param.address ? param.address : adhocCustomer.address }'/>' ng-required="true" />
+                </div>
+            </div>
+            
+            <div class="form-group row">
+                <div class="col-sm-2 control-label required-field">
+                    <spring:message code="label.AdhocCustomer.districtSubdivision" />
+                </div>
+
+                <div class="col-sm-10">
+	                  <input id="adhocCustomer_districtSubdivision" class="form-control" type="text" ng-model="object.districtSubdivision" name="districtsubdivision"
+	                      value='<c:out value='${not empty param.districtsubdivision ? param.districtsubdivision : adhocCustomer.districtSubdivision}'/>' ng-required="true" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-2 control-label" ng-class="object.addressCountryDefault ? 'required-field' : ''">
+                    <spring:message code="label.AdhocCustomer.region" />
+                </div>
+
+                <div class="col-sm-10">
+	                  <input id="adhocCustomer_region" class="form-control" type="text" ng-model="object.region" name="region"
+	                      value='<c:out value='${not empty param.region ? param.region : adhocCustomer.region}'/>' ng-required="object.addressCountryDefault" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-2 control-label" ng-class="object.addressCountryDefault ? 'required-field' : ''">
+                    <spring:message
+                        code="label.AdhocCustomer.zipCode" />
+                </div>
+
+                <div class="col-sm-10">
+	                <input id="adhocCustomer_zipCode" class="form-control" type="text" ng-model="object.zipCode" name="zipcode"
+		                value='<c:out value='${not empty param.zipcode ? param.zipcode : adhocCustomer.zipCode }'/>' 
+		                ng-required="object.addressCountryDefault" />
+                </div>
+            </div>
+
 		</div>
 		<div class="panel-footer">
 			<input type="submit" class="btn btn-default" role="button" value="<spring:message code="label.submit" />" />
@@ -241,3 +238,16 @@ ${portal.angularToolkit()}
 
 	});
 </script>
+
+<style type="text/css">
+
+	.required-field:after {
+		content: '*';
+		color: #e06565;
+		font-weight: 900;
+		margin-left: 2px;
+		font-size: 14px;
+		display: inline;
+	}
+	
+</style>
