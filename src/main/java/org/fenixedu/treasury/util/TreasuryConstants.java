@@ -95,8 +95,21 @@ public class TreasuryConstants {
             return false;
         }
 
-        return DEFAULT_COUNTRY.equals(country.toUpperCase());
+        return isSameCountryCode(DEFAULT_COUNTRY, country);
     }
+
+    public static boolean isSameCountryCode(final String leftCountryCode, final String rightCountryCode) {
+        return lowerCase(leftCountryCode).equals(lowerCase(rightCountryCode));
+    }
+
+    private static String lowerCase(final String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.toLowerCase();
+    }
+
 
     // @formatter:off
     /**************
@@ -293,33 +306,4 @@ public class TreasuryConstants {
 
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

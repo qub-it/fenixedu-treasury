@@ -52,7 +52,7 @@ import pt.ist.standards.geographic.Country;
 import pt.ist.standards.geographic.District;
 import pt.ist.standards.geographic.Municipality;
 
-public class FinantialInstitution extends FinantialInstitution_Base implements IFiscalContributor {
+public class FinantialInstitution extends FinantialInstitution_Base {
 
     protected FinantialInstitution() {
         super();

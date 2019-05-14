@@ -27,17 +27,19 @@
 
 package org.fenixedu.treasury.dto;
 
+import static org.fenixedu.treasury.util.TreasuryConstants.isDefaultCountry;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fenixedu.treasury.dto.ITreasuryBean;
-import org.fenixedu.treasury.dto.TreasuryTupleDataSourceBean;
 import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.CustomerType;
 import org.fenixedu.treasury.domain.FinantialInstitution;
+import org.fenixedu.treasury.util.TreasuryConstants;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import pt.ist.standards.geographic.Country;
@@ -52,9 +54,9 @@ public class AdhocCustomerBean implements ITreasuryBean {
     private String name;
     private String address;
     private String districtSubdivision;
+    private String region;
     private String zipCode;
     private String addressCountryCode;
-    private String countryCode;
     private List<FinantialInstitution> finantialInstitutions;
 
     private List<TreasuryTupleDataSourceBean> finantialInstitutionsDataSource;
@@ -62,6 +64,47 @@ public class AdhocCustomerBean implements ITreasuryBean {
     private List<TreasuryTupleDataSourceBean> countryCodesDataSource;
     
     private boolean changeFiscalNumberConfirmed;
+    private boolean addressCountryDefault;
+
+    public AdhocCustomerBean() {
+        this.setFinantialInstitutionsDataSource(FinantialInstitution.findAll().collect(Collectors.toList()));
+        this.setCustomerTypesDataSource(CustomerType.findAll().collect(Collectors.toList()));
+        this.setCountryCodesDataSource(Lists.newArrayList(Planet.getEarth().getPlaces()));
+        this.update();
+    }
+
+    public AdhocCustomerBean(Customer customer) {
+        this();
+        this.setCustomerType(customer.getCustomerType());
+        this.code = customer.getCode();
+        this.setFiscalNumber(customer.getFiscalNumber());
+        this.setIdentificationNumber(customer.getIdentificationNumber());
+        this.setName(customer.getName());
+        this.setAddress(customer.getAddress());
+        this.setDistrictSubdivision(customer.getDistrictSubdivision());
+        this.setRegion(customer.getRegion());
+        this.setZipCode(customer.getZipCode());
+        this.setAddressCountryCode(customer.getAddressCountryCode());
+        this.setFinantialInstitutions(customer.getDebtAccountsSet().stream().filter(x -> x.getClosed() == false)
+                .map(x -> x.getFinantialInstitution()).collect(Collectors.toList()));
+        
+        this.update();
+    }
+
+    public boolean isAddressValid() {
+        boolean valid = true;
+        
+        valid &= !Strings.isNullOrEmpty(this.getAddressCountryCode());
+        valid &= !Strings.isNullOrEmpty(this.getAddress());
+        valid &= !Strings.isNullOrEmpty(this.getDistrictSubdivision());
+        
+        if(isDefaultCountry(this.getAddressCountryCode())) {
+            valid &= !Strings.isNullOrEmpty(this.getZipCode());
+            valid &= !Strings.isNullOrEmpty(this.getRegion());
+        }
+        
+        return valid;
+    }
     
     public String getCode() {
         return code;
@@ -106,6 +149,14 @@ public class AdhocCustomerBean implements ITreasuryBean {
     public void setDistrictSubdivision(java.lang.String value) {
         districtSubdivision = value;
     }
+    
+    public String getRegion() {
+        return region;
+    }
+    
+    public void setRegion(String region) {
+        this.region = region;
+    }
 
     public java.lang.String getZipCode() {
         return zipCode;
@@ -121,14 +172,6 @@ public class AdhocCustomerBean implements ITreasuryBean {
     
     public void setAddressCountryCode(String addressCountryCode) {
         this.addressCountryCode = addressCountryCode;
-    }
-
-    public java.lang.String getCountryCode() {
-        return countryCode;
-    }
-
-    public void setCountryCode(java.lang.String value) {
-        countryCode = value;
     }
 
     public CustomerType getCustomerType() {
@@ -147,26 +190,12 @@ public class AdhocCustomerBean implements ITreasuryBean {
         changeFiscalNumberConfirmed = value;
     }
 
-    public AdhocCustomerBean() {
-        this.setFinantialInstitutionsDataSource(FinantialInstitution.findAll().collect(Collectors.toList()));
-        this.setCustomerTypesDataSource(CustomerType.findAll().collect(Collectors.toList()));
-        this.setCountryCodesDataSource(Lists.newArrayList(Planet.getEarth().getPlaces()));
+    public void update() {
+        this.addressCountryDefault = TreasuryConstants.DEFAULT_COUNTRY.toUpperCase().equals(getAddressCountryCode());
     }
-
-    public AdhocCustomerBean(Customer customer) {
-        this();
-        this.setCustomerType(customer.getCustomerType());
-        this.code = customer.getCode();
-        this.setFiscalNumber(customer.getFiscalNumber());
-        this.setIdentificationNumber(customer.getIdentificationNumber());
-        this.setName(customer.getName());
-        this.setAddress(customer.getAddress());
-        this.setDistrictSubdivision(customer.getDistrictSubdivision());
-        this.setZipCode(customer.getZipCode());
-        this.setAddressCountryCode(customer.getAddressCountryCode());
-        this.setCountryCode(customer.getCountryCode());
-        this.setFinantialInstitutions(customer.getDebtAccountsSet().stream().filter(x -> x.getClosed() == false)
-                .map(x -> x.getFinantialInstitution()).collect(Collectors.toList()));
+    
+    public boolean isAddressCountryDefault() {
+        return this.addressCountryDefault;
     }
 
     public List<FinantialInstitution> getFinantialInstitutions() {

@@ -101,8 +101,8 @@ ${portal.toolkit()}
                         <td><c:out value='${customer.name}' /></td>
                     </tr>
                     <tr>
-                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.countryCode" /></th>
-                        <td><c:out value='${customer.fiscalCountry}' /></td>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.Customer.addressCountryCode" /></th>
+                        <td><c:out value='${customer.addressCountryCode}' /></td>
                     </tr>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.Customer.fiscalNumber" /></th>
@@ -133,7 +133,7 @@ ${portal.toolkit()}
 		</form>
 		
 		<form name='form' method="post" class="form-horizontal" 
-			action='${pageContext.request.contextPath}<%= CustomerController.CHANGE_FISCAL_NUMBER_FORM_URL %>/${customer.externalId}'>
+			action='${pageContext.request.contextPath}${changeFiscalNumberActionFormURI}/changefiscalnumberform/${customer.externalId}'>
 		
 			<div class="alert alert-warning" role="alert">
 				<span class="glyphicon glyphicon-warning-sign" aria-hidden="true">&nbsp;</span>

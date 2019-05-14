@@ -26,6 +26,8 @@
  */
 package org.fenixedu.treasury.ui.accounting.managecustomer;
 
+import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.dto.AdhocCustomerBean;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
+import org.fenixedu.treasury.util.TreasuryConstants;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,23 +49,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.google.common.base.Strings;
+
 import pt.ist.fenixframework.Atomic;
 
-//@Component("org.fenixedu.treasury.ui.accounting.manageCustomer") <-- Use for duplicate controller name disambiguation
 @BennuSpringController(value = CustomerController.class)
 @RequestMapping(AdhocCustomerController.CONTROLLER_URL)
 public class AdhocCustomerController extends TreasuryBaseController {
     public static final String CONTROLLER_URL = "/treasury/accounting/managecustomer/adhoccustomer";
+
     private static final String SEARCH_URI = "/";
     public static final String SEARCH_URL = CONTROLLER_URL + SEARCH_URI;
+    
     private static final String UPDATE_URI = "/update/";
     public static final String UPDATE_URL = CONTROLLER_URL + UPDATE_URI;
+
     private static final String CREATE_URI = "/create";
     public static final String CREATE_URL = CONTROLLER_URL + CREATE_URI;
+
     private static final String READ_URI = "/read/";
     public static final String READ_URL = CONTROLLER_URL + READ_URI;
+
     private static final String DELETE_URI = "/delete/";
     public static final String DELETE_URL = CONTROLLER_URL + DELETE_URI;
+
 
     private Customer getAdhocCustomer(Model model) {
         return (Customer) model.asMap().get("adhocCustomer");
@@ -76,10 +86,6 @@ public class AdhocCustomerController extends TreasuryBaseController {
     public void deleteAdhocCustomer(Customer adhocCustomer) {
     }
 
-    private Customer getAdhocCustomerBean(Model model) {
-        return (Customer) model.asMap().get("adhocCustomerBean");
-    }
-
     private void setAdhocCustomerBean(AdhocCustomerBean bean, Model model) {
         model.addAttribute("adhocCustomerBeanJson", getBeanJson(bean));
         model.addAttribute("adhocCustomerBean", bean);
@@ -89,6 +95,7 @@ public class AdhocCustomerController extends TreasuryBaseController {
     public String search(Model model) {
         List<Customer> searchadhoccustomerResultsDataSet = filterSearchAdhocCustomer();
         model.addAttribute("searchadhoccustomerResultsDataSet", searchadhoccustomerResultsDataSet);
+
         return "treasury/accounting/managecustomer/adhoccustomer/search";
     }
 
@@ -111,7 +118,10 @@ public class AdhocCustomerController extends TreasuryBaseController {
 
     @RequestMapping(value = CREATE_URI, method = RequestMethod.GET)
     public String create(Model model) {
-        return _create(new AdhocCustomerBean(), model);
+        AdhocCustomerBean bean = new AdhocCustomerBean();
+        bean.update();
+        
+        return _create(bean, model);
     }
     
     private String _create(final AdhocCustomerBean bean, final Model model) {
@@ -120,9 +130,9 @@ public class AdhocCustomerController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = "/createpostback", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    public @ResponseBody String createpostback(@RequestParam(value = "bean", required = false) AdhocCustomerBean bean,
-            Model model) {
-        this.setAdhocCustomerBean(bean, model);
+    public @ResponseBody String createpostback(@RequestParam(value = "bean", required = false) final AdhocCustomerBean bean, Model model) {
+        bean.update();
+
         return getBeanJson(bean);
     }
 
@@ -131,58 +141,68 @@ public class AdhocCustomerController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsBackOfficeMember(model);
-
+            
+            if(Strings.isNullOrEmpty(bean.getAddressCountryCode())) {
+                addErrorMessage(treasuryBundle("error.Customer.addressCountryCode.required"), model);
+                return _create(bean, model);
+            }
+            
+            if(!bean.isAddressValid()) {
+                throw new TreasuryDomainException("error.AdhocCustomer.fill.required.address.fields");
+            }
+            
             if(bean.getFinantialInstitutions() == null || bean.getFinantialInstitutions().isEmpty()) {
                 throw new TreasuryDomainException("error.AdhocCustomer.specify.at.least.one.finantial.instituition");
             }
             
-            Customer adhocCustomer = createAdhocCustomer(bean.getCustomerType(), bean.getName(), bean.getFiscalNumber(),
-                    bean.getIdentificationNumber(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(),
-                    bean.getAddressCountryCode(), bean.getCountryCode(), bean.getFinantialInstitutions());
+            final Customer adhocCustomer = AdhocCustomer.create(bean.getCustomerType(), bean.getFiscalNumber(), bean.getName(),
+                    bean.getAddress(), bean.getDistrictSubdivision(), bean.getRegion(), bean.getZipCode(),
+                    bean.getAddressCountryCode(), bean.getIdentificationNumber(), bean.getFinantialInstitutions());
             
-            setAdhocCustomer(adhocCustomer, model);
-            return redirect(CustomerController.READ_URL + getAdhocCustomer(model).getExternalId(), model, redirectAttributes);
+            return redirect(CustomerController.READ_URL + adhocCustomer.getExternalId(), model, redirectAttributes);
         } catch (DomainException ex) {
             addErrorMessage(ex.getLocalizedMessage(), model);
+            return _create(bean, model);
         }
-        return _create(bean, model);
-    }
-
-    public Customer createAdhocCustomer(CustomerType customerType, String name, String fiscalNumber, String identificationNumber,
-            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
-            final String countryCode, List<FinantialInstitution> newFinantialInstitutions) {
-        Customer adhocCustomer = AdhocCustomer.create(customerType, fiscalNumber, name, address, districtSubdivision, zipCode,
-                addressCountryCode, countryCode, identificationNumber, newFinantialInstitutions);
-        return adhocCustomer;
     }
 
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.GET)
     public String update(@PathVariable("oid") Customer adhocCustomer, Model model) {
+        final AdhocCustomerBean bean = new AdhocCustomerBean(adhocCustomer);
+        
         setAdhocCustomer(adhocCustomer, model);
-        setAdhocCustomerBean(new AdhocCustomerBean(adhocCustomer), model);
+        setAdhocCustomerBean(bean, model);
         return "treasury/accounting/managecustomer/adhoccustomer/update";
     }
 
     @RequestMapping(value = "/updatepostback/{oid}", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     public @ResponseBody String updatepostback(@PathVariable("oid") Customer adhocCustomer,
             @RequestParam(value = "bean", required = false) AdhocCustomerBean bean, Model model) {
+        bean.update();
+        
         this.setAdhocCustomerBean(bean, model);
         return getBeanJson(bean);
     }
 
     @RequestMapping(value = UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(@PathVariable("oid") Customer adhocCustomer,
-            @RequestParam(value = "bean", required = false) AdhocCustomerBean bean, Model model,
-            RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable("oid") final Customer adhocCustomer,
+            @RequestParam(value = "bean", required = false) final AdhocCustomerBean bean, final Model model, final RedirectAttributes redirectAttributes) {
         setAdhocCustomer(adhocCustomer, model);
 
         try {
             assertUserIsBackOfficeMember(model);
 
-            updateAdhocCustomer(getAdhocCustomer(model), bean.getCustomerType(), bean.getName(), bean.getIdentificationNumber(),
-                    bean.getAddress(), bean.getDistrictSubdivision(), bean.getZipCode(), bean.getAddressCountryCode(),
-                    bean.getFinantialInstitutions(), model);
-
+            if(!bean.isAddressValid()) {
+                throw new TreasuryDomainException("error.AdhocCustomer.fill.required.address.fields");
+            }
+            
+            if (adhocCustomer.isAdhocCustomer()) {
+                ((AdhocCustomer) adhocCustomer).edit(bean.getCustomerType(), bean.getName(), bean.getAddress(), bean.getDistrictSubdivision(), bean.getRegion(), bean.getZipCode(),
+                        bean.getIdentificationNumber(), bean.getFinantialInstitutions());
+            } else if(adhocCustomer.isPersonCustomer()) {
+                adhocCustomer.registerFinantialInstitutions(bean.getFinantialInstitutions());
+            }
+            
             return redirect(CustomerController.READ_URL + getAdhocCustomer(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
             addErrorMessage(tde.getLocalizedMessage(), model);
@@ -192,14 +212,4 @@ public class AdhocCustomerController extends TreasuryBaseController {
         return update(adhocCustomer, model);
     }
 
-    public void updateAdhocCustomer(final Customer customer, final CustomerType customerType, final String name, final String identificationNumber,
-            final String address, final String districtSubdivision, final String zipCode, final String addressCountryCode,
-            final List<FinantialInstitution> finantialInstitutions, final Model model) {
-        if (customer.isAdhocCustomer()) {
-            ((AdhocCustomer) customer).edit(customerType, name, address, districtSubdivision, zipCode,
-                    addressCountryCode, identificationNumber, finantialInstitutions);
-        } else if(customer.isPersonCustomer()) {
-            customer.registerFinantialInstitutions(finantialInstitutions);
-        }
-    }
 }

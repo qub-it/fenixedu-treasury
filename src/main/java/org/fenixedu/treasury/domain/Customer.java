@@ -49,12 +49,13 @@ import org.fenixedu.treasury.util.LocalizedStringUtil;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-public abstract class Customer extends Customer_Base implements IFiscalContributor {
+public abstract class Customer extends Customer_Base {
 
     public static final String DEFAULT_FISCAL_NUMBER = "999999990";
     public static final int MAX_CODE_LENGHT = 20;
@@ -75,7 +76,6 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract String getCode();
 
-    @Override
     public abstract String getFiscalNumber();
 
     public abstract String getName();
@@ -86,16 +86,7 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract String getIdentificationNumber();
 
-    public abstract String getAddress();
-
-    public abstract String getDistrictSubdivision();
-
-    public abstract String getDistrict();
-
-    public abstract String getZipCode();
-
-    public abstract String getAddressCountryCode();
-
+    @Deprecated
     public abstract String getCountryCode();
 
     public abstract String getNationalityCountryCode();
@@ -130,8 +121,6 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
 
     public abstract Customer getActiveCustomer();
 
-    public abstract void changeFiscalNumber(final AdhocCustomerBean bean);
-    
     @Atomic
     public void delete() {
         if (!isDeletable()) {
@@ -144,12 +133,12 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         deleteDomainObject();
     }
 
-    protected void checkRules() {
-        if (LocalizedStringUtil.isTrimmedEmpty(getCode())) {
+    public void checkRules() {
+        if (Strings.isNullOrEmpty(getCode())) {
             throw new TreasuryDomainException("error.Customer.code.required");
         }
 
-        if (LocalizedStringUtil.isTrimmedEmpty(getName())) {
+        if (Strings.isNullOrEmpty(getName())) {
             throw new TreasuryDomainException("error.Customer.name.required");
         }
 
@@ -160,7 +149,23 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
         if (this.getCode().length() > Customer.MAX_CODE_LENGHT) {
             throw new TreasuryDomainException("error.Customer.code.maxlenght");
         }
+        
+        if(Strings.isNullOrEmpty(getFiscalNumber())) {
+            throw new TreasuryDomainException("error.Customer.fiscalNumber.required");
+        }
 
+        if(Strings.isNullOrEmpty(super.getAddressCountryCode())) {
+            throw new TreasuryDomainException("error.Customer.addressCountryCode.required");
+        }
+
+        if(!getAddressCountryCode().equals(getCountryCode())) {
+            throw new TreasuryDomainException("error.Customer.fiscal.information.invalid");
+        }
+        
+        if(getCustomerType() == null) {
+            throw new TreasuryDomainException("error.Customer.customerType.required");
+        }
+        
         if (!TreasuryConstants.isDefaultCountry(getFiscalCountry()) || !DEFAULT_FISCAL_NUMBER.equals(getFiscalNumber())) {
             final Set<Customer> customers = findByFiscalInformation(getFiscalCountry(), getFiscalNumber())
                     .filter(c -> c.isActive()).collect(Collectors.<Customer> toSet());
@@ -380,34 +385,29 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     }
     
     public String getUiCompleteAddress() {
-
-        final StringBuilder sb = new StringBuilder();
+        final List<String> addressCompoundList = Lists.newArrayList();
         
         if(!Strings.isNullOrEmpty(getAddress())) {
-            sb.append(getAddress()).append(", ");
+            addressCompoundList.add(getAddress());
         }
         
         if(!Strings.isNullOrEmpty(getZipCode())) {
-            sb.append(getZipCode()).append(", ");
+            addressCompoundList.add(getZipCode());
         }
         
         if(!Strings.isNullOrEmpty(getDistrictSubdivision())) {
-            sb.append(getDistrictSubdivision()).append(", ");
+            addressCompoundList.add(getDistrictSubdivision());
         }
         
-        if(!Strings.isNullOrEmpty(getDistrict())) {
-            sb.append(getDistrict()).append(", ");
+        if(!Strings.isNullOrEmpty(getRegion())) {
+            addressCompoundList.add(getRegion());
         }
         
         if(!Strings.isNullOrEmpty(getAddressCountryCode())) {
-            sb.append(getAddressCountryCode()).append(", ");
+            addressCompoundList.add(getAddressCountryCode());
         }
         
-        if(sb.length() > 0) {
-            sb.delete(sb.length() - 2, sb.length());
-        }
-        
-        return sb.toString();
+        return String.join(", ", addressCompoundList);
     }
     
     public abstract Set<? extends TreasuryEvent> getTreasuryEventsSet();
@@ -432,6 +432,46 @@ public abstract class Customer extends Customer_Base implements IFiscalContribut
     public boolean isIbanDefined() {
         return !isNullOrEmpty(getIban());
     }
+
+    // @formatter:off
+    /* ****************************
+     * BEGIN OF SAFT ADDRESS FIELDS
+     * ****************************
+     */
+    // @formatter:on
+    
+    
+    public String getSaftBillingAddressCountry() {
+        return getAddressCountryCode();
+    }
+    
+    public String getSaftBillingAddressStreetName() {
+        return getAddress();
+    }
+    
+    public String getSaftBillingAddressDetail() {
+        return getAddress();
+    }
+    
+    public String getSaftBillingAddressCity() {
+        return getDistrictSubdivision();
+    }
+    
+    public String getSaftBillingAddressPostalCode() {
+        return getZipCode();
+    }
+    
+    public String getSaftBillingAddressRegion() {
+        return getRegion();
+    }
+    
+
+    // @formatter:off
+    /* **************************
+     * END OF SAFT ADDRESS FIELDS
+     * **************************
+     */
+    // @formatter:on
 
     protected static String lowerCase(final String value) {
         if (value == null) {
