@@ -1,5 +1,8 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+import java.util.stream.Stream;
+
+import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.joda.time.DateTime;
 
@@ -7,6 +10,7 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
 
     private ForwardPaymentLogFile() {
         super();
+        setBennu(Bennu.getInstance());
     }
 
     private ForwardPaymentLogFile(final String fileName, final byte[] content) {
@@ -42,7 +46,9 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
         final ForwardPaymentLogFile logFile = new ForwardPaymentLogFile(
                 String.format("requestBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForRequest(log);
-
+        
+        ForwardPaymentLogFileDomainObject.createFromForwardPaymentLogFile(logFile);
+        
         return logFile;
     }
 
@@ -51,7 +57,15 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
                 String.format("responseBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForResponse(log);
 
+        ForwardPaymentLogFileDomainObject.createFromForwardPaymentLogFile(logFile);
+
         return logFile;
     }
 
+    public static Stream<ForwardPaymentLogFile> findAll() {
+        return Stream.concat(
+                ForwardPaymentLog.findAll().filter(o -> o.getRequestLogFile() != null).map(o -> o.getRequestLogFile()),
+                ForwardPaymentLog.findAll().filter(o -> o.getResponseLogFile() != null).map(o -> o.getResponseLogFile()));
+    }
+    
 }

@@ -1,5 +1,7 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+import java.util.stream.Stream;
+
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
@@ -26,12 +28,21 @@ public class ForwardPaymentConfigurationFile extends ForwardPaymentConfiguration
         
         file.init(filename, filename, contents);
         
+        ForwardPaymentConfigurationFileDomainObject.createFromForwardPaymentConfigurationFile(file);
+        
         return file;
+    }
+    
+    public static Stream<ForwardPaymentConfigurationFile> findAll() {
+        return Bennu.getInstance().getVirtualTPACertificateSet().stream();
     }
     
     @Override
     public void delete() {
         setBennu(null);
+        
+        ForwardPaymentConfigurationFileDomainObject.findUniqueFromForwardPaymentConfigurationFile(this).get().delete();
+        
         super.delete();
     }
     

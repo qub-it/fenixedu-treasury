@@ -16,6 +16,7 @@ import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.bennu.scheduler.TaskRunner;
 import org.fenixedu.bennu.scheduler.domain.SchedulerSystem;
 import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.treasury.domain.TreasuryFile;
 import org.fenixedu.treasury.domain.document.FinantialDocument;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.integration.ERPConfiguration;
@@ -81,7 +82,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public byte[] getFileContent(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getContent();
         } catch (Exception e) {
@@ -92,7 +93,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public long getFileSize(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getSize();
         } catch (Exception e) {
@@ -103,7 +104,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public DateTime getFileCreationDate(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getCreationDate();
         } catch (Exception e) {
@@ -114,7 +115,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public String getFilename(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getFilename();
         } catch (Exception e) {
@@ -125,7 +126,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public InputStream getFileStream(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getStream();
         } catch (Exception e) {
@@ -136,7 +137,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public String getFileContentType(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             return file.getContentType();
         } catch (Exception e) {
@@ -147,10 +148,16 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public void createFile(final IGenericFile genericFile, final String fileName, final String contentType,
             final byte[] content) {
+        // For now do not allow creation of this files in this phase
+        if(true) {
+            throw new RuntimeException("abort");
+        }
+        
         try {
-            GenericFile file = null;
+            GenericFile file = null; //TreasuryFile.create(fileName, contentType, content);
 
-            MethodUtils.invokeMethod(genericFile, "setGenericFile", file);
+            PropertyUtils.setProperty(genericFile, "treasuryFile", file);
+            genericFile.setFileId(file.getExternalId());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -160,9 +167,10 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public void deleteFile(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getGenericFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             file.delete();
+            PropertyUtils.setProperty(genericFile, "treasuryFile", null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

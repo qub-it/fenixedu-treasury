@@ -214,9 +214,36 @@ class debt.DebtAccount {
 class document.TreasuryDocumentTemplate {
 }
 
-class document.TreasuryDocumentTemplateFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-    boolean active;
+class document.TreasuryDocumentTemplateFileDomainObject /* implements IGenericFile */ {
+	String fileId;
+	boolean active;
+	DateTime creationDate;
+	String creator;
 }
+	
+	relation TreasuryDocumentTemplateFileDomainObjectDomainRoot {
+	    
+	    .pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+	        multiplicity 1..1;
+	    }
+	    
+	    document.TreasuryDocumentTemplateFileDomainObject playsRole treasuryDocumentTemplateFileDomainObjects {
+	        multiplicity *;
+	    }
+	    
+	}
+	
+	relation TreasuryDocumentTemplateFileDomainObjectDocumentTemplate {
+	    
+	    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
+	        multiplicity 1..1;
+	    }
+	    
+	    document.TreasuryDocumentTemplateFileDomainObject playsRole treasuryDocumentTemplateFileDomainObjects {
+	        multiplicity *;
+	    }
+	}
+
 
 /*-----------
  * Documents 
@@ -680,20 +707,6 @@ class paymentcodes.PaymentReferenceCode
 		}
 	}
 	
-	class paymentcodes.SibsReportFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-	  DateTime whenProcessedBySibs;
-	  BigDecimalT transactionsTotalAmount;
-	  BigDecimalT totalCost;
-	  String errorLog;
-	  String infoLog;
-	}
-	
-	class paymentcodes.SibsInputFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-		DateTime whenProcessedBySibs;
-		String uploaderUsername;
-	}
-
-
      class paymentcodes.SibsTransactionDetail  {
         String comments;
         DateTime whenProcessed;
@@ -710,29 +723,105 @@ class paymentcodes.PaymentReferenceCode
 		String settlementDocumentNumber;
     }
 
-        relation SibsTransactionDetailSibsReportFile 
-        {
-            paymentcodes.SibsReportFile playsRole sibsReport{
+	class paymentcodes.SibsReportFileDomainObject /* implements IGenericFile */ {
+		String fileId;
+		DateTime whenProcessedBySibs;
+		BigDecimalT transactionsTotalAmount;
+		BigDecimalT totalCost;
+		String errorLog;
+		String infoLog;
+		DateTime creationDate;
+		String creator;
+	}
+		
+		relation SibsReportFileDomainObjectDomainRoot {
+		    .pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+		        multiplicity 1..1;
+		    }
+		
+			paymentcodes.SibsReportFileDomainObject playsRole sibsReportFileDomainObjects {
+				multiplicity *;
+			}
+		}
+		
+        relation SibsTransactionDetailSibsReportFileDomainObject  {
+            paymentcodes.SibsReportFileDomainObject playsRole sibsReportDomainObject {
                 multiplicity 1..1;
             }
             
-            paymentcodes.SibsTransactionDetail playsRole sibsTransactions
-            {
+            paymentcodes.SibsTransactionDetail playsRole sibsTransactions {
             	multiplicity *;
             }
         }
-        
-        class paymentcodes.SibsOutputFile extends .org.fenixedu.bennu.io.domain.GenericFile
-        {
-		      String errorLog;
-		      String infoLog;
-		      String printedPaymentCodes;
-		      DateTime lastSuccessfulExportation;
-        }
-        
-class integration.OperationFile extends .org.fenixedu.bennu.io.domain.GenericFile 
-{
-}
+	
+		relation PaymentReferenceCodeSibsReportFileDomainObject {
+			paymentcodes.SibsReportFileDomainObject playsRole reportedInFileDomainObjects {
+				multiplicity *;
+			}
+		   
+			paymentcodes.PaymentReferenceCode playsRole referenceCodes {
+				multiplicity *;
+			}
+		}
+
+	class paymentcodes.SibsInputFileDomainObject /* implements IGenericFile */ {
+		String fileId;
+		DateTime whenProcessedBySibs;
+		String uploaderUsername;
+		DateTime creationDate;
+		String creator;
+	}
+
+		relation SibsInputDomainObjectFinantialInstitution {
+			paymentcodes.SibsInputFileDomainObject playsRole sibsInputFileDomainObjects {
+				multiplicity *;
+			}
+	      
+			FinantialInstitution playsRole finantialInstitution {
+				multiplicity 1..1;
+			}
+			
+		}
+	
+	    relation SibsInputFileDomainObjectDomainRoot {
+			paymentcodes.SibsInputFileDomainObject playsRole sibsInputFileDomainObjects {
+			    multiplicity *;
+			}
+	      
+			.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+		        multiplicity 1..1;
+			}
+	    }
+		
+	class paymentcodes.SibsOutputFileDomainObject /* implements IGenericFile */ {
+		String fileId;
+		String errorLog;
+		String infoLog;
+		String printedPaymentCodes;
+		DateTime lastSuccessfulExportation;
+		DateTime creationDate;
+		String creator;
+	}
+
+		relation SibsOutputFileDomainObjectFinantialInstitution {
+			paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+				multiplicity *;
+			}
+			      
+			FinantialInstitution playsRole finantialInstitution {
+				multiplicity 1..1;
+			}      
+		}
+
+		relation SibsOutputFileDomainObjectDomainRoot {
+			paymentcodes.SibsOutputFileDomainObject playsRole sibsOutputFileDomainObjects {
+				multiplicity *;
+			}
+			  
+			.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+		        multiplicity 1..1;
+			}
+		}
 
 class integration.IntegrationOperation
 {
@@ -749,37 +838,54 @@ class integration.IntegrationOperation
 /* --- IntegrationOperation --- */
 
 
-relation IntegrationOperationFinantialInstitution
-{
-    FinantialInstitution playsRole finantialInstitution {
-        multiplicity 1..1;
-    }
-    
-    integration.IntegrationOperation playsRole integrationOperations {
-        multiplicity *;
-    }
+	relation IntegrationOperationFinantialInstitution {
+	    FinantialInstitution playsRole finantialInstitution {
+	        multiplicity 1..1;
+	    }
+	    
+	    integration.IntegrationOperation playsRole integrationOperations {
+	        multiplicity *;
+	    }
+	}
+
+class integration.OperationFileDomainObject /* implements IGenericFile */  {
+	String fileId;
+	DateTime creationDate;
+	String creator;
 }
 
-relation IntegrationOperationOperationFile {
-    integration.OperationFile playsRole file {
-        multiplicity 1..1;
-    }
-    
-    integration.IntegrationOperation playsRole integrationOperation
-    {
-        multiplicity 0..1;
-    }
-}
+	relation OperationFileDomainObjectDomainRoot {
+	
+		integration.OperationFileDomainObject playsRole operationFileDomainObjects {
+			multiplicity *;
+		}
+					
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+	        multiplicity 1..1;
+		}
+	}
 
-relation IntegrationOperationLogFile {
-	integration.OperationFile playsRole logFile {
-		multiplicity 0..1;
+	relation IntegrationOperationOperationFileDomainObject {
+	    integration.OperationFileDomainObject playsRole fileDomainObject {
+	        multiplicity 0..1;
+	    }
+	    
+	    integration.IntegrationOperation playsRole integrationOperation {
+	        multiplicity 0..1;
+	    }
 	}
 	
-	integration.IntegrationOperation playsRole logIntegrationOperation {
-		multiplicity 0..1;
+	relation IntegrationOperationDomainObjectLogFile {
+		integration.OperationFileDomainObject playsRole logFileDomainObject {
+			multiplicity 0..1;
+		}
+		
+		integration.IntegrationOperation playsRole logIntegrationOperation {
+			multiplicity 0..1;
+		}
 	}
-}
+
+
 
 /* ERP Integration */
 class integration.ERPConfiguration extends integration.Configuration
@@ -1213,28 +1319,6 @@ relation TreasuryDocumentTemplateFinantialEntity {
     }
     
     document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplates {
-        multiplicity *;
-    }
-}
-
-relation TreasuryDocumentTemplateDocumentTemplateFile {
-    document.TreasuryDocumentTemplate playsRole treasuryDocumentTemplate {
-        multiplicity 1..1;
-    }
-    
-    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
-        multiplicity *;
-    }
-}
-
-/* --- Document Template File --- */
-
-relation TreasuryDocumentTemplateFileBennu {
-    .org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
-        multiplicity 1..1;
-    }
-    
-    document.TreasuryDocumentTemplateFile playsRole treasuryDocumentTemplateFiles {
         multiplicity *;
     }
 }
@@ -1791,88 +1875,6 @@ relation InterestRateTariff {
 		multiplicity 0..1;
 	}
 }
-
-
-
-
-	
-	relation PaymentReferenceCodeSibsReportFile
-	{
-	   paymentcodes.SibsReportFile playsRole reportedInFiles{
-	       multiplicity *;
-	   }
-	   
-	   paymentcodes.PaymentReferenceCode playsRole referenceCodes{
-	       multiplicity *;
-	       }
-	}
-
-
-relation SibsReportFileBennu {
-	  .org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
-	    multiplicity 1..1;
-	  }
-	  
-	  paymentcodes.SibsReportFile playsRole sibsReportFiles {
-	    multiplicity *;
-	  }
-	}
-	
-	
-
-    relation SibsInputFinantialInstitution {
-      paymentcodes.SibsInputFile playsRole sibsInputFiles {
-        multiplicity *;
-      }
-      
-      FinantialInstitution playsRole finantialInstitution {
-        multiplicity 1..1;
-      }
-      
-    }
-
-
-    relation SibsInputFileBennu {
-		  paymentcodes.SibsInputFile playsRole sibsInputFiles {
-		    multiplicity *;
-		  }
-      
-		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
-			multiplicity 1..1;
-		}
-    }
-	
-	relation SibsInputFileUser {
-	  paymentcodes.SibsInputFile playsRole sibsInputFiles {
-	    multiplicity *;
-	  }
-	  
-	  .org.fenixedu.bennu.core.domain.User playsRole uploader {
-	    multiplicity 0..1;
-	  }
-	  
-	}
-	
-	    relation SibsOutputFileFinantialInstitution {
-      paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
-        multiplicity *;
-      }
-      
-      FinantialInstitution playsRole finantialInstitution {
-        multiplicity 1..1;
-      }
-      
-    }
-
-    relation SibsOutputFileBennu {
-		  paymentcodes.SibsOutputFile playsRole sibsOutputFiles {
-		    multiplicity *;
-		  }
-      
-		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
-			multiplicity 1..1;
-		}
-    }
 	
 
 /* ****************
@@ -1940,25 +1942,28 @@ class forwardpayments.ForwardPaymentConfiguration {
        }
 	}
 
-class forwardpayments.ForwardPaymentConfigurationFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+class forwardpayments.ForwardPaymentConfigurationFileDomainObject /* implements IGenericFile */ {
+	String fileId;
+	DateTime creationDate;
+	String creator;
 }
 
-	relation ForwardPaymentConfigurationFileBennu {
-       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
+	relation ForwardPaymentConfigurationFileDomainObjectDomainRoot {
+       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole virtualTPACertificateDomainObject {
            multiplicity *;
        }
 		
-		.org.fenixedu.bennu.core.domain.Bennu  playsRole bennu {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 			multiplicity 1..1;
 		}
 	}
 	
-	relation ForwardPaymentConfigurationVirtualTPACertificate {
+	relation ForwardPaymentConfigurationVirtualTPACertificateDomainObject {
 		forwardpayments.ForwardPaymentConfiguration playsRole {
 			multiplicity *;
 		}
 		
-       forwardpayments.ForwardPaymentConfigurationFile playsRole virtualTPACertificate {
+       forwardpayments.ForwardPaymentConfigurationFileDomainObject playsRole virtualTPACertificateDomainObject {
            multiplicity 0..1;
        }
 	}
@@ -2033,9 +2038,6 @@ class forwardpayments.ForwardPayment {
         }
 	}
 
-class forwardpayments.ForwardPaymentLogFile extends .org.fenixedu.bennu.io.domain.GenericFile {
-}
-
 class forwardpayments.ForwardPaymentLog {
 	int orderNumber;
 	ForwardPaymentStateType type;
@@ -2064,43 +2066,61 @@ class forwardpayments.ForwardPaymentLog {
 		}
 	}
 	
-	relation ForwardPaymentLogRequestLogFile {
+class forwardpayments.ForwardPaymentLogFileDomainObject /* implements IGenericFile */ {
+	String fileId;
+	DateTime creationDate;
+	String creator;
+}
+	
+	relation ForwardPaymentLogFileDomainObjectDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+			multiplicity 1..1;
+		}
+
+		forwardpayments.ForwardPaymentLogFileDomainObject playsRole forwardPaymentLogFileDomainObjects {
+			multiplicity *;
+		}
+	}
+
+	relation ForwardPaymentLogRequestLogFileDomainObject {
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForRequest {
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFile playsRole requestLogFile {
+		forwardpayments.ForwardPaymentLogFileDomainObject playsRole requestLogFileDomainObject {
 			multiplicity 0..1;
 		}
 	}
 	
-	relation ForwardPaymentLogResponseLogFile {
+	relation ForwardPaymentLogResponseLogFileDomainObject {
 
 		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForResponse {
 			multiplicity 0..1;
 		}
 	
-		forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {
+		forwardpayments.ForwardPaymentLogFileDomainObject playsRole responseLogFileDomainObject {
 			multiplicity 0..1;
 		}
 	}
 
-class forwardpayments.PostForwardPaymentsReportFile extends .org.fenixedu.bennu.io.domain.GenericFile {
+class forwardpayments.PostForwardPaymentsReportFileDomainObject /* implements IGenericFile */ {
+	String fileId;
 	DateTime postForwardPaymentsExecutionDate;
 	DateTime beginDate;
 	DateTime endDate;
+	DateTime creationDate;
+	String creator;
 }
 
-	relation PostForwardPaymentsReportFileBennu {
-		.org.fenixedu.bennu.core.domain.Bennu playsRole bennu {
+	relation PostForwardPaymentsReportFileDomainObjectDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
 			multiplicity 1..1;
 		}
 
-		forwardpayments.PostForwardPaymentsReportFile playsRole PostForwardPaymentsReportFiles {
+		forwardpayments.PostForwardPaymentsReportFileDomainObject playsRole postForwardPaymentsReportFileDomainObjects {
 			multiplicity *;
 		}
 	}
-
 
 class FiscalYear {
 	int year;

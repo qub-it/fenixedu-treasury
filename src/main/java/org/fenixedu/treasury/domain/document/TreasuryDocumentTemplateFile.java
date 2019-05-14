@@ -56,6 +56,8 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         documentTemplate.activateFile(this);
 
         checkRules();
+        
+        TreasuryDocumentTemplateFileDomainObject.createFromTreasuryDocumentTemplateFile(this);
     }
 
     private void checkRules() {
@@ -70,6 +72,8 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         setActive(active);
 
         checkRules();
+        
+        TreasuryDocumentTemplateFileDomainObject.findAll().filter(o -> TreasuryDocumentTemplateFile.this == o.getTreasuryFile()).findFirst().get().edit(documentTemplate, active);
     }
 
     public boolean isDeletable() {
@@ -86,6 +90,8 @@ public class TreasuryDocumentTemplateFile extends TreasuryDocumentTemplateFile_B
         setBennu(null);
         setTreasuryDocumentTemplate(null);
         super.delete();
+        
+        TreasuryDocumentTemplateFileDomainObject.findAll().filter(o -> TreasuryDocumentTemplateFile.this == o.getTreasuryFile()).findFirst().get().delete();
     }
 
     @Atomic
