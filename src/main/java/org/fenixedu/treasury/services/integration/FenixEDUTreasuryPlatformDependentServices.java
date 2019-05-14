@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.reflect.MethodUtils;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
@@ -152,6 +153,7 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
             GenericFile file = TreasuryFile.create(fileName, contentType, content);
 
             MethodUtils.invokeMethod(genericFile, "setTreasuryFile", file);
+            genericFile.setFileId(file.getExternalId());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -161,9 +163,10 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public void deleteFile(final IGenericFile genericFile) {
         try {
-            GenericFile file = (GenericFile) MethodUtils.invokeMethod(genericFile, "getTreasuryFile", null);
+            GenericFile file = (GenericFile) PropertyUtils.getProperty(genericFile, "treasuryFile");
 
             file.delete();
+            PropertyUtils.setProperty(genericFile, "treasuryFile", null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

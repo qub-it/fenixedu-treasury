@@ -27,6 +27,7 @@
  */
 package org.fenixedu.treasury.domain.paymentcodes;
 
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import org.fenixedu.bennu.io.domain.IGenericFile;
@@ -46,6 +47,12 @@ public class SibsInputFile extends SibsInputFile_Base implements IGenericFile {
 
     public static final String CONTENT_TYPE = "text/plain";
 
+    public static final Comparator<SibsInputFile> COMPARATOR_BY_DATE = (o1, o2) -> {
+        int c = o1.getCreationDate().compareTo(o2.getCreationDate());
+        
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+    
     protected SibsInputFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());

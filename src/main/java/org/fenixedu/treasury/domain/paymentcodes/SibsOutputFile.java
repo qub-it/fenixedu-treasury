@@ -214,8 +214,8 @@ public class SibsOutputFile extends SibsOutputFile_Base implements IGenericFile 
 
         TreasuryDomainException.throwWhenDeleteBlocked(getDeletionBlockers());
 
+        setDomainRoot(null);
         setFinantialInstitution(null);
-        setTreasuryFile(null);
 
         services.deleteFile(this);
 
