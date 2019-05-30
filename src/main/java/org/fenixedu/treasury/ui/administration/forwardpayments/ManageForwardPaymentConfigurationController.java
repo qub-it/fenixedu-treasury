@@ -26,18 +26,29 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     public static final String CONTROLLER_URL = "/treasury/administration/manageforwardpaymentconfiguration";
     private static final String JSP_PATH = "/treasury/administration/manageforwardpaymentconfiguration";
 
-    private static final String VIEW_URI = "/view";
-    public static final String VIEW_URL = CONTROLLER_URL + VIEW_URI;
+    private static final String SEARCH_URI = "/search";
+    public static final String SEARCH_URL = CONTROLLER_URL + SEARCH_URI;
 
-    @RequestMapping(value = VIEW_URI + "/{finantialInstitutionId}", method = RequestMethod.GET)
-    public String view(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+    @RequestMapping(value = SEARCH_URI + "/{finantialInstitutionId}", method = RequestMethod.GET)
+    public String search(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
             final Model model) {
 
         model.addAttribute("finantialInstitution", finantialInstitution);
-        if (finantialInstitution.getForwardPaymentConfigurationsSet().size() > 0) {
-            model.addAttribute("forwardPaymentConfiguration",
-                    finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next());
-        }
+        model.addAttribute("forwardPaymentConfigurationsSet", finantialInstitution.getForwardPaymentConfigurationsSet());
+
+        return jspPage(SEARCH_URI);
+    }
+
+    private static final String VIEW_URI = "/view";
+    public static final String VIEW_URL = CONTROLLER_URL + VIEW_URI;
+
+    @RequestMapping(value = VIEW_URI + "/{finantialInstitutionId}/{forwardPaymentConfigurationId}", method = RequestMethod.GET)
+    public String view(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+            @PathVariable("forwardPaymentConfigurationId") final ForwardPaymentConfiguration forwardPaymentConfiguration,
+            final Model model) {
+
+        model.addAttribute("finantialInstitution", finantialInstitution);
+        model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
 
         return jspPage(VIEW_URI);
     }
@@ -45,15 +56,19 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     private static final String EDIT_URI = "/edit";
     public static final String EDIT_URL = CONTROLLER_URL + EDIT_URI;
 
-    @RequestMapping(value = EDIT_URI + "/{finantialInstitutionId}", method = RequestMethod.GET)
+    @RequestMapping(value = EDIT_URI + "/{finantialInstitutionId}/{forwardPaymentConfigurationId}", method = RequestMethod.GET)
     public String edit(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+            @PathVariable("forwardPaymentConfigurationId") final ForwardPaymentConfiguration forwardPaymentConfiguration,
             final Model model) {
-        return _edit(finantialInstitution, model, new ForwardPaymentConfigurationBean(finantialInstitution));
+        ForwardPaymentConfigurationBean bean = new ForwardPaymentConfigurationBean(forwardPaymentConfiguration);
+        return _edit(finantialInstitution, forwardPaymentConfiguration, model, bean);
     }
 
-    private String _edit(final FinantialInstitution finantialInstitution, final Model model,
+    private String _edit(final FinantialInstitution finantialInstitution,
+            final ForwardPaymentConfiguration forwardPaymentConfiguration, final Model model,
             final ForwardPaymentConfigurationBean bean) {
         model.addAttribute("finantialInstitution", finantialInstitution);
+        model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
         model.addAttribute("bean", bean);
 
         model.addAttribute("series_options", Series.findAll());
@@ -62,15 +77,17 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
         return jspPage(EDIT_URI);
     }
 
-    @RequestMapping(value = EDIT_URI + "/{finantialInstitutionId}", method = RequestMethod.POST)
+    @RequestMapping(value = EDIT_URI + "/{finantialInstitutionId}/{forwardPaymentConfigurationId}", method = RequestMethod.POST)
     public String editpost(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+            @PathVariable("forwardPaymentConfigurationId") final ForwardPaymentConfiguration forwardPaymentConfiguration,
             final ForwardPaymentConfigurationBean bean, final Model model, final RedirectAttributes redirectAttributes) {
 
         try {
 
-            editOrCreateForwardPaymentConfiguration(finantialInstitution, bean);
+            forwardPaymentConfiguration.edit(bean);
 
-            return String.format("redirect:%s/%s", VIEW_URL, finantialInstitution.getExternalId());
+            return String.format("redirect:%s/%s/%s", VIEW_URL, finantialInstitution.getExternalId(),
+                    forwardPaymentConfiguration.getExternalId());
         } catch (final Exception e) {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
@@ -78,33 +95,21 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
         return jspPage(EDIT_URI);
     }
 
-    private void editOrCreateForwardPaymentConfiguration(final FinantialInstitution finantialInstitution,
-            final ForwardPaymentConfigurationBean bean) {
-        if (!finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
-            finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().edit(bean);
-            return;
-        }
-
-        ForwardPaymentConfiguration.create(finantialInstitution, bean);
-    }
-
     private static final String UPLOAD_VIRTUAL_TPA_CERTIFICATE_URI = "/uploadvirtualtpacertificate";
     public static final String UPLOAD_VIRTUAL_TPA_CERTIFICATE_URL = CONTROLLER_URL + UPLOAD_VIRTUAL_TPA_CERTIFICATE_URI;
 
-    @RequestMapping(value = UPLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.POST)
+    @RequestMapping(value = UPLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}/{forwardPaymentConfigurationId}", method = RequestMethod.POST)
     public String uploadvirtualtpacertificatepost(
             @PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+            @PathVariable("forwardPaymentConfigurationId") final ForwardPaymentConfiguration forwardPaymentConfiguration,
             @RequestParam(value = "certificateFile", required = true) MultipartFile certificateFile, final Model model,
             final RedirectAttributes redirectAttributes) {
         try {
 
-            final ForwardPaymentConfiguration forwardPaymentConfiguration =
-                    finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next();
-
             forwardPaymentConfiguration.saveVirtualTPACertificate(certificateFile.getOriginalFilename(),
                     certificateFile.getBytes());
 
-            return String.format("redirect:%s/%s", VIEW_URL, finantialInstitution.getExternalId());
+            return String.format("redirect:%s/%s/%s", VIEW_URL, finantialInstitution.getExternalId(), forwardPaymentConfiguration.getExternalId());
         } catch (final Exception e) {
             addErrorMessage(e.getLocalizedMessage(), model);
         }
@@ -115,14 +120,16 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     private static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI = "/downloadvirtualtpacertificate";
     public static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL = CONTROLLER_URL + DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI;
 
-    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.GET, produces = "application/octet-stream")
+    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}/{forwardPaymentConfigurationId}", method = RequestMethod.POST)
     @ResponseBody
-    public byte[] downloadvirtualtpacertificate(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution, final Model model) {
+    public Object downloadvirtualtpacertificate(
+            @PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution,
+            @PathVariable("forwardPaymentConfigurationId") final ForwardPaymentConfiguration forwardPaymentConfiguration,
+            final Model model) {
         assertUserIsManager(model);
         
-        if (!finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
-            return finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().getVirtualTPACertificate()
-                    .getContent();
+        if (forwardPaymentConfiguration.getVirtualTPACertificate() != null) {
+            return forwardPaymentConfiguration.getVirtualTPACertificate().getContent();
         }
 
         return null;
@@ -131,4 +138,5 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     private String jspPage(final String page) {
         return JSP_PATH + page;
     }
+
 }

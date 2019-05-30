@@ -1,6 +1,5 @@
 package org.fenixedu.treasury.dto.forwardpayments;
 
-import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.PaymentMethod;
 import org.fenixedu.treasury.domain.document.Series;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration;
@@ -31,32 +30,27 @@ public class ForwardPaymentConfigurationBean {
     public ForwardPaymentConfigurationBean() {
     }
     
-    public ForwardPaymentConfigurationBean(final FinantialInstitution finantialInstitution) {
-        if (!finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
-            final ForwardPaymentConfiguration configuration =
-                    finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next();
-            
-            setActive(configuration.isActive());
-            setName(configuration.getName());
-            setPaymentURL(configuration.getPaymentURL());
-            setReturnURL(configuration.getReturnURL());
-            setVirtualTPAMOXXURL(configuration.getVirtualTPAMOXXURL());
-            setVirtualTPAMerchantId(configuration.getVirtualTPAMerchantId());
-            setVirtualTPAId(configuration.getVirtualTPAId());
-            setVirtualTPAKeyStoreName(configuration.getVirtualTPAKeyStoreName());
-            setVirtualTPACertificateAlias(configuration.getVirtualTPACertificateAlias());
-            setVirtualTPACertificatePassword(configuration.getVirtualTPACertificatePassword());
-            setImplementation(configuration.getImplementation());
-            setPaylineMerchantId(configuration.getPaylineMerchantId());
-            setPaylineMerchantAccessKey(configuration.getPaylineMerchantAccessKey());
-            setPaylineContractNumber(configuration.getPaylineContractNumber());
-            
-            setSeries(configuration.getSeries());
-            setPaymentMethod(configuration.getPaymentMethod());
-            
-            setReimbursementPolicyJspFile(configuration.getReimbursementPolicyJspFile());
-            setPrivacyPolicyJspFile(configuration.getPrivacyPolicyJspFile());
-        }
+    public ForwardPaymentConfigurationBean(final ForwardPaymentConfiguration configuration) {
+        setActive(configuration.isActive());
+        setName(configuration.getName());
+        setPaymentURL(configuration.getPaymentURL());
+        setReturnURL(configuration.getReturnURL());
+        setVirtualTPAMOXXURL(configuration.getVirtualTPAMOXXURL());
+        setVirtualTPAMerchantId(configuration.getVirtualTPAMerchantId());
+        setVirtualTPAId(configuration.getVirtualTPAId());
+        setVirtualTPAKeyStoreName(configuration.getVirtualTPAKeyStoreName());
+        setVirtualTPACertificateAlias(configuration.getVirtualTPACertificateAlias());
+        setVirtualTPACertificatePassword(configuration.getVirtualTPACertificatePassword());
+        setImplementation(configuration.getImplementation());
+        setPaylineMerchantId(configuration.getPaylineMerchantId());
+        setPaylineMerchantAccessKey(configuration.getPaylineMerchantAccessKey());
+        setPaylineContractNumber(configuration.getPaylineContractNumber());
+        
+        setSeries(configuration.getSeries());
+        setPaymentMethod(configuration.getPaymentMethod());
+        
+        setReimbursementPolicyJspFile(configuration.getReimbursementPolicyJspFile());
+        setPrivacyPolicyJspFile(configuration.getPrivacyPolicyJspFile());
     }
 
     // @formatter:off

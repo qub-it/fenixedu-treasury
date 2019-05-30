@@ -5,17 +5,21 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
+import org.fenixedu.treasury.dto.document.managepayments.PaymentReferenceCodeBean;
 import org.fenixedu.treasury.util.TreasuryConstants;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import com.google.common.collect.Sets;
+
 import pt.ist.fenixframework.Atomic;
 
-public class SequentialPaymentCodeGenerator extends PaymentCodeGenerator {
+public class SequentialPaymentCodeGenerator implements IPaymentCodeGenerator {
 
     private final PaymentCodePool referenceCodePool;
 
@@ -32,14 +36,12 @@ public class SequentialPaymentCodeGenerator extends PaymentCodeGenerator {
         return this.referenceCodePool.getPaymentReferenceCodesSet();
     }
 
-    @Override
     @Atomic
     public PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount) {
         return generateNewCodeFor(amount, validFrom, validTo, useFixedAmount, false);
     }
 
-    @Override
     @Atomic
     public PaymentReferenceCode generateNewCodeFor(BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount, final boolean forceGeneration) {
@@ -118,13 +120,20 @@ public class SequentialPaymentCodeGenerator extends PaymentCodeGenerator {
     }
 
     @Override
-    public boolean isCodeMadeByThisFactory(PaymentReferenceCode paymentCode) {
-        return paymentCode.getPaymentCodePool().equals(this);
+    public PaymentCodePool getReferenceCodePool() {
+        return referenceCodePool;
     }
 
     @Override
-    public PaymentCodePool getReferenceCodePool() {
-        return referenceCodePool;
+    @Atomic
+    public PaymentReferenceCode createPaymentReferenceCode(DebtAccount debtAccount, PaymentReferenceCodeBean bean) {
+        final PaymentReferenceCode paymentReferenceCode =
+                generateNewCodeFor(
+                                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
+                                bean.getPaymentCodePool().getIsFixedAmount());
+
+        paymentReferenceCode.createPaymentTargetTo(Sets.newHashSet(bean.getSelectedDebitEntries()), bean.getPaymentAmount());
+        return paymentReferenceCode;
     }
 
 }

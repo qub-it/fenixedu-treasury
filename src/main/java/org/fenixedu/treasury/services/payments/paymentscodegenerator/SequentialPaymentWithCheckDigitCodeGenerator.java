@@ -30,17 +30,19 @@ package org.fenixedu.treasury.services.payments.paymentscodegenerator;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
+import org.fenixedu.treasury.dto.document.managepayments.PaymentReferenceCodeBean;
 import org.joda.time.LocalDate;
+
+import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 
-public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGenerator {
-
-    private static final int NUM_CONTROL_DIGITS = 2;
+public class SequentialPaymentWithCheckDigitCodeGenerator implements IPaymentCodeGenerator {
 
     private final PaymentCodePool referenceCodePool;
 
@@ -54,14 +56,12 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
         this.referenceCodePool = pool;
     }
 
-    @Override
     @Atomic
     public PaymentReferenceCode generateNewCodeFor(final BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount) {
         return generateNewCodeFor(amount, validFrom, validTo, useFixedAmount, false);
     }
 
-    @Override
     @Atomic
     public PaymentReferenceCode generateNewCodeFor(final BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount, final boolean forceGeneration) {
@@ -86,16 +86,8 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
             }
         }
 
-        String referenceCodeString = "";
-
-//        if (Boolean.TRUE.equals(referenceCodePool.getUseAmountToValidateCheckDigit())) {
-        referenceCodeString = CheckDigitGenerator.generateReferenceCodeWithCheckDigit(referenceCodePool.getEntityReferenceCode(),
-                "" + nextReferenceCode, amount);
-//        } else {
-//            referenceCodeString =
-//                    CheckDigitGenerator.generateReferenceCodeWithCheckDigit(referenceCodePool.getEntityReferenceCode(), ""
-//                            + nextReferenceCode, BigDecimal.ZERO);
-//        }
+        final String referenceCodeString = CheckDigitGenerator
+                .generateReferenceCodeWithCheckDigit(referenceCodePool.getEntityReferenceCode(), "" + nextReferenceCode, amount);
 
         BigDecimal minAmount = referenceCodePool.getMinAmount();
         BigDecimal maxAmount = referenceCodePool.getMaxAmount();
@@ -103,6 +95,7 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
             minAmount = amount;
             maxAmount = amount;
         }
+
         PaymentReferenceCode newPaymentReference = PaymentReferenceCode.create(referenceCodeString, validFrom, validTo,
                 PaymentReferenceCodeStateType.UNUSED, referenceCodePool, minAmount, maxAmount);
         newPaymentReference.setPayableAmount(amount);
@@ -110,13 +103,20 @@ public class SequentialPaymentWithCheckDigitCodeGenerator extends PaymentCodeGen
         return newPaymentReference;
     }
 
-    @Override
-    public boolean isCodeMadeByThisFactory(PaymentReferenceCode paymentCode) {
-        return paymentCode.getPaymentCodePool().equals(this);
-    }
-
     protected Set<PaymentReferenceCode> allPaymentCodes(PaymentCodePool referenceCodePool) {
         return referenceCodePool.getPaymentReferenceCodesSet();
+    }
+
+    @Override
+    @Atomic
+    public PaymentReferenceCode createPaymentReferenceCode(final DebtAccount debtAccount, final PaymentReferenceCodeBean bean) {
+        final PaymentReferenceCode paymentReferenceCode =
+                generateNewCodeFor(
+                                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
+                                bean.getPaymentCodePool().getIsFixedAmount());
+
+        paymentReferenceCode.createPaymentTargetTo(Sets.newHashSet(bean.getSelectedDebitEntries()), bean.getPaymentAmount());
+        return paymentReferenceCode;
     }
 
 }

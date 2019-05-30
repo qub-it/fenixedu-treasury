@@ -80,6 +80,10 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
 
     @Atomic(mode = TxMode.WRITE)
     public boolean processPayment(final ForwardPayment forwardPayment, Map<String, String> responseMap) {
+        if(!forwardPayment.getForwardPaymentConfiguration().isActive()) {
+            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.not.active");
+        }
+        
         LinkedHashMap<String, String> requestMap = null;
 
         if (!isAuthenticationResponseMessage(responseMap)) {
@@ -176,6 +180,10 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
 
     @Override
     public ForwardPaymentStatusBean paymentStatus(final ForwardPayment forwardPayment) {
+        if(!forwardPayment.getForwardPaymentConfiguration().isActive()) {
+            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.not.active");
+        }
+        
         final LinkedHashMap<String, String> requestMap = Maps.newLinkedHashMap();
         final TPAInvocationUtil tpa = new TPAInvocationUtil(forwardPayment);
         final Map<String, String> responseMap = tpa.postPaymentStatus(requestMap);

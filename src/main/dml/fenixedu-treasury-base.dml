@@ -576,42 +576,37 @@ class paymentcodes.PaymentReferenceCode
 }
 
 
-	class paymentcodes.pool.PaymentCodePool  {
-	  String name;
-	  String entityReferenceCode;
-	  Long minReferenceCode;
-	  Long maxReferenceCode;
-	  BigDecimalT minAmount;
-	  BigDecimalT maxAmount;
-	  LocalDate validFrom;
-	  LocalDate validTo;
-	  Boolean active;
-	  Boolean useCheckDigit;
-	  boolean generateReferenceCodeOnDemand;
-	  Long nextReferenceCode;
-	}
+class paymentcodes.pool.PaymentCodePool  {
+	String name;
+	String entityReferenceCode;
+	Long minReferenceCode;
+	Long maxReferenceCode;
+	BigDecimalT minAmount;
+	BigDecimalT maxAmount;
+	LocalDate validFrom;
+	LocalDate validTo;
+	Boolean active;
+	Boolean useCheckDigit;
+	boolean generateReferenceCodeOnDemand;
+	Long nextReferenceCode;
+}
 	
-
     relation PaymentCodePoolPaymentMethod {
-       PaymentMethod playsRole paymentMethod
-       {
+       PaymentMethod playsRole paymentMethod {
            multiplicity 1..1;
        }
        
-       paymentcodes.pool.PaymentCodePool playsRole paymentCodePoolPaymentMethod
-       {
+       paymentcodes.pool.PaymentCodePool playsRole paymentCodePoolPaymentMethod {
            multiplicity *;
        }
     }
 	
 	relation PaymentCodePoolDocumentNumberSeries {
-	   document.DocumentNumberSeries playsRole documentSeriesForPayments
-	   {
+	   document.DocumentNumberSeries playsRole documentSeriesForPayments {
 	       multiplicity 1..1;
 	   }
 	   
-	   paymentcodes.pool.PaymentCodePool playsRole paymentCodePoolPaymentSeries
-	   {
+	   paymentcodes.pool.PaymentCodePool playsRole paymentCodePoolPaymentSeries {
 	       multiplicity *;
 	   }
 	}
@@ -626,7 +621,7 @@ class paymentcodes.PaymentReferenceCode
 		}
 	}
 	
-		relation PaymentReferenceCodePaymentCodePool {
+	relation PaymentReferenceCodePaymentCodePool {
 		paymentcodes.pool.PaymentCodePool playsRole paymentCodePool {
 			multiplicity 1..1;
 		}
@@ -707,6 +702,31 @@ class paymentcodes.PaymentReferenceCode
 		}
 	}
 	
+class paymentcodes.pool.PaymentCodeGeneratorInstance {
+	String implementationClassName;
+}
+
+	relation PaymentCodeGeneratorInstanceDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+			multiplicity 1..1;
+		}
+		
+		paymentcodes.pool.PaymentCodeGeneratorInstance playsRole paymentCodeGeneratorInstances {
+			multiplicity *;
+		}
+	}
+	
+	relation PaymentCodeGeneratorInstancePaymentCodePool {
+		paymentcodes.pool.PaymentCodeGeneratorInstance playsRole paymentCodeGeneratorInstance {
+			multiplicity 0..1;
+		}
+		
+		paymentcodes.pool.PaymentCodePool playsRole paymentCodePools {
+			multiplicity *;
+		}
+		
+	}
+
      class paymentcodes.SibsTransactionDetail  {
         String comments;
         DateTime whenProcessed;
@@ -1986,6 +2006,8 @@ class forwardpayments.ForwardPayment {
 	String paylineToken;
 	String paylineRedirectUrl;
 	String justification;
+	String sibsTransactionId;
+	String sibsMerchantTransactionId;
 }
 
 	relation ForwardPaymentBennu {
@@ -2148,3 +2170,98 @@ class FiscalYear {
 		}
 	}
 	
+
+/* 
+ * *************************
+ * SibsOnlinePaymentsGateway
+ * *************************	
+ */
+ 
+class sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway {
+	String sibsEntityId;
+	String sibsEndpointUrl;
+	String bearerToken;
+	String merchantTransactionIdPrefix;
+	long merchantTransactionIdCounter;
+}
+
+	relation SibsOnlinePaymentsGatewayDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+			multiplicity 1..1;
+		}
+	
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway playsRole sibsOnlinePaymentsGateway {
+			multiplicity *;
+		}
+	}
+
+	relation SibsOnlinePaymentsGatewayPaymentCodePool {
+		paymentcodes.pool.PaymentCodePool playsRole paymentCodePool {
+			multiplicity 1..1;
+		}
+		
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway playsRole sibsOnlinePaymentsGateway {
+			multiplicity 0..1;
+		}
+	}
+
+	relation SibsOnlinePaymentsGateway {
+		forwardpayments.ForwardPaymentConfiguration playsRole forwardPaymentConfiguration {
+			multiplicity 0..1;
+		}
+		
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway playsRole sibsOnlinePaymentsGateway {
+			multiplicity 0..1;
+		}
+	}
+
+class sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog {
+	String operationCode;
+	DateTime creationDate;
+	String responsibleUsername;
+	
+	String merchantTransactionId;
+	String transactionId;
+	String paymentCode;
+	BigDecimalT amount;
+
+	String customerFiscalNumber;
+	String customerName;
+	String customerBusinessIdentification;
+
+	DateTime requestSendDate;
+	DateTime requestReceiveDate;
+	// Convert to file	
+	String requestPayload;
+
+	// Convert to file	
+	String responsePayload;
+
+	boolean exceptionOccured;	
+	// Convert to file
+	String exceptionLog;
+	
+	boolean operationSuccess;
+	boolean transactionPaid;
+}
+
+	relation SibsOnlinePaymentsGatewayLogDomainRoot {
+		.pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+			multiplicity 1..1;
+		}
+	
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog playsRole sibsOnlinePaymentsGatewayLogs {
+			multiplicity *;
+		}
+	}
+
+	relation SibsOnlinePaymentsGatewayLogGateway {
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway playsRole sibsOnlinePaymentsGateway {
+			multiplicity 1..1;
+		}
+	
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog playsRole sibsOnlinePaymentsGatewayLogs {
+			multiplicity *;
+		}
+	}
+

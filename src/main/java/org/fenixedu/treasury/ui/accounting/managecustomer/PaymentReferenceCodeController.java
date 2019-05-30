@@ -2,14 +2,12 @@ package org.fenixedu.treasury.ui.accounting.managecustomer;
 
 import static org.fenixedu.treasury.util.TreasuryConstants.treasuryBundle;
 
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.dto.document.managepayments.PaymentReferenceCodeBean;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
-import org.fenixedu.treasury.util.TreasuryConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -20,10 +18,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import com.google.common.collect.Sets;
-
-import pt.ist.fenixframework.Atomic;
 
 @Component("org.fenixedu.treasury.ui.accounting.managecustomer")
 @BennuSpringController(value = CustomerController.class)
@@ -103,7 +97,8 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
             assertUserIsFrontOfficeMember(bean.getSelectedDebitEntries().iterator().next().getDebtAccount().getFinantialInstitution(),
                     model);
 
-            final PaymentReferenceCode paymentReferenceCode = createPaymentReferenceCode(bean);
+            PaymentReferenceCode.createPaymentReferenceCodeForMultipleDebitEntries(debtAccount, bean);
+
             addInfoMessage(treasuryBundle("label.document.managepayments.success.create.reference.code.selected.debit.entries"), model);
 
             return redirect(String.format(DebtAccountController.READ_URL + "/%s", debtAccount.getExternalId()), model,
@@ -113,20 +108,6 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
 
             return _createPaymentCodeForSeveralDebitEntries(debtAccount, bean, model);
         }
-    }
-
-    @Atomic
-    private PaymentReferenceCode createPaymentReferenceCode(final PaymentReferenceCodeBean bean) {
-        final PaymentReferenceCode paymentReferenceCode =
-                bean.getPaymentCodePool()
-                        .getReferenceCodeGenerator()
-                        .generateNewCodeFor(
-                                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
-                                bean.getPaymentCodePool().getIsFixedAmount());
-
-        paymentReferenceCode.createPaymentTargetTo(Sets.newHashSet(bean.getSelectedDebitEntries()), bean.getPaymentAmount());
-
-        return paymentReferenceCode;
     }
 
     private String jspPage(final String page) {

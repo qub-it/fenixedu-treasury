@@ -36,7 +36,7 @@ ${portal.toolkit()}
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
 	<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp;
-	<a class="" href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.VIEW_URL %>/${finantialInstitution.externalId}">
+	<a class="" href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.VIEW_URL %>/${finantialInstitution.externalId}/${forwardPaymentConfiguration.externalId}">
 		<spring:message code="label.event.back" />
 	</a>
 	&nbsp;

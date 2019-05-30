@@ -171,16 +171,10 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
     }
 
     @Atomic
+    @Deprecated
+    // DELETE CODE
     private PaymentReferenceCode createPaymentReferenceCode(PaymentReferenceCodeBean bean, BigDecimal payableAmount) {
-        PaymentReferenceCode paymentReferenceCode =
-                bean.getPaymentCodePool()
-                        .getReferenceCodeGenerator()
-                        .generateNewCodeFor(payableAmount,
-                                bean.getBeginDate(), bean.getEndDate(), bean.getPaymentCodePool().getIsFixedAmount());
-
-        paymentReferenceCode.createPaymentTargetTo(bean.getDebitNote());
-
-        return paymentReferenceCode;
+        throw new RuntimeException("deprecated");
     }
 
     //Create Payment reference code for DebitNote Series
@@ -218,65 +212,10 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = _CREATEPAYMENTCODEINSERIES_URI, method = RequestMethod.POST)
+    @Deprecated
     public String createpaymentcodeinseries(@RequestParam(value = "series") Series series, @RequestParam(value = "bean",
             required = false) PaymentReferenceCodeBean bean, Model model, RedirectAttributes redirectAttributes) {
-        try {
-            assertUserIsFrontOfficeMember(series.getFinantialInstitution(), model);
-            
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("Creating references for Series =>" + series.getCode() + "-" + series.getName().getContent())
-                    .append("\n");
-            stringBuilder.append(
-                    "Using Pool =>" + "[" + bean.getPaymentCodePool().getEntityReferenceCode() + "] "
-                            + bean.getPaymentCodePool().getName()).append("\n");
-            stringBuilder.append(
-                    "Min amount =>" + series.getFinantialInstitution().getCurrency().getValueFor(bean.getMinAmount())).append(
-                    "\n");
-            int count = 0;
-            for (DocumentNumberSeries dns : series.getDocumentNumberSeriesSet()) {
-                if (dns.getFinantialDocumentType().getType().equals(FinantialDocumentTypeEnum.DEBIT_NOTE)) {
-                    for (FinantialDocument document : dns.getFinantialDocumentsSet()) {
-                        if (document.isClosed()
-                                && (document.getPaymentCodesSet().isEmpty() || document.getPaymentCodesSet().stream()
-                                        .allMatch(x -> x.getPaymentReferenceCode().isAnnulled()))) {
-                            if (TreasuryConstants.isGreaterThan(document.getOpenAmount(),
-                                    bean.getMinAmount().subtract(BigDecimal.valueOf(0.01)))) {
-                                PaymentReferenceCode newReferenceCode =
-                                        bean.getPaymentCodePool()
-                                                .getReferenceCodeGenerator()
-                                                .generateNewCodeFor(
-                                                        document.getOpenAmount(), bean.getPaymentCodePool().getValidFrom(),
-                                                        bean.getPaymentCodePool().getValidTo(),
-                                                        bean.getPaymentCodePool().getIsFixedAmount());
-
-                                FinantialDocumentPaymentCode code =
-                                        FinantialDocumentPaymentCode.create(document, newReferenceCode, true);
-                                stringBuilder.append(
-                                        document.getUiDocumentNumber()
-                                                + "=>"
-                                                + newReferenceCode.getFormattedCode()
-                                                + " ( "
-                                                + series.getFinantialInstitution().getCurrency()
-                                                        .getValueFor(document.getOpenAmount()) + " )").append("\n");
-                                count++;
-                            }
-                        }
-                    }
-                }
-            }
-            stringBuilder.append("\n").append("#Refs=" + count).append("\n");
-            TreasuryOperationLog log =
-                    TreasuryOperationLog.create(stringBuilder.toString(), series.getExternalId(),
-                            PaymentReferenceCode.TREASURY_OPERATION_LOG_TYPE);
-
-            return redirect(TreasuryOperationLogController.READ_URL + series.getExternalId(), model, redirectAttributes);
-        } catch (TreasuryDomainException tde) {
-            addErrorMessage(treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
-        } catch (Exception ex) {
-            addErrorMessage(treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
-        }
-        this.setPaymentReferenceCodeBean(bean, model);
-        model.addAttribute("series", series);
-        return "treasury/document/managepayments/paymentreferencecode/createpaymentcodeinseries";
+        throw new RuntimeException("deprecated");
     }
+    
 }

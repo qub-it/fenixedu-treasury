@@ -46,7 +46,7 @@ ${portal.toolkit()}
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="uploadForm" method="POST" enctype="multipart/form-data"
-            	action="${pageContext.request.contextPath}<%=ManageForwardPaymentConfigurationController.UPLOAD_VIRTUAL_TPA_CERTIFICATE_URL %>/${finantialInstitution.externalId}">
+            	action="${pageContext.request.contextPath}<%=ManageForwardPaymentConfigurationController.UPLOAD_VIRTUAL_TPA_CERTIFICATE_URL %>/${finantialInstitution.externalId}/${forwardPaymentConfiguration.externalId}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -77,11 +77,18 @@ ${portal.toolkit()}
 
 <%-- NAVIGATION --%>
 <div class="well well-sm" style="display: inline-block">
+	<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>&nbsp;
+	<a class="" href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.SEARCH_URL %>/${finantialInstitution.externalId}">
+		<spring:message code="label.event.back" />
+	</a>
+	&nbsp;|&nbsp;
+	
 	<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;
-	<a class="" href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.EDIT_URL %>/${finantialInstitution.externalId}">
+	<a class="" href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.EDIT_URL %>/${finantialInstitution.externalId}/${forwardPaymentConfiguration.externalId}">
 		<spring:message code="label.event.update" />
 	</a>
 	&nbsp;|&nbsp;
+	
 	<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>&nbsp;
 	<a href="#" onClick="javascript:processUpload();">
 		<spring:message code="label.ManageForwardPaymentConfiguration.upload.tpa.certificate" />
@@ -207,7 +214,7 @@ ${portal.toolkit()}
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentConfiguration.virtualTPACertificate" /></th>
                         <td>
-                        	<a href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL %>/${finantialInstitution.externalId}">
+                        	<a href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL %>/${finantialInstitution.externalId}/${forwardPaymentConfiguration.externalId}">
 	                        	<c:out value='${forwardPaymentConfiguration.virtualTPACertificate.getFilename()}' />
                         	</a>
                         </td>

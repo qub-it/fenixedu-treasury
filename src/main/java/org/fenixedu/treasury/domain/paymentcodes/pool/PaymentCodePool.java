@@ -41,7 +41,7 @@ import org.fenixedu.treasury.domain.document.DocumentNumberSeries;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType;
-import org.fenixedu.treasury.services.payments.paymentscodegenerator.PaymentCodeGenerator;
+import org.fenixedu.treasury.services.payments.paymentscodegenerator.IPaymentCodeGenerator;
 import org.fenixedu.treasury.services.payments.paymentscodegenerator.SequentialPaymentCodeGenerator;
 import org.fenixedu.treasury.services.payments.paymentscodegenerator.SequentialPaymentWithCheckDigitCodeGenerator;
 import org.fenixedu.treasury.util.LocalizedStringUtil;
@@ -258,18 +258,8 @@ public class PaymentCodePool extends PaymentCodePool_Base {
         return finantialInstitution.getPaymentCodePoolsSet().stream();
     }
 
-    private PaymentCodeGenerator _referenceCodeGenerator;
-
-    public PaymentCodeGenerator getReferenceCodeGenerator() {
-
-        if (_referenceCodeGenerator == null) {
-            if (Boolean.TRUE.equals(this.getUseCheckDigit())) {
-                return new SequentialPaymentWithCheckDigitCodeGenerator(this);
-            } else {
-                return new SequentialPaymentCodeGenerator(this);
-            }
-        }
-        return _referenceCodeGenerator;
+    public IPaymentCodeGenerator getReferenceCodeGenerator() {
+        return getPaymentCodeGeneratorInstance().getPaymentCodeGenerator(this);
     }
 
     public Long getAndIncrementNextReferenceCode() {

@@ -375,7 +375,9 @@ ${portal.toolkit()}
 </c:choose>
 <% } %>
 
-<jsp:include page="${logosPage}" />
+<c:if test="${forwardPaymentConfiguration.isLogosPageDefined()}">
+	<jsp:include page="${logosPage}" />
+</c:if>
 
 <c:if test="${forwardPaymentConfiguration.isReimbursementPolicyTextDefined()}">
 	<jsp:include page="${forwardPaymentConfiguration.reimbursementPolicyJspFile}" />

@@ -51,6 +51,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.Atomic.TxMode;
 
 public class PaymentReferenceCode extends PaymentReferenceCode_Base {
     private static final int LENGTH_REFERENCE_CODE = 9;
@@ -353,9 +354,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         return value;
     }
     
-    
-    @Atomic
-    public static PaymentReferenceCode createPaymentReferenceCodeForMultipleDebitEntries(final PaymentReferenceCodeBean bean) {
+    @Atomic(mode=TxMode.READ)
+    public static PaymentReferenceCode createPaymentReferenceCodeForMultipleDebitEntries(final DebtAccount debtAccount, final PaymentReferenceCodeBean bean) {
         BigDecimal amount = BigDecimal.ZERO;
         for(DebitEntry entry : bean.getSelectedDebitEntries()) {
             amount = amount.add(entry.getOpenAmount());
@@ -365,12 +365,8 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
 
         final PaymentReferenceCode paymentReferenceCode =
                 bean.getPaymentCodePool()
-                        .getReferenceCodeGenerator()
-                        .generateNewCodeFor(
-                                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
-                                bean.getPaymentCodePool().getIsFixedAmount());
+                        .getReferenceCodeGenerator().createPaymentReferenceCode(debtAccount, bean);
 
-        paymentReferenceCode.createPaymentTargetTo(Sets.newHashSet(bean.getSelectedDebitEntries()), bean.getPaymentAmount());
         return paymentReferenceCode;
     }
 

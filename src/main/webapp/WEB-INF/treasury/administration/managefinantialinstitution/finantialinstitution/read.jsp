@@ -139,7 +139,7 @@ ${portal.toolkit()}
     		</a>
     		|&nbsp;
             <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>&nbsp;
-            <a href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.VIEW_URL %>/${finantialInstitution.externalId}"
+            <a href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.SEARCH_URL %>/${finantialInstitution.externalId}"
             	class="" target="_blank">
         		<spring:message code="label.event.administration.managefinantialinstitution.finantialinstitution.forwardPaymentConfiguration" />
     		</a>&nbsp;

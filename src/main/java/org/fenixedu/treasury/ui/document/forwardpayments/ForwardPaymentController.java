@@ -36,7 +36,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
@@ -47,7 +46,6 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentConfiguration;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
-import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.dto.InterestRateBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean;
 import org.fenixedu.treasury.dto.SettlementNoteBean.CreditEntryBean;
@@ -83,8 +81,8 @@ public class ForwardPaymentController extends TreasuryBaseController {
     private static final String JSP_PATH = "/treasury/document/forwardpayments/forwardpayment";
 
     private void setSettlementNoteBean(SettlementNoteBean bean, Model model) {
-        final IForwardPaymentImplementation implementation =
-                ForwardPaymentConfiguration.find(bean.getDebtAccount().getFinantialInstitution()).get().implementation();
+        final IForwardPaymentImplementation implementation = ForwardPaymentConfiguration
+                .findUniqueActive(bean.getDebtAccount().getFinantialInstitution()).get().implementation();
 
         model.addAttribute("settlementNoteBeanJson", getBeanJson(bean));
         model.addAttribute("settlementNoteBean", bean);
@@ -106,48 +104,52 @@ public class ForwardPaymentController extends TreasuryBaseController {
     protected void checkPermissions(DebtAccount debtAccount, Model model) {
         assertUserIsAllowToModifySettlements(debtAccount.getFinantialInstitution(), model);
     }
-    
-    protected String redirectToDebtAccountUrl(final DebtAccount debtAccount, final Model model, final RedirectAttributes redirectAttributes) {
+
+    protected String redirectToDebtAccountUrl(final DebtAccount debtAccount, final Model model,
+            final RedirectAttributes redirectAttributes) {
         return redirect(readDebtAccountUrl() + debtAccount.getExternalId(), model, redirectAttributes);
     }
 
     @RequestMapping(value = CHOOSE_INVOICE_ENTRIES_URI + "{debtAccountId}", method = RequestMethod.GET)
     public String chooseInvoiceEntries(@PathVariable(value = "debtAccountId") DebtAccount debtAccount,
-            @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model, final RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "bean", required = false) SettlementNoteBean bean, Model model,
+            final RedirectAttributes redirectAttributes) {
         try {
             checkPermissions(debtAccount, model);
-        } catch(SecurityException e) {
+        } catch (SecurityException e) {
             addErrorMessage(treasuryBundle("error.ForwardPaymentController.payment.not.accessible.for.debt.account"), model);
             return redirectToDebtAccountUrl(debtAccount, model, redirectAttributes);
         }
-        
+
         if (bean == null) {
             bean = new SettlementNoteBean(debtAccount, false, true);
         }
-        
+
         setSettlementNoteBean(bean, model);
 
-        final ForwardPaymentConfiguration forwardPaymentConfiguration = ForwardPaymentConfiguration.find(debtAccount.getFinantialInstitution()).get();
+        final ForwardPaymentConfiguration forwardPaymentConfiguration =
+                ForwardPaymentConfiguration.findUniqueActive(debtAccount.getFinantialInstitution()).get();
         model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
 
         return jspPage("chooseInvoiceEntries");
     }
 
     @RequestMapping(value = CHOOSE_INVOICE_ENTRIES_URI, method = RequestMethod.POST)
-    public String chooseInvoiceEntries(@RequestParam(value = "bean", required = true) SettlementNoteBean bean, Model model, final RedirectAttributes redirectAttributes) {
+    public String chooseInvoiceEntries(@RequestParam(value = "bean", required = true) SettlementNoteBean bean, Model model,
+            final RedirectAttributes redirectAttributes) {
 
         final DebtAccount debtAccount = bean.getDebtAccount();
-        final ForwardPaymentConfiguration forwardPaymentConfiguration = ForwardPaymentConfiguration.find(debtAccount.getFinantialInstitution()).get();
+        final ForwardPaymentConfiguration forwardPaymentConfiguration =
+                ForwardPaymentConfiguration.findUniqueActive(debtAccount.getFinantialInstitution()).get();
         model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
 
-        
         BigDecimal debitSum = BigDecimal.ZERO;
         BigDecimal creditSum = BigDecimal.ZERO;
         boolean error = false;
 
         try {
             checkPermissions(bean.getDebtAccount(), model);
-        } catch(SecurityException e) {
+        } catch (SecurityException e) {
             addErrorMessage(treasuryBundle("error.ForwardPaymentController.payment.not.accessible.for.debt.account"), model);
             return redirectToDebtAccountUrl(debtAccount, model, redirectAttributes);
         }
@@ -203,7 +205,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
 
         try {
             SettlementNote.checkMixingOfInvoiceEntriesExportedInLegacyERP(invoiceEntriesSet);
-        } catch(final TreasuryDomainException e) {
+        } catch (final TreasuryDomainException e) {
             error = true;
             addErrorMessage(e.getLocalizedMessage(), model);
         }
@@ -216,8 +218,8 @@ public class ForwardPaymentController extends TreasuryBaseController {
         bean.setInterestEntries(new ArrayList<InterestEntryBean>());
         List<DebitEntryBean> debitEntriesToIterate = Lists.newArrayList(bean.getDebitEntries());
         for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
-            if (debitEntryBean.isIncluded()
-                    && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
+            if (debitEntryBean.isIncluded() && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(),
+                    debitEntryBean.getDebtAmount())) {
 
                 //Calculate interest only if we are making a FullPayment
                 InterestRateBean debitInterest = debitEntryBean.getDebitEntry().calculateUndebitedInterestValue(bean.getDate());
@@ -230,8 +232,8 @@ public class ForwardPaymentController extends TreasuryBaseController {
         }
 
         for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
-            if (debitEntryBean.isIncluded()
-                    && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
+            if (debitEntryBean.isIncluded() && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(),
+                    debitEntryBean.getDebtAmount())) {
                 for (final DebitEntry interestDebitEntry : debitEntryBean.getDebitEntry().getInterestDebitEntriesSet()) {
                     if (interestDebitEntry.isInDebt()) {
                         final DebitEntryBean interestDebitEntryBean = bean.new DebitEntryBean(interestDebitEntry);
@@ -256,7 +258,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
 
         try {
             SettlementNote.checkMixingOfInvoiceEntriesExportedInLegacyERP(bean.getIncludedInvoiceEntryBeans());
-        } catch(final TreasuryDomainException e) {
+        } catch (final TreasuryDomainException e) {
             error = true;
             addErrorMessage(e.getLocalizedMessage(), model);
         }
@@ -278,8 +280,12 @@ public class ForwardPaymentController extends TreasuryBaseController {
                 continue;
             }
 
+            if(!forwardPayment.getForwardPaymentConfiguration().isActive()) {
+                continue;
+            }
+            
             final IForwardPaymentImplementation implementation = forwardPayment.getForwardPaymentConfiguration().implementation();
-
+            
             final ForwardPaymentStatusBean paymentStatusBean = implementation.paymentStatus(forwardPayment);
             if (paymentStatusBean.isInPayedState()) {
                 return true;
@@ -301,13 +307,14 @@ public class ForwardPaymentController extends TreasuryBaseController {
             RedirectAttributes redirectAttributes) {
 
         final DebtAccount debtAccount = bean.getDebtAccount();
-        final ForwardPaymentConfiguration forwardPaymentConfiguration = ForwardPaymentConfiguration.find(debtAccount.getFinantialInstitution()).get();
+        final ForwardPaymentConfiguration forwardPaymentConfiguration =
+                ForwardPaymentConfiguration.findUniqueActive(debtAccount.getFinantialInstitution()).get();
         model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
 
         try {
             try {
                 checkPermissions(bean.getDebtAccount(), model);
-            } catch(SecurityException e) {
+            } catch (SecurityException e) {
                 addErrorMessage(treasuryBundle("error.ForwardPaymentController.payment.not.accessible.for.debt.account"), model);
                 return redirectToDebtAccountUrl(bean.getDebtAccount(), model, redirectAttributes);
             }
@@ -374,7 +381,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
     public String forwardpaymentsuccess(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment,
             final Model model) {
         final ForwardPaymentConfiguration forwardPaymentConfiguration = forwardPayment.getForwardPaymentConfiguration();
-        
+
         model.addAttribute("forwardPaymentConfiguration", forwardPaymentConfiguration);
         model.addAttribute("forwardPayment", forwardPayment);
         model.addAttribute("settlementNote", forwardPayment.getSettlementNote());

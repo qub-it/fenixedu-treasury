@@ -1,6 +1,7 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
@@ -56,8 +57,8 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
             throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.required");
         }
 
-        if (getFinantialInstitution().getForwardPaymentConfigurationsSet().size() > 1) {
-            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.only.one.allowed");
+        if (findActive(getFinantialInstitution()).count() > 1) {
+            throw new TreasuryDomainException("error.ForwardPaymentConfiguration.finantialInstitution.only.one.active.allowed");
         }
     }
 
@@ -104,6 +105,10 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         return getActive();
     }
     
+    public boolean isLogosPageDefined() {
+        return !Strings.isNullOrEmpty(implementation().getLogosJspPage());
+    }
+    
     public boolean isReimbursementPolicyTextDefined() {
         return !Strings.isNullOrEmpty(getReimbursementPolicyJspFile());
     }
@@ -128,22 +133,42 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         }
     }
 
+    // @formatter:off
+    /* ********
+     * SERVICES
+     * ********
+     */
+    // @formatter:on
+    
+    
     @Atomic
     public static ForwardPaymentConfiguration create(final FinantialInstitution finantialInstitution,
             final ForwardPaymentConfigurationBean bean) {
         return new ForwardPaymentConfiguration(finantialInstitution, bean);
     }
     
-    public static Optional<ForwardPaymentConfiguration> find(final FinantialInstitution finantialInstitution) {
-        return finantialInstitution.getForwardPaymentConfigurationsSet().stream().findFirst();
+    public static Stream<ForwardPaymentConfiguration> findAll() {
+        return FenixFramework.getDomainRoot().getForwardPaymentConfigurationsSet().stream();
+    }
+    
+    public static Stream<ForwardPaymentConfiguration> find(final FinantialInstitution finantialInstitution) {
+        return finantialInstitution.getForwardPaymentConfigurationsSet().stream();
+    }
+    
+    public static Stream<ForwardPaymentConfiguration> findActive(final FinantialInstitution finantialInstitution) {
+        return find(finantialInstitution).filter(e -> e.isActive());
+    }
+    
+    public static Optional<ForwardPaymentConfiguration> findUniqueActive(final FinantialInstitution finantialInstitution) {
+        return findActive(finantialInstitution).findFirst();
     }
 
     public static boolean isActive(final FinantialInstitution finantialInstitution) {
-        if(!find(finantialInstitution).isPresent()) {
+        if(!findUniqueActive(finantialInstitution).isPresent()) {
             return false;
         }
         
-        return find(finantialInstitution).get().isActive();
+        return findUniqueActive(finantialInstitution).get().isActive();
     }
 
 }
