@@ -72,7 +72,7 @@ public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> 
         throw new RuntimeException("not applied");
     }
 
-    public String getReturnURL(final ForwardPayment forwardPayment, final String returnControllerURL) {
+    private String getReturnURL(final ForwardPayment forwardPayment, final String returnControllerURL) {
         return String.format("%s%s/%s/%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(), returnControllerURL,
                 forwardPayment.getExternalId(), ACTION_RETURN_URL, forwardPayment.getReturnForwardPaymentUrlChecksum());
     }

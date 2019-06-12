@@ -67,7 +67,7 @@ public class SibsOnlinePaymentsGatewayPaymentCodeGenerator implements IPaymentCo
 
             sibsInitializeServiceBean.setBearerToken(sibsGateway.getBearerToken());
 
-            final MbPrepareCheckoutInputBean inputBean = new MbPrepareCheckoutInputBean(amount, merchantId,
+            final MbPrepareCheckoutInputBean inputBean = new MbPrepareCheckoutInputBean(amount, null /* merchantId */,
                     validFrom.toDateTimeAtStartOfDay(), validTo.toDateTimeAtStartOfDay().plusDays(1).minusSeconds(1));
             // Customer data will not be sent due to GDPR
             final CustomerDataInputBean customerInputBean = null;
@@ -80,7 +80,7 @@ public class SibsOnlinePaymentsGatewayPaymentCodeGenerator implements IPaymentCo
                 log.logRequestSendDate();
             });
 
-            final MbCheckoutResultBean requestResult = gatewayService.mbPrepareCheckout(inputBean, customerInputBean);
+            final MbCheckoutResultBean requestResult = gatewayService.generateMBPaymentReference(inputBean, customerInputBean);
 
             FenixFramework.atomic(() -> {
                 log.logRequestReceiveDateAndData(requestResult.getId(), requestResult.isOperationSuccess(),

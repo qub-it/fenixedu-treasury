@@ -24,6 +24,11 @@ public class ForwardPaymentStatusBean {
     private String requestBody;
     private String responseBody;
 
+    
+    // Necessary for SIBS Online Payment Gateway
+    
+    private String sibsOnlinePaymentBrands;
+    
     public ForwardPaymentStatusBean(final boolean invocationSuccess, final ForwardPaymentStateType type, final String statusCode,
             final String statusMessage, final String requestBody, final String responseBody) {
         this.invocationSuccess = invocationSuccess;
@@ -52,6 +57,10 @@ public class ForwardPaymentStatusBean {
     public boolean isAbleToRegisterPostPayment(final ForwardPayment forwardPayment) {
         return (forwardPayment.getCurrentState().isInStateToPostProcessPayment() || forwardPayment.getCurrentState().isRequested()) 
                 && getStateType() != null && getStateType().isPayed();
+    }
+    
+    public void defineSibsOnlinePaymentBrands(final String paymentBrands) {
+        this.sibsOnlinePaymentBrands = paymentBrands;
     }
     
     // @formatter:off
@@ -103,6 +112,10 @@ public class ForwardPaymentStatusBean {
 
     public String getStatusMessage() {
         return statusMessage;
+    }
+    
+    public String getSibsOnlinePaymentBrands() {
+        return sibsOnlinePaymentBrands;
     }
 
 }

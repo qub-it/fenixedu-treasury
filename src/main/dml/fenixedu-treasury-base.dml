@@ -2243,6 +2243,8 @@ class sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog {
 	
 	boolean operationSuccess;
 	boolean transactionPaid;
+	
+	String forwardPaymentOrderNumber;
 }
 
 	relation SibsOnlinePaymentsGatewayLogDomainRoot {

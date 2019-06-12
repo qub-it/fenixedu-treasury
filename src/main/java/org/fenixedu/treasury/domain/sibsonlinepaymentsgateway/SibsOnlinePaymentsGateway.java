@@ -91,17 +91,22 @@ public class SibsOnlinePaymentsGateway extends SibsOnlinePaymentsGateway_Base {
     public CheckoutResultBean prepareCheckout(final BigDecimal amount, final String returnUrl) {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
 
-//        try {
+        try {
 
             final PrepareCheckoutInputBean bean = new PrepareCheckoutInputBean(amount, generateNewMerchantTransactionId(), 
-                    returnUrl, new DateTime(), new DateTime().plusDays(1));
-
-            CheckoutResultBean resultBean = gatewayService.prepareCheckout(bean);
+                    returnUrl, new DateTime(), new DateTime().plusDays(7));
+            
+            bean.setUseCreditCard(true);
+            //prepareCheckoutInputBean.setUseMB(true);
+            bean.setUseMBway(true);
+            
+            CheckoutResultBean resultBean = gatewayService.prepareOnlinePaymentCheckout(bean);
 
             return resultBean;
-//        } catch (OnlinePaymentsGatewayCommunicationException e) {
-//            throw new TreasuryDomainException("error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
-//        }
+        } catch (OnlinePaymentsGatewayCommunicationException e) {
+            // Log
+            throw new TreasuryDomainException("error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+        }
 
     }
 

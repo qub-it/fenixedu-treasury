@@ -125,7 +125,7 @@ ${portal.angularToolkit()}
 
 <script src="https://test.oppwa.com/v1/paymentWidgets.js?checkoutId=${checkoutId}"></script>
 
-<form action="${shopperResultUrl}" class="paymentWidgets" data-brands="VISA MASTER AMEX">
+<form action="${shopperResultUrl}" class="paymentWidgets" data-brands="${paymentBrands}">
 </form>
 	
 <c:if test="${forwardPaymentConfiguration.isLogosPageDefined()}">

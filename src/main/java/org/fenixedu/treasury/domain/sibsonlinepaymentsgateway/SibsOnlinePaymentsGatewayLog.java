@@ -2,6 +2,7 @@ package org.fenixedu.treasury.domain.sibsonlinepaymentsgateway;
 
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.joda.time.DateTime;
 
@@ -12,6 +13,7 @@ import pt.ist.fenixframework.FenixFramework;
 public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_Base {
 
     public static final String REQUEST_PAYMENT_CODE = "REQUEST_PAYMENT_CODE";
+    public static final String ONLINE_PAYMENT_PREPARE_CHECKOUT = "ONLINE_PAYMENT_PREPARE_CHECKOUT";
 
     public SibsOnlinePaymentsGatewayLog() {
         super();
@@ -27,11 +29,31 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
 
         setSibsOnlinePaymentsGateway(sibsOnlinePaymentsGateway);
         setOperationCode(operationCode);
-        
+
         setCustomerFiscalNumber(debtAccount.getCustomer().getUiFiscalNumber());
         setCustomerName(debtAccount.getCustomer().getName());
         setCustomerBusinessIdentification(debtAccount.getCustomer().getBusinessIdentification());
 
+        checkRules();
+    }
+
+    protected SibsOnlinePaymentsGatewayLog(final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final String operationCode,
+            final ForwardPayment forwardPayment) {
+
+        this();
+
+        setCreationDate(new DateTime());
+        setResponsibleUsername(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername());
+
+        setSibsOnlinePaymentsGateway(sibsOnlinePaymentsGateway);
+        setOperationCode(operationCode);
+
+        setCustomerFiscalNumber(forwardPayment.getDebtAccount().getCustomer().getUiFiscalNumber());
+        setCustomerName(forwardPayment.getDebtAccount().getCustomer().getName());
+        setCustomerBusinessIdentification(forwardPayment.getDebtAccount().getCustomer().getBusinessIdentification());
+
+        setForwardPaymentOrderNumber(String.valueOf(forwardPayment.getOrderNumber()));
+        
         checkRules();
     }
 
@@ -43,8 +65,8 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
         if (getSibsOnlinePaymentsGateway() == null) {
             throw new TreasuryDomainException("error.SibsOnlinePaymentsGatewayLog.sibsOnlinePaymentsGateway.required");
         }
-        
-        if(Strings.isNullOrEmpty(getOperationCode())) {
+
+        if (Strings.isNullOrEmpty(getOperationCode())) {
             throw new TreasuryDomainException("error.SibsOnlinePaymentsGatewayLog.operationCode.required");
         }
     }
@@ -82,6 +104,11 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
     public static SibsOnlinePaymentsGatewayLog createLogForRequestPaymentCode(
             final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final DebtAccount debtAccount) {
         return new SibsOnlinePaymentsGatewayLog(sibsOnlinePaymentsGateway, REQUEST_PAYMENT_CODE, debtAccount);
+    }
+
+    public static SibsOnlinePaymentsGatewayLog createLogForOnlinePaymentPrepareCheckout(
+            final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final ForwardPayment forwardPayment) {
+        return new SibsOnlinePaymentsGatewayLog(sibsOnlinePaymentsGateway, ONLINE_PAYMENT_PREPARE_CHECKOUT, forwardPayment);
     }
 
 }

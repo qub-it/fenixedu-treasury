@@ -280,12 +280,12 @@ public class ForwardPaymentController extends TreasuryBaseController {
                 continue;
             }
 
-            if(!forwardPayment.getForwardPaymentConfiguration().isActive()) {
+            if (!forwardPayment.getForwardPaymentConfiguration().isActive()) {
                 continue;
             }
-            
+
             final IForwardPaymentImplementation implementation = forwardPayment.getForwardPaymentConfiguration().implementation();
-            
+
             final ForwardPaymentStatusBean paymentStatusBean = implementation.paymentStatus(forwardPayment);
             if (paymentStatusBean.isInPayedState()) {
                 return true;
@@ -347,7 +347,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
     private ForwardPayment processForwardPaymentCreation(SettlementNoteBean bean) {
         final DebtAccount debtAccount = bean.getDebtAccount();
         final ForwardPaymentConfiguration forwardPaymentConfiguration =
-                bean.getDebtAccount().getFinantialInstitution().getForwardPaymentConfigurationsSet().iterator().next();
+                ForwardPaymentConfiguration.findUniqueActive(bean.getDebtAccount().getFinantialInstitution()).get();
 
         final Set<DebitEntry> debitEntriesToPay = Sets.newHashSet();
         for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {

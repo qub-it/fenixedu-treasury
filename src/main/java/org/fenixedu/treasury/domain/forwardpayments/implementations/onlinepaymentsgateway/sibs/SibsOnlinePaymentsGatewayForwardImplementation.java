@@ -2,17 +2,21 @@ package org.fenixedu.treasury.domain.forwardpayments.implementations.onlinepayme
 
 import java.math.BigDecimal;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fenixedu.onlinepaymentsgateway.api.CheckoutResultBean;
 import org.fenixedu.onlinepaymentsgateway.api.PaymentStatusBean;
 import org.fenixedu.onlinepaymentsgateway.api.PrepareCheckoutInputBean;
 import org.fenixedu.onlinepaymentsgateway.api.SIBSOnlinePaymentsGatewayService;
+import org.fenixedu.onlinepaymentsgateway.exceptions.OnlinePaymentsGatewayCommunicationException;
 import org.fenixedu.onlinepaymentsgateway.sibs.sdk.SibsResultCodeType;
+import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentStateType;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.PostProcessPaymentStatusBean;
 import org.fenixedu.treasury.domain.sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway;
+import org.fenixedu.treasury.domain.sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog;
 import org.fenixedu.treasury.dto.forwardpayments.ForwardPaymentStatusBean;
 import org.fenixedu.treasury.ui.document.forwardpayments.IForwardPaymentController;
 import org.fenixedu.treasury.ui.document.forwardpayments.implementations.onlinepaymentsgateway.sibs.SibsOnlinePaymentsGatewayForwardPaymentController;
@@ -31,8 +35,7 @@ public class SibsOnlinePaymentsGatewayForwardImplementation implements IForwardP
 
     @Override
     public String getPaymentURL(ForwardPayment forwardPayment) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException("not applied");
     }
 
     @Override
@@ -53,62 +56,104 @@ public class SibsOnlinePaymentsGatewayForwardImplementation implements IForwardP
         return null;
     }
 
+    public String getReturnURL(final ForwardPayment forwardPayment) {
+        return String.format("%s%s/%s", forwardPayment.getForwardPaymentConfiguration().getReturnURL(),
+                SibsOnlinePaymentsGatewayForwardPaymentController.RETURN_FORWARD_PAYMENT_URL, forwardPayment.getExternalId());
+    }
+
     @Atomic(mode = TxMode.READ)
     public ForwardPaymentStatusBean prepareCheckout(final ForwardPayment forwardPayment) {
         final SibsOnlinePaymentsGateway gateway = forwardPayment.getForwardPaymentConfiguration().getSibsOnlinePaymentsGateway();
 
+        final SibsOnlinePaymentsGatewayLog log = createLog(gateway, forwardPayment);
+        
         try {
 
-        final CheckoutResultBean checkoutBean =
-                gateway.prepareCheckout(forwardPayment.getAmount(), gateway.getForwardPaymentConfiguration().getReturnURL());
+            final CheckoutResultBean checkoutBean =
+                    gateway.prepareCheckout(forwardPayment.getAmount(), getReturnURL(forwardPayment));
 
-        final ForwardPaymentStateType type =
-                translateForwardPaymentStateType(checkoutBean.getOperationResultType(), false /* resultBean.isPaid() */);
-        final ForwardPaymentStatusBean result =
-                new ForwardPaymentStatusBean(checkoutBean.isOperationSuccess(), type, checkoutBean.getPaymentGatewayResultCode(),
-                        checkoutBean.getPaymentGatewayResultDescription(), checkoutBean.getRequestLog(), checkoutBean.getResponseLog());
+            
+            final ForwardPaymentStateType type = translateForwardPaymentStateType(checkoutBean.getOperationResultType(), false);
+            final ForwardPaymentStatusBean result = new ForwardPaymentStatusBean(checkoutBean.isOperationSuccess(), type,
+                    checkoutBean.getPaymentGatewayResultCode(), checkoutBean.getPaymentGatewayResultDescription(),
+                    checkoutBean.getRequestLog(), checkoutBean.getResponseLog());
 
-        if (!result.isInvocationSuccess() || (result.getStateType() == ForwardPaymentStateType.REJECTED)) {
             FenixFramework.atomic(() -> {
-                forwardPayment.reject(checkoutBean.getPaymentGatewayResultCode(), checkoutBean.getPaymentGatewayResultDescription(),
-                        checkoutBean.getResponseLog(), checkoutBean.getResponseLog());
+                log.saveMerchantTransactionId(checkoutBean.getMerchantTransactionId());
+                
+                forwardPayment.setSibsMerchantTransactionId(checkoutBean.getMerchantTransactionId());
+                forwardPayment.setSibsTransactionId(checkoutBean.getId());
             });
             
-            return result;
-        }
+            if (!result.isInvocationSuccess() || (result.getStateType() == ForwardPaymentStateType.REJECTED)) {
+                FenixFramework.atomic(() -> {
+                    log.logRequestReceiveDateAndData(checkoutBean.getId(), false, false);
+                    log.saveRequestAndResponsePayload(checkoutBean.getRequestLog(), checkoutBean.getResponseLog());
+                    
+                    forwardPayment.reject(checkoutBean.getPaymentGatewayResultCode(),
+                            checkoutBean.getPaymentGatewayResultDescription(), checkoutBean.getRequestLog(),
+                            checkoutBean.getResponseLog());
+                });
 
-        FenixFramework.atomic(() -> {
-            forwardPayment.setSibsMerchantTransactionId(checkoutBean.getMerchantTransactionId());
-            forwardPayment.setSibsTransactionId(checkoutBean.getId());
-            forwardPayment.advanceToRequestState(checkoutBean.getPaymentGatewayResultCode(), checkoutBean.getPaymentGatewayResultDescription(),
-                    checkoutBean.getResponseLog(), checkoutBean.getResponseLog());
-        });
-        
-        return result;
-        
-        } catch (OnlinePaymentsGatewayCommunicationException e) {
-            throw new TreasuryDomainException("error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+            } else {
+                FenixFramework.atomic(() -> {
+                    log.logRequestReceiveDateAndData(checkoutBean.getId(), true, false);
+                    log.saveRequestAndResponsePayload(checkoutBean.getRequestLog(), checkoutBean.getResponseLog());
+                    
+                    forwardPayment.advanceToRequestState(checkoutBean.getPaymentGatewayResultCode(),
+                            checkoutBean.getPaymentGatewayResultDescription(), checkoutBean.getRequestLog(),
+                            checkoutBean.getResponseLog());
+                });
+            }
+            
+            result.defineSibsOnlinePaymentBrands(checkoutBean.getPaymentBrands());
+
+            return result;
+
+        } catch (final Exception e) {
+            final String exceptionLog = String.format("%s\n%s", ExceptionUtils.getFullStackTrace(e), e.getLocalizedMessage());
+
+            FenixFramework.atomic(() -> {
+
+                log.logRequestReceiveDateAndData(null, false, false);
+                log.markExceptionOccuredAndSaveLog(exceptionLog);
+
+                if (e instanceof OnlinePaymentsGatewayCommunicationException) {
+                    log.saveRequestAndResponsePayload(((OnlinePaymentsGatewayCommunicationException) e).getRequestLog(),
+                            ((OnlinePaymentsGatewayCommunicationException) e).getResponseLog());
+                }
+            });
+            
+            throw new TreasuryDomainException(
+                    "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
         }
 
     }
 
+    @Atomic(mode = TxMode.WRITE)
+    private SibsOnlinePaymentsGatewayLog createLog(final SibsOnlinePaymentsGateway sibsGateway, final ForwardPayment forwardPayment) {
+        return SibsOnlinePaymentsGatewayLog.createLogForOnlinePaymentPrepareCheckout(sibsGateway, forwardPayment);
+    }
+
+    
     @Override
     public ForwardPaymentStatusBean paymentStatus(final ForwardPayment forwardPayment) {
         SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway =
                 forwardPayment.getForwardPaymentConfiguration().getSibsOnlinePaymentsGateway();
         PaymentStatusBean paymentStatusBean =
-                sibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId(forwardPayment.getTransactionId());
+                sibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId(forwardPayment.getSibsTransactionId());
 
         final String requestLog = paymentStatusBean.getRequestLog();
         final String responseLog = paymentStatusBean.getResponseLog();
 
-        ForwardPaymentStateType type = translateForwardPaymentStateType(paymentStatusBean.getOperationResultType(),
-                false /* paymentStatusBean.isPaid() */);
-        ForwardPaymentStatusBean bean = new ForwardPaymentStatusBean(paymentStatusBean.isOperationSuccess(), type,
+        final ForwardPaymentStateType type =
+                translateForwardPaymentStateType(paymentStatusBean.getOperationResultType(), paymentStatusBean.isPaid());
+
+        final ForwardPaymentStatusBean bean = new ForwardPaymentStatusBean(paymentStatusBean.isOperationSuccess(), type,
                 paymentStatusBean.getPaymentGatewayResultCode(), paymentStatusBean.getPaymentGatewayResultDescription(),
                 requestLog, responseLog);
 
-        bean.editTransactionDetails(paymentStatusBean.getId(), bean.getTransactionDate(), bean.getPayedAmount());
+        bean.editTransactionDetails(paymentStatusBean.getId(), new DateTime(), new BigDecimal(paymentStatusBean.getPaymentAmount()));
 
         return bean;
     }
