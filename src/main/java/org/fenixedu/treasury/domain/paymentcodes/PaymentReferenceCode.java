@@ -270,7 +270,6 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
                     getPaymentCodePool().getEntityReferenceCode(), getReferenceCode(), sibsTransactionId, debtAccountId, customerId,
                     businessIdentification, fiscalNumber, customerName, settlementDocumentNumber);
             
-            transactionDetail.setSibsReportDomainObject(SibsReportFileDomainObject.findUniqueBySibsReportFile(sibsReportFile).get());
         }
 
         return noteSet;

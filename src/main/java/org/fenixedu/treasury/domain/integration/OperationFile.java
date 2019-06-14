@@ -27,53 +27,44 @@
  */
 package org.fenixedu.treasury.domain.integration;
 
-import static java.util.stream.Stream.concat;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
+
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class OperationFile extends OperationFile_Base {
+public class OperationFile extends OperationFile_Base implements IGenericFile {
+
+    public static final String CONTENT_TYPE = "application/octet-stream";
 
     public OperationFile() {
         super();
-        setBennu(Bennu.getInstance());
+
+        this.setDomainRoot(FenixFramework.getDomainRoot());
     }
 
-    public OperationFile(String fileName, byte[] content) {
+    public OperationFile(final String fileName, final byte[] content) {
         this();
-        this.init(fileName, fileName, content);
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
 
-        OperationFileDomainObject.createFromOperationFile(this);
+        services.createFile(this, fileName, CONTENT_TYPE, content);
+
+        checkRules();
     }
 
     @Override
-    public boolean isAccessible(User arg0) {
-        throw new RuntimeException("not implemented");
-    }
-
     public boolean isAccessible(final String username) {
         throw new RuntimeException("not implemented");
     }
 
     private void checkRules() {
-        //
-        // CHANGE_ME add more busines validations
-        //
-
-        // CHANGE_ME In order to validate UNIQUE restrictions
-    }
-
-    @Atomic
-    public void edit() {
-        checkRules();
-
-        OperationFileDomainObject.findUniqueByOperationFile(this).get().edit();
     }
 
     public boolean isDeletable() {
@@ -83,47 +74,40 @@ public class OperationFile extends OperationFile_Base {
     @Override
     @Atomic
     public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
         if (!isDeletable()) {
             throw new TreasuryDomainException("error.OperationFile.cannot.delete");
         }
 
-        this.setBennu(null);
+        this.setDomainRoot(null);
         this.setLogIntegrationOperation(null);
         this.setIntegrationOperation(null);
 
-        Optional<OperationFileDomainObject> domainObjectOptional = OperationFileDomainObject.findUniqueByOperationFile(this);
-        
-        if(domainObjectOptional.isPresent()) {
-            domainObjectOptional.get().delete();
-        }
-        
-        super.delete();
+        services.deleteFile(this);
+
+        super.deleteDomainObject();
     }
 
     @Atomic
-    public static OperationFile create(String fileName, byte[] bytes, IntegrationOperation operation) {
-        OperationFile operationFile = new OperationFile();
-        operationFile.init(fileName, fileName, bytes);
+    public static OperationFile create(String fileName, byte[] content, IntegrationOperation operation) {
+        final OperationFile operationFile = new OperationFile(fileName, content);
         operationFile.setIntegrationOperation(operation);
-
-        OperationFileDomainObject.createFromOperationFile(operationFile);
 
         return operationFile;
     }
 
     @Atomic
-    public static OperationFile createLog(final String fileName, final byte[] bytes, final IntegrationOperation operation) {
-        OperationFile operationFile = new OperationFile();
-        operationFile.init(fileName, fileName, bytes);
+    public static OperationFile createLog(final String fileName, final byte[] content,
+            final IntegrationOperation operation) {
+        final OperationFile operationFile = new OperationFile(fileName, content);
         operationFile.setLogIntegrationOperation(operation);
-
-        OperationFileDomainObject.createFromOperationFile(operationFile);
 
         return operationFile;
     }
 
     public static Stream<OperationFile> findAll() {
-        return Bennu.getInstance().getOperationFilesSet().stream();
+        return FenixFramework.getDomainRoot().getOperationFilesSet().stream();
     }
 
 }

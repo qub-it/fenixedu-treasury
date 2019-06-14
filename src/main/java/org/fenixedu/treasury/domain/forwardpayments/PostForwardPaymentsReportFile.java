@@ -1,36 +1,53 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
+import pt.ist.fenixframework.FenixFramework;
 
-public class PostForwardPaymentsReportFile extends PostForwardPaymentsReportFile_Base {
-    
-    private PostForwardPaymentsReportFile(final DateTime postForwardPaymentsExecutionDate, 
-            final DateTime beginDate, final DateTime endDate,
-            final String filename, final byte[] content) {
+public class PostForwardPaymentsReportFile extends PostForwardPaymentsReportFile_Base implements IGenericFile {
+
+    public static final String CONTENT_TYPE = "application/octet-stream";
+
+    private PostForwardPaymentsReportFile() {
         super();
+        setDomainRoot(FenixFramework.getDomainRoot());
+    }
 
-        setBennu(Bennu.getInstance());
+    private PostForwardPaymentsReportFile(final DateTime postForwardPaymentsExecutionDate, final DateTime beginDate,
+            final DateTime endDate, final String filename, final byte[] content) {
+        this();
+
         setPostForwardPaymentsExecutionDate(postForwardPaymentsExecutionDate);
         setBeginDate(beginDate);
         setEndDate(endDate);
-        
-        init(filename, filename, content);
+
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
+        services.createFile(this, filename, CONTENT_TYPE, content);
     }
 
     @Override
-    public boolean isAccessible(final User user) {
-        return isAccessible(user.getUsername());
-    }
-    
     public boolean isAccessible(final String username) {
-        return  TreasuryAccessControlAPI.isBackOfficeMember(username);
+        return TreasuryAccessControlAPI.isBackOfficeMember(username);
+    }
+
+    @Override
+    public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
+        setDomainRoot(null);
+
+        services.deleteFile(this);
+
+        super.deleteDomainObject();
     }
 
     // @formatter:off
@@ -39,18 +56,17 @@ public class PostForwardPaymentsReportFile extends PostForwardPaymentsReportFile
      * ********
      */
     // @formatter:on
-    
+
     public static Stream<PostForwardPaymentsReportFile> findAll() {
-        return Bennu.getInstance().getPostForwardPaymentsReportFilesSet().stream();
+        return FenixFramework.getDomainRoot().getPostForwardPaymentsReportFilesSet().stream();
     }
 
     @Atomic
-    public static PostForwardPaymentsReportFile create(final DateTime postForwardPaymentsExecutionDate, final DateTime beginDate, final DateTime endDate, 
-            final String filename, final byte[] content) {
-        PostForwardPaymentsReportFile file = new PostForwardPaymentsReportFile(postForwardPaymentsExecutionDate, beginDate, endDate, filename, content);
-        
-        PostForwardPaymentsReportFileDomainObject.createFromPostForwardPaymentsReportFile(file);
-        
+    public static PostForwardPaymentsReportFile create(final DateTime postForwardPaymentsExecutionDate, final DateTime beginDate,
+            final DateTime endDate, final String filename, final byte[] content) {
+        PostForwardPaymentsReportFile file =
+                new PostForwardPaymentsReportFile(postForwardPaymentsExecutionDate, beginDate, endDate, filename, content);
+
         return file;
     }
 

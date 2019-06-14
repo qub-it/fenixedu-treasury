@@ -84,7 +84,6 @@ import org.fenixedu.treasury.domain.integration.ERPExportOperation;
 import org.fenixedu.treasury.domain.integration.ERPImportOperation;
 import org.fenixedu.treasury.domain.integration.IntegrationOperationLogBean;
 import org.fenixedu.treasury.domain.integration.OperationFile;
-import org.fenixedu.treasury.domain.integration.OperationFileDomainObject;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
 import org.fenixedu.treasury.generated.sources.saft.sap.AddressStructure;
 import org.fenixedu.treasury.generated.sources.saft.sap.AddressStructurePT;
@@ -1593,7 +1592,6 @@ public class SAPExporter implements IERPExporter {
             operation.getFile().delete();
         }
         operation.setFile(binaryStream);
-        operation.setFileDomainObject(OperationFileDomainObject.findUniqueByOperationFile(binaryStream).get());
 
         return binaryStream;
     }

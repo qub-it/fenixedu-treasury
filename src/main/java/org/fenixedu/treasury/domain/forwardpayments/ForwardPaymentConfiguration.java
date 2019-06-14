@@ -98,7 +98,6 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         
         ForwardPaymentConfigurationFile file = ForwardPaymentConfigurationFile.create(filename, contents);
         setVirtualTPACertificate(file);
-        setVirtualTPACertificateDomainObject(ForwardPaymentConfigurationFileDomainObject.findUniqueFromForwardPaymentConfigurationFile(file).get());
     }
 
     public boolean isActive() {

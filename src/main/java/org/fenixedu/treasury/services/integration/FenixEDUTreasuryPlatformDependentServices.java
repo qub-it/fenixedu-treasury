@@ -148,13 +148,8 @@ public class FenixEDUTreasuryPlatformDependentServices implements ITreasuryPlatf
     @Override
     public void createFile(final IGenericFile genericFile, final String fileName, final String contentType,
             final byte[] content) {
-        // For now do not allow creation of this files in this phase
-        if(true) {
-            throw new RuntimeException("abort");
-        }
-        
         try {
-            GenericFile file = null; //TreasuryFile.create(fileName, contentType, content);
+            GenericFile file = TreasuryFile.create(fileName, contentType, content);
 
             PropertyUtils.setProperty(genericFile, "treasuryFile", file);
             genericFile.setFileId(file.getExternalId());

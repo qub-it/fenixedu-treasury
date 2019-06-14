@@ -1,38 +1,56 @@
 package org.fenixedu.treasury.domain.forwardpayments;
 
+
 import java.util.stream.Stream;
 
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.io.domain.IGenericFile;
+import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
+import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
+import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
 import org.joda.time.DateTime;
 
-public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
+import pt.ist.fenixframework.FenixFramework;
 
-    private ForwardPaymentLogFile() {
+public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base implements IGenericFile {
+
+    public static final String CONTENT_TYPE = "text/plain";
+
+    public ForwardPaymentLogFile() {
         super();
-        setBennu(Bennu.getInstance());
+        setDomainRoot(FenixFramework.getDomainRoot());
     }
 
     private ForwardPaymentLogFile(final String fileName, final byte[] content) {
         this();
-        this.init(fileName, fileName, content);
+
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+        services.createFile(this, fileName, CONTENT_TYPE, content);
     }
 
     @Override
-    public boolean isAccessible(final User user) {
-        throw new RuntimeException("not implemented");
-    }
-    
     public boolean isAccessible(final String username) {
-        throw new RuntimeException("not implemented");
+        return TreasuryAccessControlAPI.isBackOfficeMember(username);
     }
-    
+
     public String getContentAsString() {
-        if(getContent() != null) {
+        if (getContent() != null) {
             return new String(getContent());
         }
-        
+
         return null;
+    }
+
+    @Override
+    public void delete() {
+        final ITreasuryPlatformDependentServices services = TreasuryPlataformDependentServicesFactory.implementation();
+
+        this.setDomainRoot(null);
+        this.setForwardPaymentLogsForRequest(null);
+        this.setForwardPaymentLogsForResponse(null);
+
+        services.deleteFile(this);
+        
+        super.deleteDomainObject();
     }
 
     // @formatter:off
@@ -47,8 +65,6 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
                 String.format("requestBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForRequest(log);
         
-        ForwardPaymentLogFileDomainObject.createFromForwardPaymentLogFile(logFile);
-        
         return logFile;
     }
 
@@ -57,15 +73,11 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base {
                 String.format("responseBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
         logFile.setForwardPaymentLogsForResponse(log);
 
-        ForwardPaymentLogFileDomainObject.createFromForwardPaymentLogFile(logFile);
-
         return logFile;
     }
 
     public static Stream<ForwardPaymentLogFile> findAll() {
-        return Stream.concat(
-                ForwardPaymentLog.findAll().filter(o -> o.getRequestLogFile() != null).map(o -> o.getRequestLogFile()),
-                ForwardPaymentLog.findAll().filter(o -> o.getResponseLogFile() != null).map(o -> o.getResponseLogFile()));
+        return FenixFramework.getDomainRoot().getForwardPaymentLogFilesSet().stream();
     }
-    
+
 }

@@ -28,8 +28,8 @@ public class TreasuryFile extends TreasuryFile_Base {
      */
     // @formatter:on
     
-//    public static TreasuryFile create(final String fileName, final String contentType, final byte[] content) {
-//        return new TreasuryFile(fileName, contentType, content);
-//    }
+    public static final TreasuryFile create(final String fileName, final String contentType, final byte[] content) {
+        return new TreasuryFile(fileName, contentType, content);
+    }
     
 }
