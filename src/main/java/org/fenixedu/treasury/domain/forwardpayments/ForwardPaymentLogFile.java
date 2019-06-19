@@ -18,6 +18,7 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base implements
     public ForwardPaymentLogFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     private ForwardPaymentLogFile(final String fileName, final byte[] content) {

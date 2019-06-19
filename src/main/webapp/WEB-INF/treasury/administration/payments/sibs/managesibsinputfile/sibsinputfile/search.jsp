@@ -162,7 +162,7 @@ ${portal.toolkit()}
                 <%-- Field access / formatting  here CHANGE_ME --%>
                 {
                 "DT_RowId" : '<c:out value='${searchResult.externalId}'/>',
-                "whencreated" : "<c:out value='${searchResult.versioningCreationDate.toString("YYYY-MM-dd HH:mm:ss")}'/>",
+                "whencreated" : "<c:out value='${searchResult.creationDate.toString("YYYY-MM-dd HH:mm:ss")}'/>",
                 "whenprocessedbysibs" : "<c:out value='${searchResult.whenProcessedBySibs.toString("YYYY-MM-dd HH:mm:ss")}'/>",
 "uploader" : "<c:out value='${searchResult.uploaderUsername}'/>",
 "actions" :

@@ -70,7 +70,7 @@ ${portal.toolkit()}
                 <div class="modal-body">
                     <p>
                         <spring:message
-                            code="label.administration.payments.sibs.manageSibsReportFile.readSibsReportFile.confirmDelete" arguments="${sibsReportFile.filename }"/>
+                            code="label.administration.payments.sibs.manageSibsReportFile.readSibsReportFile.confirmDelete" arguments="${sibsReportFile.getFilename() }"/>
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -160,7 +160,7 @@ ${portal.toolkit()}
                         <td><a
                             href="${pageContext.request.contextPath}/treasury/administration/payments/sibs/managesibsreportfile/sibsreportfile/read/download/${sibsReportFile.externalId}">
                                 <c:out
-                                    value="${sibsReportFile.filename }" />
+                                    value="${sibsReportFile.getFilename() }" />
                         </a></td>
                     </tr>
                     <tr>

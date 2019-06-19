@@ -58,6 +58,7 @@ public class SibsReportFile extends SibsReportFile_Base implements IGenericFile 
     protected SibsReportFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     protected SibsReportFile(final DateTime whenProcessedBySibs, final BigDecimal transactionsTotalAmount,

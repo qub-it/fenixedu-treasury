@@ -29,6 +29,7 @@ public class SibsOutputFile extends SibsOutputFile_Base implements IGenericFile 
     public SibsOutputFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     public static SibsOutputFile create(FinantialInstitution finantialInstitution, DateTime lastSuccessfulSentDateTime) {

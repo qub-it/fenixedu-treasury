@@ -415,10 +415,10 @@ ${portal.toolkit()}
                                         <td><c:if test="${not empty documentTemplateFile }">
                                                 <a
                                                     href="${pageContext.request.contextPath}/treasury/administration/managefinantialinstitution/treasurydocumenttemplate/search/download/${documentTemplateFile.externalId}">
-                                                    <c:out value="${ documentTemplateFile.filename }" />
+                                                    <c:out value="${ documentTemplateFile.getFilename() }" />
                                                 </a>
                                             &nbsp;-&nbsp;
-                                            <fmt:formatNumber var="documentTemplateFileSize" value="${ documentTemplateFile.size / 1024 }" maxFractionDigits="1" />
+                                            <fmt:formatNumber var="documentTemplateFileSize" value="${ documentTemplateFile.getSize() / 1024 }" maxFractionDigits="1" />
                                                 <c:out value="${ documentTemplateFileSize }" />
                                             KB
                                         </c:if> <c:if test="${empty documentTemplateFile }">

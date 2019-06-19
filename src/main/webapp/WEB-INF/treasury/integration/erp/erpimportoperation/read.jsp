@@ -157,7 +157,7 @@ ${portal.toolkit()}
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.ERPImportOperation.size" /></th>
                         <td><pre>
-                                <c:out value='${eRPImportOperation.file.size} Bytes' />
+                                <c:out value='${eRPImportOperation.file.getSize()} Bytes' />
                             </pre></td>
                     </tr>
 

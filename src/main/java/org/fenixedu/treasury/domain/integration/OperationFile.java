@@ -36,6 +36,7 @@ import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
 import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -48,6 +49,7 @@ public class OperationFile extends OperationFile_Base implements IGenericFile {
         super();
 
         this.setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     public OperationFile(final String fileName, final byte[] content) {

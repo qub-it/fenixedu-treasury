@@ -115,9 +115,11 @@ public class ManageForwardPaymentConfigurationController extends TreasuryBaseCon
     private static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI = "/downloadvirtualtpacertificate";
     public static final String DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL = CONTROLLER_URL + DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI;
 
-    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.POST)
+    @RequestMapping(value = DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URI + "/{finantialInstitutionId}", method = RequestMethod.GET, produces = "application/octet-stream")
     @ResponseBody
-    public Object downloadvirtualtpacertificate(final FinantialInstitution finantialInstitution, final Model model) {
+    public byte[] downloadvirtualtpacertificate(@PathVariable("finantialInstitutionId") final FinantialInstitution finantialInstitution, final Model model) {
+        assertUserIsManager(model);
+        
         if (!finantialInstitution.getForwardPaymentConfigurationsSet().isEmpty()) {
             return finantialInstitution.getForwardPaymentConfigurationsSet().iterator().next().getVirtualTPACertificate()
                     .getContent();

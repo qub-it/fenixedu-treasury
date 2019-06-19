@@ -223,7 +223,7 @@ ${portal.toolkit()}
                                 code="label.SibsInputFile.file" /></th>
                         <td><a
                             href="${pageContext.request.contextPath}/treasury/administration/payments/sibs/managesibsinputfile/sibsinputfile/read/download/${sibsInputFile.externalId}">
-                                <c:out value="${sibsInputFile.filename}" />
+                                <c:out value="${sibsInputFile.getFilename()}" />
                         </a></td>
                     </tr>
                 </tbody>

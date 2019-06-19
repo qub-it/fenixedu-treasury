@@ -49,6 +49,7 @@ public class SibsInputFile extends SibsInputFile_Base implements IGenericFile {
     protected SibsInputFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     protected SibsInputFile(FinantialInstitution finantialInstitution, DateTime whenProcessedBySIBS, String displayName,

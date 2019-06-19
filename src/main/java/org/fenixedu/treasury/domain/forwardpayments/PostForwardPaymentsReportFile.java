@@ -19,6 +19,7 @@ public class PostForwardPaymentsReportFile extends PostForwardPaymentsReportFile
     private PostForwardPaymentsReportFile() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     private PostForwardPaymentsReportFile(final DateTime postForwardPaymentsExecutionDate, final DateTime beginDate,

@@ -208,7 +208,7 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentConfiguration.virtualTPACertificate" /></th>
                         <td>
                         	<a href="${pageContext.request.contextPath}<%= ManageForwardPaymentConfigurationController.DOWNLOAD_VIRTUAL_TPA_CERTIFICATE_URL %>/${finantialInstitution.externalId}">
-	                        	<c:out value='${forwardPaymentConfiguration.virtualTPACertificate.filename}' />
+	                        	<c:out value='${forwardPaymentConfiguration.virtualTPACertificate.getFilename()}' />
                         	</a>
                         </td>
                     </tr>

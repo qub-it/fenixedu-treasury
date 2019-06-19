@@ -218,12 +218,9 @@ ${portal.toolkit()}
                                 items="${ documentTemplate.treasuryDocumentTemplateFilesSet }"
                                 var="submittedFile">
                                 <tr>
-                                    <%--                        <td><c:out value='${submittedFile.creationDate.toString("yyyy-MM-dd")}' /> --%>
-                                    <td><joda:format
-                                            value='${submittedFile.creationDate}'
-                                            style='S-' /></td>
+                                    <td><joda:format value='${submittedFile.creationDate}' style='S-' /></td>
                                     <td><c:out
-                                            value='${submittedFile.filename}' />
+                                            value='${submittedFile.getFilename()}' />
                                     </td>
                                 </tr>
                             </c:forEach>

@@ -198,7 +198,7 @@ ${portal.toolkit()}
                         <th scope="row" class="col-xs-3"><spring:message
                                 code="label.ERPExportOperation.size" /></th>
                         <td><pre><c:out
-                                value='${eRPExportOperation.file.size} Bytes' /></pre></td>
+                                value='${eRPExportOperation.file.getSize()} Bytes' /></pre></td>
                     </tr>
 
 					<c:if test="${eRPExportOperation.erpOperationId != null}">

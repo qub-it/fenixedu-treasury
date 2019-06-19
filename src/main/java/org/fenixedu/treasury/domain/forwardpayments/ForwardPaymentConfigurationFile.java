@@ -6,6 +6,7 @@ import org.fenixedu.bennu.io.domain.IGenericFile;
 import org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI;
 import org.fenixedu.treasury.services.integration.ITreasuryPlatformDependentServices;
 import org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory;
+import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.FenixFramework;
 
@@ -17,6 +18,7 @@ public class ForwardPaymentConfigurationFile extends ForwardPaymentConfiguration
         super();
         
         setDomainRoot(FenixFramework.getDomainRoot());
+        setCreationDate(new DateTime());
     }
 
     @Override
