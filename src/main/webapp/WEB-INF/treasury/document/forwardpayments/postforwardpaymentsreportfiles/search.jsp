@@ -105,7 +105,7 @@ ${portal.toolkit()}
 						<td><c:out value='${p.endDate.toString("yyyy-MM-dd HH:mm:ss")}' /></td>	
 						<td>
 							<a href="${pageContext.request.contextPath}/treasury/document/forwardpayments/postforwardpaymentsreportfiles/download/${p.externalId}">
-								<c:out value="${p.filename}" />
+								<c:out value="${p.getFilename()}" />
 							</a>
 						</td>
 					</tr>
