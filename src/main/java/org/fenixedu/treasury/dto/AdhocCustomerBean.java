@@ -103,6 +103,10 @@ public class AdhocCustomerBean implements ITreasuryBean {
             valid &= !Strings.isNullOrEmpty(this.getRegion());
         }
         
+        if(isDefaultCountry(this.getAddressCountryCode()) && !Strings.isNullOrEmpty(this.getZipCode())) {
+            valid &= this.getZipCode().matches("\\d{4}-\\d{3}");
+        }
+        
         return valid;
     }
     
