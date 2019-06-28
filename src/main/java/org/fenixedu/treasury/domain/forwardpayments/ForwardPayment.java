@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,6 +35,8 @@ import org.fenixedu.treasury.domain.forwardpayments.exceptions.ForwardPaymentAlr
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.PostProcessPaymentStatusBean;
 import org.fenixedu.treasury.domain.settings.TreasurySettings;
+import org.fenixedu.treasury.dto.SettlementNoteBean;
+import org.fenixedu.treasury.dto.SettlementNoteBean.DebitEntryBean;
 import org.fenixedu.treasury.util.TreasuryConstants;
 import org.fenixedu.treasury.util.streaming.spreadsheet.ExcelSheet;
 import org.fenixedu.treasury.util.streaming.spreadsheet.IErrorsLog;
@@ -453,6 +457,30 @@ public class ForwardPayment extends ForwardPayment_Base {
     public static ForwardPayment create(final ForwardPaymentConfiguration forwardPaymentConfiguration,
             final DebtAccount debtAccount, final Set<DebitEntry> debitEntriesToPay) {
         return new ForwardPayment(forwardPaymentConfiguration, debtAccount, debitEntriesToPay);
+    }
+
+    @Atomic
+    public static ForwardPayment create(final SettlementNoteBean bean, final Function<ForwardPayment, String> successUrlFunction,
+            final Function<ForwardPayment, String> insuccessUrlFunction) {
+        final DebtAccount debtAccount = bean.getDebtAccount();
+        final ForwardPaymentConfiguration forwardPaymentConfiguration =
+                ForwardPaymentConfiguration.find(bean.getDebtAccount().getFinantialInstitution()).get();
+
+        final Set<DebitEntry> debitEntriesToPay = new HashSet<>();
+        for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
+            if (!debitEntryBean.isIncluded()) {
+                continue;
+            }
+
+            debitEntriesToPay.add(debitEntryBean.getDebitEntry());
+        }
+
+        final ForwardPayment forwardPayment = ForwardPayment.create(forwardPaymentConfiguration, debtAccount, debitEntriesToPay);
+
+        forwardPayment.setForwardPaymentSuccessUrl(successUrlFunction.apply(forwardPayment));
+        forwardPayment.setForwardPaymentInsuccessUrl(insuccessUrlFunction.apply(forwardPayment));
+
+        return forwardPayment;
     }
 
     private static Optional<ForwardPayment> lastForwardPayment() {

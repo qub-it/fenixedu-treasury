@@ -220,36 +220,7 @@ public class ForwardPaymentController extends TreasuryBaseController {
             return jspPage("chooseInvoiceEntries");
         }
 
-        bean.setInterestEntries(new ArrayList<InterestEntryBean>());
-        List<DebitEntryBean> debitEntriesToIterate = Lists.newArrayList(bean.getDebitEntries());
-        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
-            if (debitEntryBean.isIncluded() && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(),
-                    debitEntryBean.getDebtAmount())) {
-
-                //Calculate interest only if we are making a FullPayment
-                InterestRateBean debitInterest = debitEntryBean.getDebitEntry().calculateUndebitedInterestValue(bean.getDate());
-                if (debitInterest.getInterestAmount().compareTo(BigDecimal.ZERO) != 0) {
-                    InterestEntryBean interestEntryBean = new InterestEntryBean(debitEntryBean.getDebitEntry(), debitInterest);
-                    bean.getInterestEntries().add(interestEntryBean);
-                    interestEntryBean.setIncluded(true);
-                }
-            }
-        }
-
-        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
-            if (debitEntryBean.isIncluded() && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(),
-                    debitEntryBean.getDebtAmount())) {
-                for (final DebitEntry interestDebitEntry : debitEntryBean.getDebitEntry().getInterestDebitEntriesSet()) {
-                    if (interestDebitEntry.isInDebt()) {
-                        final DebitEntryBean interestDebitEntryBean = bean.new DebitEntryBean(interestDebitEntry);
-                        interestDebitEntryBean.setIncluded(true);
-                        debitEntryBean.setDebtAmount(interestDebitEntry.getOpenAmount());
-                        bean.getDebitEntries().add(interestDebitEntryBean);
-                    }
-                }
-            }
-        }
-
+        bean.includeAllInterestOfSelectedDebitEntries();        
         setSettlementNoteBean(bean, model);
 
         boolean hasPaymentInStateOfPostPaymentAndPayedOnPlatformWarningMessage = false;
@@ -330,7 +301,10 @@ public class ForwardPaymentController extends TreasuryBaseController {
                 return redirectToDebtAccountUrl(bean.getDebtAccount(), model, redirectAttributes);
             }
 
-            final ForwardPayment forwardPayment = processForwardPaymentCreation(bean);
+            final ForwardPayment forwardPayment = ForwardPayment.create(bean, 
+                    (ForwardPayment p) -> forwardPaymentSuccessUrl(p), 
+                    (ForwardPayment p) -> forwardPaymentInsuccessUrl(p));
+            
             return redirect(readProcessForwardPaymentUrl() + "/" + forwardPayment.getExternalId(), model, redirectAttributes);
         } catch (final TreasuryDomainException tde) {
             addErrorMessage(tde.getLocalizedMessage(), model);
@@ -352,29 +326,6 @@ public class ForwardPaymentController extends TreasuryBaseController {
             final HttpServletResponse response, final HttpSession session) {
         return forwardPayment.getForwardPaymentConfiguration().getForwardPaymentController(forwardPayment)
                 .processforwardpayment(forwardPayment, model, response, session);
-    }
-
-    @Atomic
-    private ForwardPayment processForwardPaymentCreation(SettlementNoteBean bean) {
-        final DebtAccount debtAccount = bean.getDebtAccount();
-        final ForwardPaymentConfiguration forwardPaymentConfiguration =
-                ForwardPaymentConfiguration.findUniqueActive(bean.getDebtAccount().getFinantialInstitution()).get();
-
-        final Set<DebitEntry> debitEntriesToPay = Sets.newHashSet();
-        for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
-            if (!debitEntryBean.isIncluded()) {
-                continue;
-            }
-
-            debitEntriesToPay.add(debitEntryBean.getDebitEntry());
-        }
-
-        final ForwardPayment forwardPayment = ForwardPayment.create(forwardPaymentConfiguration, debtAccount, debitEntriesToPay);
-
-        forwardPayment.setForwardPaymentSuccessUrl(forwardPaymentSuccessUrl(forwardPayment));
-        forwardPayment.setForwardPaymentInsuccessUrl(forwardPaymentInsuccessUrl(forwardPayment));
-
-        return forwardPayment;
     }
 
     protected String forwardPaymentInsuccessUrl(final ForwardPayment forwardPayment) {

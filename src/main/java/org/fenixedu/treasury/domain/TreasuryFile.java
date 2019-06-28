@@ -23,7 +23,6 @@ public class TreasuryFile extends TreasuryFile_Base {
     
     @Override
     public void delete() {
-        setBennu(null);
         
         super.delete();
     }

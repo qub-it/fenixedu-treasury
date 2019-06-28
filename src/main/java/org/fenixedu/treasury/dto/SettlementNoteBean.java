@@ -317,6 +317,41 @@ public class SettlementNoteBean implements ITreasuryBean, Serializable {
         
         return false;
     }
+
+    
+    public void includeAllInterestOfSelectedDebitEntries() {
+        setInterestEntries(new ArrayList<InterestEntryBean>());
+        List<DebitEntryBean> debitEntriesToIterate = Lists.newArrayList(getDebitEntries());
+        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
+            if (debitEntryBean.isIncluded()
+                    && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
+
+                //Calculate interest only if we are making a FullPayment
+                InterestRateBean debitInterest = debitEntryBean.getDebitEntry().calculateUndebitedInterestValue(getDate());
+                if (debitInterest.getInterestAmount().compareTo(BigDecimal.ZERO) != 0) {
+                    InterestEntryBean interestEntryBean = new InterestEntryBean(debitEntryBean.getDebitEntry(), debitInterest);
+                    getInterestEntries().add(interestEntryBean);
+                    interestEntryBean.setIncluded(true);
+                }
+            }
+        }
+
+        for (DebitEntryBean debitEntryBean : debitEntriesToIterate) {
+            if (debitEntryBean.isIncluded()
+                    && TreasuryConstants.isEqual(debitEntryBean.getDebitEntry().getOpenAmount(), debitEntryBean.getDebtAmount())) {
+                for (final DebitEntry interestDebitEntry : debitEntryBean.getDebitEntry().getInterestDebitEntriesSet()) {
+                    if (interestDebitEntry.isInDebt()) {
+                        final DebitEntryBean interestDebitEntryBean = new DebitEntryBean(interestDebitEntry);
+                        interestDebitEntryBean.setIncluded(true);
+                        debitEntryBean.setDebtAmount(interestDebitEntry.getOpenAmount());
+                        getDebitEntries().add(interestDebitEntryBean);
+                    }
+                }
+            }
+        }
+
+        
+    }
     
     // @formatter:off
     /* *****************
