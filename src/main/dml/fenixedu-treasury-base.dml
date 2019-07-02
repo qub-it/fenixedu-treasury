@@ -2006,6 +2006,7 @@ class forwardpayments.ForwardPayment {
 	String paylineToken;
 	String paylineRedirectUrl;
 	String justification;
+	String sibsCheckoutId;
 	String sibsTransactionId;
 	String sibsMerchantTransactionId;
 }

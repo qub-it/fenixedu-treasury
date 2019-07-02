@@ -11,7 +11,7 @@ import com.google.common.base.Strings;
 import pt.ist.fenixframework.FenixFramework;
 
 public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_Base {
-
+    
     public static final String REQUEST_PAYMENT_CODE = "REQUEST_PAYMENT_CODE";
     public static final String ONLINE_PAYMENT_PREPARE_CHECKOUT = "ONLINE_PAYMENT_PREPARE_CHECKOUT";
 

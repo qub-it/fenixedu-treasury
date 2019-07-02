@@ -69,17 +69,19 @@ public class SibsOnlinePaymentsGatewayForwardPaymentController implements IForwa
 
     @RequestMapping(value = RETURN_FORWARD_PAYMENT_URI + "/{forwardPaymentId}", method = RequestMethod.GET)
     public String returnforwardpayment(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment,
-            @RequestParam("id") final String sibsTransactionId, final Model model, final HttpServletResponse response) {
+            @RequestParam("id") final String sibsCheckoutId, final Model model, final HttpServletResponse response) {
         final SibsOnlinePaymentsGatewayForwardImplementation impl =
                 (SibsOnlinePaymentsGatewayForwardImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
 
-        System.out.println(sibsTransactionId);
-        System.out.println(forwardPayment.getSibsTransactionId());
+        
+        ForwardPaymentStatusBean bean = impl.checkoutPaymentStatus(forwardPayment);
 
-        ForwardPaymentStatusBean bean = impl.paymentStatus(forwardPayment);
+        // First of all save sibsTransactionId
 
         if (bean.isInPayedState()) {
             FenixFramework.atomic(() -> {
+                forwardPayment.setSibsTransactionId(bean.getTransactionId());
+                
                 forwardPayment.advanceToPayedState(bean.getStatusCode(), bean.getStatusMessage(), bean.getPayedAmount(),
                         bean.getTransactionDate(), bean.getTransactionId(), null, bean.getRequestBody(), bean.getResponseBody(),
                         "");

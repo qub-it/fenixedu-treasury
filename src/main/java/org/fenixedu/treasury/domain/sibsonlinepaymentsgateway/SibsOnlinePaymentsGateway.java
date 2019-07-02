@@ -13,6 +13,7 @@ import org.fenixedu.onlinepaymentsgateway.api.PrepareCheckoutInputBean;
 import org.fenixedu.onlinepaymentsgateway.api.SIBSInitializeServiceBean;
 import org.fenixedu.onlinepaymentsgateway.api.SIBSOnlinePaymentsGatewayService;
 import org.fenixedu.onlinepaymentsgateway.exceptions.OnlinePaymentsGatewayCommunicationException;
+import org.fenixedu.onlinepaymentsgateway.sibs.sdk.TransactionReportBean;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
@@ -77,13 +78,35 @@ public class SibsOnlinePaymentsGateway extends SibsOnlinePaymentsGateway_Base {
     }
 
     @Atomic(mode=TxMode.READ)
-    public PaymentStatusBean getPaymentStatusBySibsTransactionId(final String transactionId) {
+    public PaymentStatusBean getPaymentStatusBySibsCheckoutId(final String checkoutId) {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
         
         try {
-            return gatewayService.getPaymentStatus(transactionId);
+            return gatewayService.getPaymentStatus(checkoutId);
         } catch (OnlinePaymentsGatewayCommunicationException e) {
-            throw new TreasuryDomainException("error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+        }
+    }
+
+    @Atomic(mode=TxMode.READ)
+    public TransactionReportBean getPaymentStatusBySibsTransactionId(final String transactionId) {
+        final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
+        
+        try {
+            return gatewayService.getPaymentTransactionReport(transactionId);
+        } catch (OnlinePaymentsGatewayCommunicationException e) {
+            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+        }
+    }
+
+    @Atomic(mode=TxMode.READ)
+    public TransactionReportBean getPaymentStatusBySibsMerchantId(final String merchantId) {
+        final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
+        
+        try {
+            return gatewayService.getPaymentTransactionReport(merchantId);
+        } catch (OnlinePaymentsGatewayCommunicationException e) {
+            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
         }
     }
 
@@ -98,7 +121,7 @@ public class SibsOnlinePaymentsGateway extends SibsOnlinePaymentsGateway_Base {
             
             bean.setUseCreditCard(true);
             //prepareCheckoutInputBean.setUseMB(true);
-            bean.setUseMBway(true);
+            //bean.setUseMBway(true);
             
             CheckoutResultBean resultBean = gatewayService.prepareOnlinePaymentCheckout(bean);
 

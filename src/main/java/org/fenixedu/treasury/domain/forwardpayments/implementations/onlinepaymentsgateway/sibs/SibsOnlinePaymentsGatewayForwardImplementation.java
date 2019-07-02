@@ -82,7 +82,7 @@ public class SibsOnlinePaymentsGatewayForwardImplementation implements IForwardP
                 log.saveMerchantTransactionId(checkoutBean.getMerchantTransactionId());
                 
                 forwardPayment.setSibsMerchantTransactionId(checkoutBean.getMerchantTransactionId());
-                forwardPayment.setSibsTransactionId(checkoutBean.getId());
+                forwardPayment.setSibsCheckoutId(checkoutBean.getId() /* getCheckoutId() */ );
             });
             
             if (!result.isInvocationSuccess() || (result.getStateType() == ForwardPaymentStateType.REJECTED)) {
@@ -134,14 +134,12 @@ public class SibsOnlinePaymentsGatewayForwardImplementation implements IForwardP
     private SibsOnlinePaymentsGatewayLog createLog(final SibsOnlinePaymentsGateway sibsGateway, final ForwardPayment forwardPayment) {
         return SibsOnlinePaymentsGatewayLog.createLogForOnlinePaymentPrepareCheckout(sibsGateway, forwardPayment);
     }
-
     
-    @Override
-    public ForwardPaymentStatusBean paymentStatus(final ForwardPayment forwardPayment) {
+    public ForwardPaymentStatusBean checkoutPaymentStatus(final ForwardPayment forwardPayment) {
         SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway =
                 forwardPayment.getForwardPaymentConfiguration().getSibsOnlinePaymentsGateway();
         PaymentStatusBean paymentStatusBean =
-                sibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId(forwardPayment.getSibsTransactionId());
+                sibsOnlinePaymentsGateway.getPaymentStatusBySibsCheckoutId(forwardPayment.getSibsCheckoutId());
 
         final String requestLog = paymentStatusBean.getRequestLog();
         final String responseLog = paymentStatusBean.getResponseLog();
@@ -153,7 +151,29 @@ public class SibsOnlinePaymentsGatewayForwardImplementation implements IForwardP
                 paymentStatusBean.getPaymentGatewayResultCode(), paymentStatusBean.getPaymentGatewayResultDescription(),
                 requestLog, responseLog);
 
-        bean.editTransactionDetails(paymentStatusBean.getId(), new DateTime(), new BigDecimal(paymentStatusBean.getPaymentAmount()));
+        bean.editTransactionDetails(paymentStatusBean.getId() /* getTransactionId */, new DateTime(), paymentStatusBean.getPaymentAmount() != null ? new BigDecimal(paymentStatusBean.getPaymentAmount()) : null);
+
+        return bean;
+    }
+    
+    @Override
+    public ForwardPaymentStatusBean paymentStatus(final ForwardPayment forwardPayment) {
+        SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway =
+                forwardPayment.getForwardPaymentConfiguration().getSibsOnlinePaymentsGateway();
+        PaymentStatusBean paymentStatusBean =
+                sibsOnlinePaymentsGateway.getPaymentStatusBySibsCheckoutId(forwardPayment.getSibsTransactionId());
+
+        final String requestLog = paymentStatusBean.getRequestLog();
+        final String responseLog = paymentStatusBean.getResponseLog();
+
+        final ForwardPaymentStateType type =
+                translateForwardPaymentStateType(paymentStatusBean.getOperationResultType(), paymentStatusBean.isPaid());
+
+        final ForwardPaymentStatusBean bean = new ForwardPaymentStatusBean(paymentStatusBean.isOperationSuccess(), type,
+                paymentStatusBean.getPaymentGatewayResultCode(), paymentStatusBean.getPaymentGatewayResultDescription(),
+                requestLog, responseLog);
+
+        bean.editTransactionDetails(paymentStatusBean.getId(), new DateTime(), paymentStatusBean.getPaymentAmount() != null ? new BigDecimal(paymentStatusBean.getPaymentAmount()) : null);
 
         return bean;
     }
