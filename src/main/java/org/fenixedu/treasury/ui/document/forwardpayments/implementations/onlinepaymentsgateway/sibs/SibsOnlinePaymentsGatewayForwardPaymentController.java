@@ -6,22 +6,19 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
-import org.fenixedu.onlinepaymentsgateway.api.CheckoutResultBean;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
-import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentStateType;
-import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.onlinepaymentsgateway.sibs.SibsOnlinePaymentsGatewayForwardImplementation;
-import org.fenixedu.treasury.domain.sibsonlinepaymentsgateway.SibsOnlinePaymentsGateway;
 import org.fenixedu.treasury.dto.forwardpayments.ForwardPaymentStatusBean;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.ui.document.forwardpayments.IForwardPaymentController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
 @SpringFunctionality(app = TreasuryController.class, title = "label.title.returnSibsOnlinePaymentsGatewayForwardPayment",
@@ -35,6 +32,8 @@ public class SibsOnlinePaymentsGatewayForwardPaymentController implements IForwa
 
     private static final String PROCESS_FORWARD_PAYMENT_URI = "/processforwardpayment";
 
+    private static final Logger logger = LoggerFactory.getLogger(SibsOnlinePaymentsGatewayForwardPaymentController.class);
+    
     @Override
     public String processforwardpayment(final ForwardPayment forwardPayment, final Model model,
             final HttpServletResponse response, final HttpSession session) {
@@ -51,15 +50,15 @@ public class SibsOnlinePaymentsGatewayForwardPaymentController implements IForwa
             
             model.addAttribute("forwardPaymentConfiguration", forwardPayment.getForwardPaymentConfiguration());
             model.addAttribute("debtAccount", forwardPayment.getDebtAccount());
-            model.addAttribute("checkoutId", forwardPayment.getSibsTransactionId());
+            model.addAttribute("checkoutId", forwardPayment.getSibsCheckoutId());
             model.addAttribute("shopperResultUrl", impl.getReturnURL(forwardPayment));
             model.addAttribute("paymentBrands", bean.getSibsOnlinePaymentBrands());
             
             return jspPage(PROCESS_FORWARD_PAYMENT_URI);
             
         } catch(Exception e) {
-            e.printStackTrace();
-            
+            logger.error(e.getLocalizedMessage(), e);
+
             return String.format("redirect:%s", forwardPayment.getForwardPaymentInsuccessUrl());
         } 
     }
@@ -70,32 +69,39 @@ public class SibsOnlinePaymentsGatewayForwardPaymentController implements IForwa
     @RequestMapping(value = RETURN_FORWARD_PAYMENT_URI + "/{forwardPaymentId}", method = RequestMethod.GET)
     public String returnforwardpayment(@PathVariable("forwardPaymentId") final ForwardPayment forwardPayment,
             @RequestParam("id") final String sibsCheckoutId, final Model model, final HttpServletResponse response) {
-        final SibsOnlinePaymentsGatewayForwardImplementation impl =
-                (SibsOnlinePaymentsGatewayForwardImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
+        try {
 
-        
-        ForwardPaymentStatusBean bean = impl.checkoutPaymentStatus(forwardPayment);
+            final SibsOnlinePaymentsGatewayForwardImplementation impl =
+                    (SibsOnlinePaymentsGatewayForwardImplementation) forwardPayment.getForwardPaymentConfiguration().implementation();
+            
+            final ForwardPaymentStatusBean bean = impl.paymentStatusByCheckoutId(forwardPayment);
 
-        // First of all save sibsTransactionId
-
-        if (bean.isInPayedState()) {
+            // First of all save sibsTransactionId
             FenixFramework.atomic(() -> {
                 forwardPayment.setSibsTransactionId(bean.getTransactionId());
+            });
+            
+            if (bean.isInPayedState()) {
+                FenixFramework.atomic(() -> {
+                    forwardPayment.advanceToPayedState(bean.getStatusCode(), bean.getStatusMessage(), bean.getPayedAmount(),
+                            bean.getTransactionDate(), bean.getTransactionId(), null, bean.getRequestBody(), bean.getResponseBody(),
+                            "");
+                });
+
+                return String.format("redirect:%s", forwardPayment.getForwardPaymentSuccessUrl());
+            } else {
+                FenixFramework.atomic(() -> {
+                    forwardPayment.reject(bean.getStatusCode(), bean.getStatusMessage(), bean.getRequestBody(),
+                            bean.getResponseBody());
+                });
                 
-                forwardPayment.advanceToPayedState(bean.getStatusCode(), bean.getStatusMessage(), bean.getPayedAmount(),
-                        bean.getTransactionDate(), bean.getTransactionId(), null, bean.getRequestBody(), bean.getResponseBody(),
-                        "");
-            });
+                return String.format("redirect:%s", forwardPayment.getForwardPaymentInsuccessUrl());
+            }
+        } catch(Exception e) {
+            logger.error(e.getLocalizedMessage(), e);
 
-            return String.format("redirect:%s", forwardPayment.getForwardPaymentSuccessUrl());
-        } else if (bean.getStateType() == ForwardPaymentStateType.REJECTED) {
-            FenixFramework.atomic(() -> {
-                forwardPayment.reject(bean.getStatusCode(), bean.getStatusMessage(), bean.getRequestBody(),
-                        bean.getResponseBody());
-            });
+            return String.format("redirect:%s", forwardPayment.getForwardPaymentInsuccessUrl());
         }
-
-        return String.format("redirect:%s", forwardPayment.getForwardPaymentInsuccessUrl());
     }
 
     private String jspPage(final String page) {

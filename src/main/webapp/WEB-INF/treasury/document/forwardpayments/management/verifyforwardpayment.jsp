@@ -247,6 +247,10 @@ if (TreasuryAccessControlAPI.isManager(TreasuryPlataformDependentServicesFactory
 						<td><c:out value='${paymentStatusBean.statusCode}' /></td>
 					</tr>
 					<tr>
+						<th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentStatusBean.statusMessage" /></th>
+						<td><c:out value='${paymentStatusBean.statusMessage}' /></td>
+					</tr>
+					<tr>
 						<th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentStatusBean.requestLogFile" /></th>
 						<td><c:out value='${paymentStatusBean.requestBody}' /></td>
 					</tr>

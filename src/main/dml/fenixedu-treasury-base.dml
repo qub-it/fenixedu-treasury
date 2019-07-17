@@ -2067,6 +2067,7 @@ class forwardpayments.ForwardPaymentLog {
 	DateTime whenOccured;
 	String statusCode;
 	String statusLog;
+	boolean exceptionOccured;
 }
 
 	relation ForwardPaymentLogBennu {
@@ -2122,6 +2123,16 @@ class forwardpayments.ForwardPaymentLogFile /* implements IGenericFile */ {
 		}
 	
 		forwardpayments.ForwardPaymentLogFile playsRole responseLogFile {
+			multiplicity 0..1;
+		}
+	}
+	
+	relation ForwardPaymentLogExceptionLogFile {
+		forwardpayments.ForwardPaymentLog playsRole forwardPaymentLogsForException {
+			multiplicity 0..1;
+		}
+	
+		forwardpayments.ForwardPaymentLogFile playsRole exceptionLogFile {
 			multiplicity 0..1;
 		}
 	}
@@ -2268,3 +2279,13 @@ class sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog {
 		}
 	}
 
+	relation SibsOnlinePaymentsGatewayLogDebtAccount {
+		debt.DebtAccount playsRole debtAccount {
+			multiplicity 1..1;
+		}
+	
+		sibsonlinepaymentsgateway.SibsOnlinePaymentsGatewayLog playsRole sibsOnlinePaymentsGatewayLogs {
+			multiplicity *;
+		}
+	}
+	

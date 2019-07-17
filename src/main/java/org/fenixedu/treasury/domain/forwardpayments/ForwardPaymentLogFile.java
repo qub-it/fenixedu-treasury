@@ -76,6 +76,14 @@ public class ForwardPaymentLogFile extends ForwardPaymentLogFile_Base implements
 
         return logFile;
     }
+    
+    public static ForwardPaymentLogFile createForException(final ForwardPaymentLog log, final byte[] content) {
+        final ForwardPaymentLogFile logFile = new ForwardPaymentLogFile(
+                String.format("responseBody_%s_%s.txt", new DateTime().toString("yyyyMMddHHmmss"), log.getExternalId()), content);
+        logFile.setForwardPaymentLogsForException(log);
+
+        return logFile;
+    }
 
     public static Stream<ForwardPaymentLogFile> findAll() {
         return FenixFramework.getDomainRoot().getForwardPaymentLogFilesSet().stream();

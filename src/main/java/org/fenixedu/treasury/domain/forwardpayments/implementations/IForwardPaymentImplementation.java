@@ -20,4 +20,6 @@ public interface IForwardPaymentImplementation {
 
     public PostProcessPaymentStatusBean postProcessPayment(final ForwardPayment forwardPayment, final String justification);
     
+    public String getImplementationCode();
+    
 }

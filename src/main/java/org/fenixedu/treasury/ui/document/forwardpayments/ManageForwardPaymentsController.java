@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import pt.ist.fenixframework.DomainRoot;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
+import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentLog;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPaymentStateType;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.dto.forwardpayments.ForwardPaymentStatusBean;
@@ -21,6 +25,7 @@ import org.joda.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -186,6 +191,20 @@ public class ManageForwardPaymentsController extends TreasuryBaseController {
             addErrorMessage(e.getLocalizedMessage(), model);
             return redirect(format("%s/%s", VERIFY_FORWARD_PAYMENT_URL, forwardPayment.getExternalId()), model, redirectAttributes);
         }
+    }
+    
+    private static final String DOWNLOAD_EXCEPTION_LOG_URI = "/downloadexceptionlog";
+    public static final String DOWNLOAD_EXCEPTION_LOG_URL = CONTROLLER_URL + DOWNLOAD_EXCEPTION_LOG_URI;
+    
+    @RequestMapping(value = DOWNLOAD_EXCEPTION_LOG_URI + "/{forwardPaymentLogId}", method=RequestMethod.GET, produces = "application/octet-stream")
+    @ResponseBody
+    public byte[] downloadexceptionlog(@PathVariable("forwardPaymentLogId") final ForwardPaymentLog forwardPaymentLog, final Model model, final HttpServletResponse response) {
+        response.setHeader("Content-Disposition", "attachment; filename=" + String.format("exceptionLog-%s.txt", forwardPaymentLog.getExternalId()));
+        if(forwardPaymentLog.getExceptionLogFile() != null) {
+            return forwardPaymentLog.getExceptionLogFile().getContent();
+        }
+        
+        return null;
     }
 
     public static final String EXPORT_URI = "/export";

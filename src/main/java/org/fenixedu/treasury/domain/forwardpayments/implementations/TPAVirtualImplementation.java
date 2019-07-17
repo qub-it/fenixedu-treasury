@@ -397,4 +397,9 @@ public class TPAVirtualImplementation implements IForwardPaymentImplementation {
         return new PostProcessPaymentStatusBean(paymentStatusBean, previousState, true);
     }
 
+    @Override
+    public String getImplementationCode() {
+        return "TPAVIRTUAL";
+    }
+
 }

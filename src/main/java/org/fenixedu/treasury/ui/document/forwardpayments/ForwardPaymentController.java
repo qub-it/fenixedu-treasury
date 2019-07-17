@@ -58,6 +58,8 @@ import org.fenixedu.treasury.ui.accounting.managecustomer.CustomerController;
 import org.fenixedu.treasury.ui.accounting.managecustomer.DebtAccountController;
 import org.fenixedu.treasury.util.TreasuryConstants;
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -77,6 +79,9 @@ import pt.ist.fenixframework.Atomic;
 @BennuSpringController(CustomerController.class)
 @RequestMapping(ForwardPaymentController.CONTROLLER_URL)
 public class ForwardPaymentController extends TreasuryBaseController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ForwardPaymentController.class);
+    
     public static final String CONTROLLER_URL = "/treasury/document/forwardpayments/forwardpayment";
     private static final String JSP_PATH = "/treasury/document/forwardpayments/forwardpayment";
 
@@ -276,19 +281,25 @@ public class ForwardPaymentController extends TreasuryBaseController {
 
     private boolean hasForwardPaymentInStateOfPostPaymentAndPayedOnPlatform(final DebitEntry debitEntry) {
         for (final ForwardPayment forwardPayment : debitEntry.getForwardPaymentsSet()) {
-            if (!forwardPayment.getCurrentState().isInStateToPostProcessPayment()) {
-                continue;
-            }
+            try {
 
-            if (!forwardPayment.getForwardPaymentConfiguration().isActive()) {
-                continue;
-            }
-
-            final IForwardPaymentImplementation implementation = forwardPayment.getForwardPaymentConfiguration().implementation();
-
-            final ForwardPaymentStatusBean paymentStatusBean = implementation.paymentStatus(forwardPayment);
-            if (paymentStatusBean.isInPayedState()) {
-                return true;
+                if (!forwardPayment.getCurrentState().isInStateToPostProcessPayment()) {
+                    continue;
+                }
+                
+                if (!forwardPayment.getForwardPaymentConfiguration().isActive()) {
+                    continue;
+                }
+                
+                final IForwardPaymentImplementation implementation = forwardPayment.getForwardPaymentConfiguration().implementation();
+                
+                final ForwardPaymentStatusBean paymentStatusBean = implementation.paymentStatus(forwardPayment);
+                if (paymentStatusBean.isInPayedState()) {
+                    return true;
+                }
+                
+            } catch(Exception e) {
+                logger.error(e.getLocalizedMessage(), e);
             }
         }
 

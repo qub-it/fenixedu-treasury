@@ -6,14 +6,15 @@ import java.util.stream.Stream;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.onlinepaymentsgateway.api.CheckoutResultBean;
 import org.fenixedu.onlinepaymentsgateway.api.CustomerDataInputBean;
+import org.fenixedu.onlinepaymentsgateway.api.MbCheckoutResultBean;
 import org.fenixedu.onlinepaymentsgateway.api.MbPrepareCheckoutInputBean;
 import org.fenixedu.onlinepaymentsgateway.api.OnlinePaymentServiceFactory;
-import org.fenixedu.onlinepaymentsgateway.api.PaymentStatusBean;
+import org.fenixedu.onlinepaymentsgateway.api.PaymentStateBean;
 import org.fenixedu.onlinepaymentsgateway.api.PrepareCheckoutInputBean;
 import org.fenixedu.onlinepaymentsgateway.api.SIBSInitializeServiceBean;
 import org.fenixedu.onlinepaymentsgateway.api.SIBSOnlinePaymentsGatewayService;
 import org.fenixedu.onlinepaymentsgateway.exceptions.OnlinePaymentsGatewayCommunicationException;
-import org.fenixedu.onlinepaymentsgateway.sibs.sdk.TransactionReportBean;
+import org.fenixedu.onlinepaymentsgateway.sibs.sdk.SibsEnvironmentMode;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.ForwardPayment;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
@@ -65,11 +66,12 @@ public class SibsOnlinePaymentsGateway extends SibsOnlinePaymentsGateway_Base {
         }
     }
 
-    @Atomic(mode = TxMode.WRITE)    
+    @Atomic(mode = TxMode.WRITE)
     public String generateNewMerchantTransactionId() {
         final long value = incrementAndGetMerchantTransactionIdCounter();
 
-        return String.format("%s-%s", getMerchantTransactionIdPrefix(), StringUtils.leftPad(String.valueOf(value), 9, '0'));
+        return String.format("%s-%s-%s", getMerchantTransactionIdPrefix(), StringUtils.leftPad(String.valueOf(value), 9, '0'),
+                DateTime.now().toString("yyyyMMddHHmmss"));
     }
 
     private long incrementAndGetMerchantTransactionIdCounter() {
@@ -77,77 +79,80 @@ public class SibsOnlinePaymentsGateway extends SibsOnlinePaymentsGateway_Base {
         return getMerchantTransactionIdCounter();
     }
 
-    @Atomic(mode=TxMode.READ)
-    public PaymentStatusBean getPaymentStatusBySibsCheckoutId(final String checkoutId) {
+    @Atomic(mode = TxMode.READ)
+    public PaymentStateBean getPaymentStatusBySibsCheckoutId(final String checkoutId)
+            throws OnlinePaymentsGatewayCommunicationException {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
-        
+
         try {
-            return gatewayService.getPaymentStatus(checkoutId);
+            return gatewayService.getPaymentStatusByCheckoutId(checkoutId);
         } catch (OnlinePaymentsGatewayCommunicationException e) {
-            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
+            throw new TreasuryDomainException(e,
+                    "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
         }
     }
 
-    @Atomic(mode=TxMode.READ)
-    public TransactionReportBean getPaymentStatusBySibsTransactionId(final String transactionId) {
+    @Atomic(mode = TxMode.READ)
+    public PaymentStateBean getPaymentStatusBySibsTransactionId(final String transactionId)
+            throws OnlinePaymentsGatewayCommunicationException {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
-        
-        try {
-            return gatewayService.getPaymentTransactionReport(transactionId);
-        } catch (OnlinePaymentsGatewayCommunicationException e) {
-            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
-        }
+
+        return gatewayService.getPaymentTransactionReportByTransactionId(transactionId);
     }
 
-    @Atomic(mode=TxMode.READ)
-    public TransactionReportBean getPaymentStatusBySibsMerchantId(final String merchantId) {
+    @Atomic(mode = TxMode.READ)
+    public PaymentStateBean getPaymentStatusBySibsMerchantId(final String merchantId)
+            throws OnlinePaymentsGatewayCommunicationException {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
-        
-        try {
-            return gatewayService.getPaymentTransactionReport(merchantId);
-        } catch (OnlinePaymentsGatewayCommunicationException e) {
-            throw new TreasuryDomainException(e, "error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
-        }
+
+        return gatewayService.getPaymentTransactionReportByMerchantId(merchantId);
     }
 
-    @Atomic(mode=TxMode.READ)
-    public CheckoutResultBean prepareCheckout(final BigDecimal amount, final String returnUrl) {
+    @Atomic(mode = TxMode.READ)
+    public CheckoutResultBean prepareCheckout(final String merchantTransactionId, final BigDecimal amount, final String returnUrl)
+            throws OnlinePaymentsGatewayCommunicationException {
         final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
 
-        try {
+        final PrepareCheckoutInputBean bean = new PrepareCheckoutInputBean(amount, merchantTransactionId, returnUrl,
+                new DateTime(), new DateTime().plusDays(7));
 
-            final PrepareCheckoutInputBean bean = new PrepareCheckoutInputBean(amount, generateNewMerchantTransactionId(), 
-                    returnUrl, new DateTime(), new DateTime().plusDays(7));
-            
-            bean.setUseCreditCard(true);
-            //prepareCheckoutInputBean.setUseMB(true);
-            //bean.setUseMBway(true);
-            
-            CheckoutResultBean resultBean = gatewayService.prepareOnlinePaymentCheckout(bean);
+        bean.setUseCreditCard(true);
 
-            return resultBean;
-        } catch (OnlinePaymentsGatewayCommunicationException e) {
-            // Log
-            throw new TreasuryDomainException("error.SibsOnlinePaymentsGateway.getPaymentStatusBySibsTransactionId.communication.error");
-        }
+        CheckoutResultBean resultBean = gatewayService.prepareOnlinePaymentCheckout(bean);
 
+        return resultBean;
+    }
+
+    @Atomic(mode = TxMode.READ)
+    public MbCheckoutResultBean generateMBPaymentReference(final BigDecimal amount, final DateTime validFrom, final DateTime validTo, final String merchantTransactionId) throws OnlinePaymentsGatewayCommunicationException {
+        final SIBSOnlinePaymentsGatewayService gatewayService = gatewayService();
+        
+        final MbPrepareCheckoutInputBean inputBean = new MbPrepareCheckoutInputBean(amount, merchantTransactionId,
+                validFrom, validTo);
+        
+        // Customer data will not be sent due to GDPR
+        final CustomerDataInputBean customerInputBean = null;
+
+        final MbCheckoutResultBean requestResult = gatewayService.generateMBPaymentReference(inputBean, customerInputBean);
+        
+        return requestResult;
     }
 
     private SIBSOnlinePaymentsGatewayService gatewayService() {
-        SIBSInitializeServiceBean initializeServiceBean = new SIBSInitializeServiceBean(getSibsEntityId(), getSibsEndpointUrl(),
-                getPaymentCodePool().getEntityReferenceCode(), getPaymentCodePool().getFinantialInstitution().getCurrency().getIsoCode());
+        final SIBSInitializeServiceBean initializeServiceBean = new SIBSInitializeServiceBean(getSibsEntityId(), getBearerToken(),
+                getSibsEndpointUrl(), getPaymentCodePool().getEntityReferenceCode(),
+                getPaymentCodePool().getFinantialInstitution().getCurrency().getIsoCode(),
+                SibsEnvironmentMode.TEST_MODE_EXTERNAL);
 
-        initializeServiceBean.setBearerToken(getBearerToken());
-        SIBSOnlinePaymentsGatewayService gatewayService = OnlinePaymentServiceFactory.createSIBSOnlinePaymentGatewayService(initializeServiceBean);
+        final SIBSOnlinePaymentsGatewayService gatewayService =
+                OnlinePaymentServiceFactory.createSIBSOnlinePaymentGatewayService(initializeServiceBean);
+
         return gatewayService;
     }
 
-    // @formatter:off
-    /* ********
-     * SERVICES
-     * ********
-     */
-    // @formatter:on
+    /* ************/
+    /* * SERVICES */
+    /* ************/
 
     public static SibsOnlinePaymentsGateway create(final PaymentCodePool paymentCodePool, final String sibsEntityId,
             final String sibsEndpointUrl, final String merchantIdPrefix, final String bearerToken) {

@@ -8,6 +8,8 @@ import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.forwardpayments.implementations.IForwardPaymentImplementation;
 import org.fenixedu.treasury.dto.forwardpayments.ForwardPaymentConfigurationBean;
 import org.fenixedu.treasury.ui.document.forwardpayments.IForwardPaymentController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
@@ -16,6 +18,8 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Base {
 
+    private static final Logger logger = LoggerFactory.getLogger(ForwardPaymentConfiguration.class);
+    
     private ForwardPaymentConfiguration() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
@@ -131,6 +135,16 @@ public class ForwardPaymentConfiguration extends ForwardPaymentConfiguration_Bas
         } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    public String getImplementationCode() {
+        try {
+            return implementation().getImplementationCode();
+        } catch(Exception e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+        
+        return null;
     }
 
     // @formatter:off

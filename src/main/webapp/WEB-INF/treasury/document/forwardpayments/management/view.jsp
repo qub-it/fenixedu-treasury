@@ -1,3 +1,4 @@
+<%@page import="org.fenixedu.treasury.domain.forwardpayments.implementations.onlinepaymentsgateway.sibs.SibsOnlinePaymentsGatewayForwardImplementation"%>
 <%@page import="org.fenixedu.treasury.services.integration.TreasuryPlataformDependentServicesFactory"%>
 <%@page import="org.fenixedu.treasury.services.accesscontrol.TreasuryAccessControlAPI"%>
 <%@page import="org.fenixedu.treasury.domain.FinantialInstitution"%>
@@ -149,6 +150,22 @@ ${portal.toolkit()}
 <%
 	}
 %>
+
+<c:set var="onlinePaymentsGateway" value="<%= SibsOnlinePaymentsGatewayForwardImplementation.ONLINE_PAYMENTS_GATEWAY %>" />
+<c:if test='${forwardPayment.forwardPaymentConfiguration.getImplementationCode() eq onlinePaymentsGateway}'>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.sibsCheckoutId" /></th>
+                        <td><c:out value='${forwardPayment.sibsCheckoutId}' /></td>
+                    </tr>                    
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.sibsTransactionId" /></th>
+                        <td><c:out value='${forwardPayment.sibsTransactionId}' /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.sibsMerchantTransactionId" /></th>
+                        <td><c:out value='${forwardPayment.sibsMerchantTransactionId}' /></td>
+                    </tr>
+</c:if>
 					<tr>
                         <th scope="row" class="col-xs-3"><spring:message code="label.ForwardPayment.debitEntries" /></th>
                         <td>
@@ -207,6 +224,16 @@ ${portal.toolkit()}
 							<th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentLog.responseLogFile" /></th>
 							<td><c:out value='${log.responseLogFile.contentAsString}' /></td>
 						</tr>
+						<c:if test="${not empty log.exceptionLogFile}">
+						<tr>
+							<th scope="row" class="col-xs-3"><spring:message code="label.ForwardPaymentLog.exceptionLogFile" /></th>
+							<td>
+								<a href="${pageContext.request.contextPath}<%= ManageForwardPaymentsController.DOWNLOAD_EXCEPTION_LOG_URL %>/${log.externalId}">
+									<spring:message code="label.download" />
+								</a>
+							</td>
+						</tr>
+						</c:if>
 					</tbody>
 				</table>
 			</form>

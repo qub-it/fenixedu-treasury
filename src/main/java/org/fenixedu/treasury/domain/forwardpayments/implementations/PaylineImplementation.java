@@ -396,4 +396,9 @@ public class PaylineImplementation extends BennuWebServiceClient<WebPaymentAPI> 
         return new PostProcessPaymentStatusBean(paymentStatusBean, previousState, true);
     }
 
+    @Override
+    public String getImplementationCode() {
+        return "PAYLINE";
+    }
+
 }

@@ -30,30 +30,11 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
         setSibsOnlinePaymentsGateway(sibsOnlinePaymentsGateway);
         setOperationCode(operationCode);
 
+        setDebtAccount(debtAccount);
         setCustomerFiscalNumber(debtAccount.getCustomer().getUiFiscalNumber());
         setCustomerName(debtAccount.getCustomer().getName());
         setCustomerBusinessIdentification(debtAccount.getCustomer().getBusinessIdentification());
 
-        checkRules();
-    }
-
-    protected SibsOnlinePaymentsGatewayLog(final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final String operationCode,
-            final ForwardPayment forwardPayment) {
-
-        this();
-
-        setCreationDate(new DateTime());
-        setResponsibleUsername(TreasuryPlataformDependentServicesFactory.implementation().getLoggedUsername());
-
-        setSibsOnlinePaymentsGateway(sibsOnlinePaymentsGateway);
-        setOperationCode(operationCode);
-
-        setCustomerFiscalNumber(forwardPayment.getDebtAccount().getCustomer().getUiFiscalNumber());
-        setCustomerName(forwardPayment.getDebtAccount().getCustomer().getName());
-        setCustomerBusinessIdentification(forwardPayment.getDebtAccount().getCustomer().getBusinessIdentification());
-
-        setForwardPaymentOrderNumber(String.valueOf(forwardPayment.getOrderNumber()));
-        
         checkRules();
     }
 
@@ -68,6 +49,10 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
 
         if (Strings.isNullOrEmpty(getOperationCode())) {
             throw new TreasuryDomainException("error.SibsOnlinePaymentsGatewayLog.operationCode.required");
+        }
+        
+        if(getDebtAccount() == null) {
+            throw new TreasuryDomainException("error.SibsOnlinePaymentsGatewayLog.debtAccount.required");
         }
     }
 
@@ -104,11 +89,6 @@ public class SibsOnlinePaymentsGatewayLog extends SibsOnlinePaymentsGatewayLog_B
     public static SibsOnlinePaymentsGatewayLog createLogForRequestPaymentCode(
             final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final DebtAccount debtAccount) {
         return new SibsOnlinePaymentsGatewayLog(sibsOnlinePaymentsGateway, REQUEST_PAYMENT_CODE, debtAccount);
-    }
-
-    public static SibsOnlinePaymentsGatewayLog createLogForOnlinePaymentPrepareCheckout(
-            final SibsOnlinePaymentsGateway sibsOnlinePaymentsGateway, final ForwardPayment forwardPayment) {
-        return new SibsOnlinePaymentsGatewayLog(sibsOnlinePaymentsGateway, ONLINE_PAYMENT_PREPARE_CHECKOUT, forwardPayment);
     }
 
 }

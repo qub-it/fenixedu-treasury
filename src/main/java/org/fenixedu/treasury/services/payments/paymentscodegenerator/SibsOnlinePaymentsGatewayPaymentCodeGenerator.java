@@ -3,14 +3,8 @@ package org.fenixedu.treasury.services.payments.paymentscodegenerator;
 import java.math.BigDecimal;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.fenixedu.onlinepaymentsgateway.api.CustomerDataInputBean;
 import org.fenixedu.onlinepaymentsgateway.api.MbCheckoutResultBean;
-import org.fenixedu.onlinepaymentsgateway.api.MbPrepareCheckoutInputBean;
-import org.fenixedu.onlinepaymentsgateway.api.OnlinePaymentServiceFactory;
-import org.fenixedu.onlinepaymentsgateway.api.SIBSInitializeServiceBean;
-import org.fenixedu.onlinepaymentsgateway.api.SIBSOnlinePaymentsGatewayService;
 import org.fenixedu.onlinepaymentsgateway.exceptions.OnlinePaymentsGatewayCommunicationException;
-import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
@@ -55,38 +49,24 @@ public class SibsOnlinePaymentsGatewayPaymentCodeGenerator implements IPaymentCo
     private PaymentReferenceCode generateNewCodeFor(final DebtAccount debtAccount, final BigDecimal amount, LocalDate validFrom,
             LocalDate validTo) {
         final SibsOnlinePaymentsGateway sibsGateway = this.paymentCodePool.getSibsOnlinePaymentsGateway();
-        final String merchantId = sibsGateway.generateNewMerchantTransactionId();
+        final String merchantTransactionId = sibsGateway.generateNewMerchantTransactionId();
 
         final SibsOnlinePaymentsGatewayLog log = createLog(sibsGateway, debtAccount);
 
         try {
-            final Currency currency = this.paymentCodePool.getFinantialInstitution().getCurrency();
-
-            SIBSInitializeServiceBean sibsInitializeServiceBean = new SIBSInitializeServiceBean(sibsGateway.getSibsEntityId(),
-                    sibsGateway.getSibsEndpointUrl(), this.paymentCodePool.getEntityReferenceCode(), currency.getIsoCode());
-
-            sibsInitializeServiceBean.setBearerToken(sibsGateway.getBearerToken());
-
-            final MbPrepareCheckoutInputBean inputBean = new MbPrepareCheckoutInputBean(amount, null /* merchantId */,
-                    validFrom.toDateTimeAtStartOfDay(), validTo.toDateTimeAtStartOfDay().plusDays(1).minusSeconds(1));
-            // Customer data will not be sent due to GDPR
-            final CustomerDataInputBean customerInputBean = null;
-
-            final SIBSOnlinePaymentsGatewayService gatewayService =
-                    OnlinePaymentServiceFactory.createSIBSOnlinePaymentGatewayService(sibsInitializeServiceBean);
-
+            
             FenixFramework.atomic(() -> {
-                log.saveMerchantTransactionId(merchantId);
+                log.saveMerchantTransactionId(merchantTransactionId);
                 log.logRequestSendDate();
             });
 
-            final MbCheckoutResultBean requestResult = gatewayService.generateMBPaymentReference(inputBean, customerInputBean);
+            final MbCheckoutResultBean requestResult =
+                    sibsGateway.generateMBPaymentReference(amount, validFrom.toDateTimeAtStartOfDay(),
+                            validTo.toDateTimeAtStartOfDay().plusDays(1).minusSeconds(1), merchantTransactionId);
 
             FenixFramework.atomic(() -> {
-                log.logRequestReceiveDateAndData(requestResult.getId(), requestResult.isOperationSuccess(),
-                        true /*  requestResult.isPaid() */ );
+                log.logRequestReceiveDateAndData(requestResult.getTransactionId(), requestResult.isOperationSuccess(), false);
                 log.saveRequestAndResponsePayload(requestResult.getRequestLog(), requestResult.getResponseLog());
-
             });
 
             if (!requestResult.isOperationSuccess()) {
@@ -102,31 +82,24 @@ public class SibsOnlinePaymentsGatewayPaymentCodeGenerator implements IPaymentCo
             }
 
             return createPaymentReferenceCode(amount, validFrom, validTo, log, paymentCode);
-
         } catch (final Exception e) {
-            e.printStackTrace();
+            final boolean isOnlinePaymentsGatewayException = e instanceof OnlinePaymentsGatewayCommunicationException;
 
-            final String exceptionLog = String.format("%s\n%s", ExceptionUtils.getFullStackTrace(e), e.getLocalizedMessage());
+            final String exceptionLog = String.format("%s\n%s", e.getLocalizedMessage(), ExceptionUtils.getFullStackTrace(e));
 
             FenixFramework.atomic(() -> {
 
                 log.logRequestReceiveDateAndData(null, false, false);
                 log.markExceptionOccuredAndSaveLog(exceptionLog);
 
-                if (e instanceof OnlinePaymentsGatewayCommunicationException) {
+                if (isOnlinePaymentsGatewayException) {
                     log.saveRequestAndResponsePayload(((OnlinePaymentsGatewayCommunicationException) e).getRequestLog(),
                             ((OnlinePaymentsGatewayCommunicationException) e).getResponseLog());
                 }
-                
             });
 
-            if (e instanceof OnlinePaymentsGatewayCommunicationException) {
-                throw new TreasuryDomainException(
-                        "error.SibsOnlinePaymentsGatewayPaymentCodeGenerator.generateNewCodeFor.gateway.communication");
-            } else {
-                throw new TreasuryDomainException(
-                        "error.SibsOnlinePaymentsGatewayPaymentCodeGenerator.generateNewCodeFor.unknown");
-            }
+            throw new TreasuryDomainException(e,
+                    isOnlinePaymentsGatewayException ? "error.SibsOnlinePaymentsGatewayPaymentCodeGenerator.generateNewCodeFor.gateway.communication" : "error.SibsOnlinePaymentsGatewayPaymentCodeGenerator.generateNewCodeFor.unknown");
         }
 
     }
