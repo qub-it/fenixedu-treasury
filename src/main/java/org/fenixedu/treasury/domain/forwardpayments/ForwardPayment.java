@@ -464,7 +464,7 @@ public class ForwardPayment extends ForwardPayment_Base {
             final Function<ForwardPayment, String> insuccessUrlFunction) {
         final DebtAccount debtAccount = bean.getDebtAccount();
         final ForwardPaymentConfiguration forwardPaymentConfiguration =
-                ForwardPaymentConfiguration.find(bean.getDebtAccount().getFinantialInstitution()).get();
+                ForwardPaymentConfiguration.findUniqueActive(bean.getDebtAccount().getFinantialInstitution()).get();
 
         final Set<DebitEntry> debitEntriesToPay = new HashSet<>();
         for (final DebitEntryBean debitEntryBean : bean.getDebitEntries()) {
