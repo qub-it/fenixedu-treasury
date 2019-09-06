@@ -28,12 +28,18 @@
 package org.fenixedu.treasury.services.payments.paymentscodegenerator;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.fenixedu.treasury.domain.Customer;
+import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.debt.DebtAccount;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCode;
 import org.fenixedu.treasury.domain.paymentcodes.PaymentReferenceCodeStateType;
+import org.fenixedu.treasury.domain.paymentcodes.UnusedPaymentCodesBucket;
 import org.fenixedu.treasury.domain.paymentcodes.pool.PaymentCodePool;
 import org.fenixedu.treasury.dto.document.managepayments.PaymentReferenceCodeBean;
 import org.joda.time.LocalDate;
@@ -60,6 +66,60 @@ public class SequentialPaymentWithCheckDigitCodeGenerator implements IPaymentCod
     public PaymentReferenceCode generateNewCodeFor(final BigDecimal amount, LocalDate validFrom, LocalDate validTo,
             boolean useFixedAmount) {
         return generateNewCodeFor(amount, validFrom, validTo, useFixedAmount, false);
+    }
+
+    private PaymentReferenceCode findNewReferenceCodeWithCustomerBusinessId(final DebtAccount debtAccount,
+            final BigDecimal amount, LocalDate validFrom, LocalDate validTo, boolean useFixedAmount) {
+        if (!debtAccount.getCustomer().isPersonCustomer()) {
+            return null;
+        }
+
+        for (Customer customer : debtAccount.getCustomer().getAllCustomers()) {
+            final DebtAccount db = customer.getDebtAccountFor(debtAccount.getFinantialInstitution());
+            if (db == null) {
+                continue;
+            }
+
+            final Optional<PaymentReferenceCode> findNewPaymentReferenceCode =
+                    findNewPaymentReferenceCodePreAllocatedInSomeBucket(db);
+            if (findNewPaymentReferenceCode.isPresent()) {
+                final PaymentReferenceCode paymentReferenceCode = findNewPaymentReferenceCode.get();
+
+                useNewReferenceCode(amount, useFixedAmount, paymentReferenceCode);
+
+                return paymentReferenceCode;
+            }
+
+        }
+
+        // Fall to new reference codes not allocated to any debt account
+        final Optional<PaymentReferenceCode> findNewPaymentReferenceCode = findNewPaymentReferenceCode();
+        if (findNewPaymentReferenceCode.isPresent()) {
+            final PaymentReferenceCode paymentReferenceCode = findNewPaymentReferenceCode.get();
+
+            useNewReferenceCode(amount, useFixedAmount, paymentReferenceCode);
+
+            return paymentReferenceCode;
+        }
+
+        return null;
+    }
+
+    private void useNewReferenceCode(final BigDecimal amount, boolean useFixedAmount,
+            final PaymentReferenceCode paymentReferenceCode) {
+        Long nextReferenceCode = Long.parseLong(paymentReferenceCode.getReferenceCodeWithoutCheckDigits());
+
+        final String referenceCodeString = CheckDigitGenerator
+                .generateReferenceCodeWithCheckDigit(referenceCodePool.getEntityReferenceCode(), "" + nextReferenceCode, amount);
+
+        BigDecimal minAmount = referenceCodePool.getMinAmount();
+        BigDecimal maxAmount = referenceCodePool.getMaxAmount();
+        if (useFixedAmount) {
+            minAmount = amount;
+            maxAmount = amount;
+        }
+
+        paymentReferenceCode.useNewReferenceCodeWithAmountAndCheckDigit(referenceCodeString, minAmount, maxAmount, amount);
     }
 
     @Atomic
@@ -103,6 +163,41 @@ public class SequentialPaymentWithCheckDigitCodeGenerator implements IPaymentCod
         return newPaymentReference;
     }
 
+    private Optional<PaymentReferenceCode> findNewPaymentReferenceCodePreAllocatedInSomeBucket(DebtAccount debtAccount) {
+        {
+            List<UnusedPaymentCodesBucket> bucketList = UnusedPaymentCodesBucket.findAll()
+                    .sorted(UnusedPaymentCodesBucket.COMPARE_BY_BUCKET_INDEX).collect(Collectors.toList());
+
+            if (bucketList.isEmpty()) {
+                return Optional.empty();
+            }
+
+            int bucketIndexToUse = (int) (Long.valueOf(debtAccount.getExternalId()) % bucketList.size());
+
+            final List<PaymentReferenceCode> list = bucketList.get(bucketIndexToUse).getPreAllocatedPaymentReferenceCodesSet()
+                    .stream().filter(p -> p.getPaymentCodePool() == this.referenceCodePool).filter(p -> p.isNew())
+                    .filter(p -> p.getTargetPayment() == null).collect(Collectors.toList());
+
+            if (!list.isEmpty()) {
+                return Optional.of(list.get(0));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<PaymentReferenceCode> findNewPaymentReferenceCode() {
+        final List<PaymentReferenceCode> list = this.referenceCodePool.getPaymentReferenceCodesSet().stream()
+                .filter(p -> p.isNew()).filter(p -> p.getTargetPayment() == null)
+                .collect(Collectors.toList());
+
+        if (!list.isEmpty()) {
+            return Optional.of(list.get(0));
+        }
+
+        return Optional.empty();
+    }
+
     protected Set<PaymentReferenceCode> allPaymentCodes(PaymentCodePool referenceCodePool) {
         return referenceCodePool.getPaymentReferenceCodesSet();
     }
@@ -110,12 +205,16 @@ public class SequentialPaymentWithCheckDigitCodeGenerator implements IPaymentCod
     @Override
     @Atomic
     public PaymentReferenceCode createPaymentReferenceCode(final DebtAccount debtAccount, final PaymentReferenceCodeBean bean) {
-        final PaymentReferenceCode paymentReferenceCode =
-                generateNewCodeFor(
-                                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
-                                bean.getPaymentCodePool().getIsFixedAmount());
+        PaymentReferenceCode paymentReferenceCode = findNewReferenceCodeWithCustomerBusinessId(debtAccount,
+                bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(), bean.getPaymentCodePool().getIsFixedAmount());
+
+        if (paymentReferenceCode == null) {
+            paymentReferenceCode = generateNewCodeFor(bean.getPaymentAmount(), bean.getBeginDate(), bean.getEndDate(),
+                    bean.getPaymentCodePool().getIsFixedAmount());
+        }
 
         paymentReferenceCode.createPaymentTargetTo(Sets.newHashSet(bean.getSelectedDebitEntries()), bean.getPaymentAmount());
+
         return paymentReferenceCode;
     }
 

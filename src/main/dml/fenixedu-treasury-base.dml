@@ -697,6 +697,30 @@ class paymentcodes.pool.PaymentCodePool  {
 		}
 	}
 	
+class paymentcodes.UnusedPaymentCodesBucket {
+	int bucketIndex;
+}
+
+	relation UnusedPaymentCodesBucketDomainRoot {
+	    .pt.ist.fenixframework.DomainRoot playsRole domainRoot {
+	        multiplicity 1..1;
+	    }
+		
+		paymentcodes.UnusedPaymentCodesBucket playsRole unusedPaymentCodesBuckets {
+			multiplicity *;
+		}
+	}
+	
+	relation PreAllocatedPaymentReferenceCodeUnusedPaymentCodesBucket {
+		paymentcodes.UnusedPaymentCodesBucket playsRole unusedPaymentCodesBucket {
+			multiplicity 0..1;
+		}
+		
+        paymentcodes.PaymentReferenceCode playsRole preAllocatedPaymentReferenceCodes {
+            multiplicity *;
+        }
+	}
+	
 class paymentcodes.pool.PaymentCodeGeneratorInstance {
 	String name;
 	String implementationClassName;

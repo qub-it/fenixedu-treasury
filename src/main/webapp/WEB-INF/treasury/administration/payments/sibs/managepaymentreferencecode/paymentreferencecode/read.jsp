@@ -82,8 +82,6 @@ ${portal.toolkit()}
     |&nbsp;<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;<a class="" href="#" data-toggle="modal" data-target="#anullModal"><spring:message
                 code="label.annull" /></a>
     </c:if>
-    <!--&nbsp;|&nbsp;<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;<a class="" href="${pageContext.request.contextPath}/treasury/administration/payments/sibs/managepaymentreferencecode/paymentreferencecode/update/${paymentReferenceCode.externalId}"  ><spring:message code="label.event.update" /></a>
-&nbsp; -->
 </div>
 
 <c:if test="${not empty infoMessages}">

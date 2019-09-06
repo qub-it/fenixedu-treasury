@@ -54,7 +54,6 @@ import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -82,6 +81,11 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         setSibsMerchantTransactionId(sibsMerchantTransactionId);
         setSibsReferenceId(sibsReferenceId);
 
+        if (findByReferenceCode(this.getPaymentCodePool().getEntityReferenceCode(), getReferenceCode(),
+                this.getPaymentCodePool().getFinantialInstitution()).count() > 1) {
+            throw new TreasuryDomainException("error.PaymentReferenceCode.referenceCode.duplicated");
+        }
+        
         checkRules();
     }
 
@@ -95,13 +99,9 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
         if (this.getMinAmount() == null) {
             this.setMinAmount(BigDecimal.ZERO);
         }
+        
         if (this.getMaxAmount() == null) {
             this.setMaxAmount(BigDecimal.ZERO);
-        }
-
-        if (findByReferenceCode(this.getPaymentCodePool().getEntityReferenceCode(), getReferenceCode(),
-                this.getPaymentCodePool().getFinantialInstitution()).count() > 1) {
-            throw new TreasuryDomainException("error.PaymentReferenceCode.referenceCode.duplicated");
         }
 
         if (getPaymentCodePool().getPaymentCodeGenerator().isSibsMerchantTransactionAndReferenceIdRequired()
@@ -113,16 +113,6 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
                 && StringUtils.isEmpty(getSibsReferenceId())) {
             throw new TreasuryDomainException("error.PaymentReferenceCode.sibsReferenceId.required");
         }
-    }
-
-    @Atomic
-    public void edit(final String referenceCode, final LocalDate beginDate, final LocalDate endDate,
-            final PaymentReferenceCodeStateType state) {
-        setReferenceCode(referenceCode);
-        setBeginDate(beginDate);
-        setEndDate(endDate);
-        setState(state);
-        checkRules();
     }
 
     public boolean isDeletable() {
@@ -137,9 +127,36 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
 
         setPaymentCodePool(null);
         setTargetPayment(null);
+        setUnusedPaymentCodesBucket(null);
         deleteDomainObject();
     }
 
+    public void useNewReferenceCodeWithAmountAndCheckDigit(final String referenceCodeWithCheckDigit, final BigDecimal minAmount, final BigDecimal maxAmount,
+            final BigDecimal payableAmount) {
+        if(!Boolean.TRUE.equals(getPaymentCodePool().getUseCheckDigit())) {
+            throw new TreasuryDomainException("error.PaymentReferenceCode.editReferenceCodeWithCheckDigit.only.applied.to.checkDigit");
+        }
+        
+        if(!getReferenceCode().substring(0, 7).equals(referenceCodeWithCheckDigit.substring(0, 7))) {
+            throw new TreasuryDomainException("error.PaymentReferenceCode.editReferenceCodeWithCheckDigit.referenceCode.invalid");
+        }
+        
+        if(!isNew()) {
+            throw new TreasuryDomainException("error.PaymentReferenceCode.editReferenceCodeWithCheckDigit.is.not.new");
+        }
+        
+        if(getTargetPayment() != null) {
+            throw new TreasuryDomainException("error.PaymentReferenceCode.editReferenceCodeWithCheckDigit.target.not.null");
+        }
+        
+        setMinAmount(minAmount);
+        setMaxAmount(maxAmount);
+        setPayableAmount(payableAmount);
+        setReferenceCode(referenceCodeWithCheckDigit);
+        setUnusedPaymentCodesBucket(null);
+        setState(PaymentReferenceCodeStateType.USED);
+    }
+    
     @Atomic
     public static PaymentReferenceCode create(final String referenceCode, final LocalDate beginDate, final LocalDate endDate,
             final PaymentReferenceCodeStateType state, PaymentCodePool pool, BigDecimal minAmount, BigDecimal maxAmount) {
@@ -230,15 +247,6 @@ public class PaymentReferenceCode extends PaymentReferenceCode_Base {
 
         return result.charAt(result.length() - 1) == ' ' ? result.deleteCharAt(result.length() - 1).toString() : result
                 .toString();
-    }
-
-    @Override
-    public void setReferenceCode(String code) {
-//        if (getReferenceCode() == null) {
-        super.setReferenceCode(code);
-//        } else if (code != getReferenceCode()) {
-//            throw new TreasuryDomainException("error.accounting.PaymentCode.cannot.modify.code");
-//        }
     }
 
     @Atomic

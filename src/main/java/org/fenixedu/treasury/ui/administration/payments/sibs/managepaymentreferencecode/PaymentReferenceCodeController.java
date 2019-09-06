@@ -216,49 +216,6 @@ public class PaymentReferenceCodeController extends TreasuryBaseController {
         return paymentReferenceCode;
     }
 
-    private static final String _UPDATE_URI = "/update/";
-    public static final String UPDATE_URL = CONTROLLER_URL + _UPDATE_URI;
-
-    @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.GET)
-    public String update(@PathVariable("oid") PaymentReferenceCode paymentReferenceCode, Model model) {
-        model.addAttribute("stateValues", PaymentReferenceCodeStateType.values());
-        setPaymentReferenceCode(paymentReferenceCode, model);
-        return "treasury/administration/payments/sibs/managepaymentreferencecode/paymentreferencecode/update";
-    }
-
-    @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(@PathVariable("oid") PaymentReferenceCode paymentReferenceCode, @RequestParam(value = "referencecode",
-            required = false) String referenceCode, @RequestParam(value = "begindate", required = false) @DateTimeFormat(
-            pattern = "yyyy-MM-dd") LocalDate beginDate, @RequestParam(value = "enddate", required = false) @DateTimeFormat(
-            pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(value = "state", required = false) PaymentReferenceCodeStateType state, Model model,
-            RedirectAttributes redirectAttributes) {
-
-        setPaymentReferenceCode(paymentReferenceCode, model);
-
-        try {
-            assertUserIsFrontOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
-
-            assertUserIsBackOfficeMember(paymentReferenceCode.getPaymentCodePool().getFinantialInstitution(), model);
-
-            updatePaymentReferenceCode(referenceCode, beginDate, endDate, state, model);
-            addInfoMessage(treasuryBundle("label.success.update"), model);
-
-            return redirect(READ_URL + getPaymentReferenceCode(model).getExternalId(), model, redirectAttributes);
-        } catch (TreasuryDomainException tex) {
-            addErrorMessage(treasuryBundle("label.error.update") + tex.getLocalizedMessage(), model);
-        } catch (Exception ex) {
-            addErrorMessage(treasuryBundle("label.error.update") + ex.getLocalizedMessage(), model);
-        }
-        return update(paymentReferenceCode, model);
-    }
-
-    @Atomic
-    public void updatePaymentReferenceCode(String referenceCode, LocalDate beginDate, LocalDate endDate,
-            PaymentReferenceCodeStateType state, Model model) {
-        getPaymentReferenceCode(model).edit(referenceCode, beginDate, endDate, state);
-    }
-
     @RequestMapping(value = "/read/{oid}/anull", method = RequestMethod.POST)
     public String processReadToAnull(@PathVariable("oid") PaymentReferenceCode paymentReferenceCode, Model model,
             RedirectAttributes redirectAttributes) {
