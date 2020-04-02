@@ -234,7 +234,7 @@ public class ERPIntegrationService extends BennuWebService {
 
         final DebitEntry debitEntry = (DebitEntry) finantialDocumentEntry;
 
-        final BigDecimal amountInDebt = debitEntry.amountInDebt(interestRequest.convertPaymentDateToLocalDate());
+        final BigDecimal amountInDebt = debitEntry.getAmountInDebt(interestRequest.convertPaymentDateToLocalDate());
 
         if (!TreasuryConstants.isPositive(amountInDebt)) {
             throw new RuntimeException(treasuryBundle("error.ERPIntegrationService.debit.entry.with.no.debt",

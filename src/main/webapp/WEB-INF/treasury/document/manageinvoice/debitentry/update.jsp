@@ -334,16 +334,6 @@ ${portal.angularToolkit()}
                 </div>
             </div>
 
-            <div class="form-group row" ng-show="object.applyInterests && object.interestRate.interestType=='MONTHLY'">
-                <div class="col-sm-2 control-label">
-                    <spring:message code="label.InterestRate.maximumMonthsToApplyPenalty" />
-                </div>
-                <div class="col-sm-4">
-                    <input id="debitEntry_maximumMonthsToApplyPenalty" class="form-control" type="text" ng-model="object.interestRate.maximumMonthsToApplyPenalty"
-                        name="maximumMonthsToApplyPenalty" pattern="^\d+$" />
-                </div>
-            </div>
-
             <div class="form-group row" ng-show="object.applyInterests && object.interestRate.interestType=='FIXED_AMOUNT'">
                 <div class="col-sm-2 control-label">
                     <spring:message code="label.InterestRate.interestFixedAmount" />

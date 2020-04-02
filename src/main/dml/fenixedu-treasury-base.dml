@@ -516,13 +516,13 @@ class tariff.InterestRate {
 	int numberOfDaysAfterDueDate;
 	boolean applyInFirstWorkday;
 	int maximumDaysToApplyPenalty;
-	int maximumMonthsToApplyPenalty;
 	BigDecimalT interestFixedAmount;
 	BigDecimalT rate;
 }
 
 class tariff.GlobalInterestRate {
     int year;
+    LocalDate firstDay;
     LocalizedString description;
     BigDecimalT rate;
     boolean applyPaymentMonth;

@@ -310,7 +310,7 @@ public class DebitEntryController extends TreasuryBaseController {
         if (applyInterests) {
             InterestRate interestRate = InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
                     interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
-                    interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
+                    interestRateBean.getMaximumDaysToApplyPenalty(),
                     interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
             debitEntry.changeInterestRate(interestRate);
         }
@@ -416,14 +416,14 @@ public class DebitEntryController extends TreasuryBaseController {
             if (debitEntry.getInterestRate() == null) {
                 InterestRate interestRate = InterestRate.createForDebitEntry(debitEntry, interestRateBean.getInterestType(),
                         interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
-                        interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
+                        interestRateBean.getMaximumDaysToApplyPenalty(),
                         interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
 
             } else {
                 InterestRate rate = debitEntry.getInterestRate();
                 rate.edit(interestRateBean.getInterestType(), interestRateBean.getNumberOfDaysAfterDueDate(),
                         interestRateBean.getApplyInFirstWorkday(), interestRateBean.getMaximumDaysToApplyPenalty(),
-                        interestRateBean.getMaximumMonthsToApplyPenalty(), interestRateBean.getInterestFixedAmount(),
+                        interestRateBean.getInterestFixedAmount(),
                         interestRateBean.getRate());
             }
         } else {

@@ -185,7 +185,7 @@ public class FixedTariffController extends TreasuryBaseController {
             interestRate =
                     InterestRate.createForTariff(fixedTariff, interestRateBean.getInterestType(),
                             interestRateBean.getNumberOfDaysAfterDueDate(), interestRateBean.getApplyInFirstWorkday(),
-                            interestRateBean.getMaximumDaysToApplyPenalty(), interestRateBean.getMaximumMonthsToApplyPenalty(),
+                            interestRateBean.getMaximumDaysToApplyPenalty(),
                             interestRateBean.getInterestFixedAmount(), interestRateBean.getRate());
             fixedTariff.setInterestRate(interestRate);
             fixedTariff.setApplyInterests(true);

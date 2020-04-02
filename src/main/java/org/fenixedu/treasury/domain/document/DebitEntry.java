@@ -46,6 +46,8 @@ import java.util.stream.Stream;
 
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.security.Authenticate;
+import org.fenixedu.bennu.core.util.CoreConfiguration;
+import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.treasury.domain.Customer;
 import org.fenixedu.treasury.domain.FinantialInstitution;
 import org.fenixedu.treasury.domain.Product;
@@ -228,8 +230,7 @@ public class DebitEntry extends DebitEntry_Base {
             return new InterestRateBean();
         }
 
-        return this.getInterestRate().calculateInterest(amountInDebtMap(whenToCalculate),
-                Maps.<LocalDate, BigDecimal> newHashMap(), getDueDate(), whenToCalculate);
+        return this.getInterestRate().calculateInterests(whenToCalculate, true);
     }
 
     public InterestRateBean calculateUndebitedInterestValue(final LocalDate whenToCalculate) {
@@ -241,10 +242,10 @@ public class DebitEntry extends DebitEntry_Base {
             return new InterestRateBean();
         }
 
-        InterestRateBean calculateInterest = getInterestRate().calculateInterest(amountInDebtMap(whenToCalculate),
-                createdInterestEntriesMap(), getDueDate(), whenToCalculate);
+        InterestRateBean calculateInterest = getInterestRate().calculateInterests(whenToCalculate, false);
 
-        calculateInterest.setDescription(treasuryBundle(TreasuryConstants.DEFAULT_LANGUAGE, "label.InterestRateBean.interest.designation", getDescription()));
+        calculateInterest.setDescription(treasuryBundle(TreasuryConstants.DEFAULT_LANGUAGE,
+                "label.InterestRateBean.interest.designation", getDescription()));
 
         return calculateInterest;
     }
@@ -494,18 +495,19 @@ public class DebitEntry extends DebitEntry_Base {
 
         SettlementEntry.create(creditEntry, settlementNote, creditEntry.getOpenAmount(),
                 reasonDescription + ": " + creditEntry.getDescription(), now, false);
-        SettlementEntry.create(this, settlementNote, creditEntry.getOpenAmount(),
-                reasonDescription + ": " + getDescription(), now, false);
+        SettlementEntry.create(this, settlementNote, creditEntry.getOpenAmount(), reasonDescription + ": " + getDescription(),
+                now, false);
 
-        if (TreasurySettings.getInstance().isRestrictPaymentMixingLegacyInvoices() &&
-                getFinantialDocument().isExportedInLegacyERP() != creditEntry.getFinantialDocument().isExportedInLegacyERP()) {
+        if (TreasurySettings.getInstance().isRestrictPaymentMixingLegacyInvoices()
+                && getFinantialDocument().isExportedInLegacyERP() != creditEntry.getFinantialDocument().isExportedInLegacyERP()) {
             throw new TreasuryDomainException("error.DebitEntry.closeCreditEntryIfPossible.exportedInLegacyERP.not.same");
         }
-        
-        if(((Invoice) getFinantialDocument()).getPayorDebtAccount() != ((Invoice) getFinantialDocument()).getPayorDebtAccount()) {
+
+        if (((Invoice) getFinantialDocument()).getPayorDebtAccount() != ((Invoice) getFinantialDocument())
+                .getPayorDebtAccount()) {
             throw new TreasuryDomainException("error.DebitEntry.closeCreditEntryIfPossible.payorDebtAccount.not.same");
         }
-        
+
         if (TreasurySettings.getInstance().isRestrictPaymentMixingLegacyInvoices()
                 && getFinantialDocument().isExportedInLegacyERP()) {
             settlementNote.setExportedInLegacyERP(true);
@@ -514,13 +516,13 @@ public class DebitEntry extends DebitEntry_Base {
 
         settlementNote.closeDocument();
     }
-    
+
     public boolean isExportedInERPAndInRestrictedPaymentMixingLegacyInvoices() {
-        return TreasurySettings.getInstance().isRestrictPaymentMixingLegacyInvoices() && getFinantialDocument() != null &&
-                getFinantialDocument().isExportedInLegacyERP();
+        return TreasurySettings.getInstance().isRestrictPaymentMixingLegacyInvoices() && getFinantialDocument() != null
+                && getFinantialDocument().isExportedInLegacyERP();
     }
 
-    public BigDecimal amountInDebt(final LocalDate paymentDate) {
+    public BigDecimal getAmountInDebt(final LocalDate paymentDate) {
         final Set<SettlementEntry> entries = new TreeSet<SettlementEntry>(SettlementEntry.COMPARATOR_BY_ENTRY_DATE_TIME);
 
         entries.addAll(getSettlementEntriesSet());
@@ -615,38 +617,6 @@ public class DebitEntry extends DebitEntry_Base {
         }
 
         return settlementNote.get().getPaymentDate();
-    }
-
-    private Map<LocalDate, BigDecimal> amountInDebtMap(final LocalDate paymentDate) {
-        final Map<LocalDate, BigDecimal> result = new HashMap<LocalDate, BigDecimal>();
-
-        final Set<LocalDate> eventDates = Sets.newHashSet();
-
-        eventDates.add(getDueDate());
-
-        for (final SettlementEntry settlementEntry : getSettlementEntriesSet()) {
-            if (!settlementEntry.isAnnulled()) {
-                eventDates.add(settlementEntry.getEntryDateTime().toLocalDate());
-            }
-        }
-
-        for (LocalDate date : eventDates) {
-            result.put(date, amountInDebt(date));
-        }
-
-        return result;
-    }
-
-    private Map<LocalDate, BigDecimal> createdInterestEntriesMap() {
-        final Map<LocalDate, BigDecimal> result = Maps.newHashMap();
-
-        for (final DebitEntry interestDebitEntry : getInterestDebitEntriesSet()) {
-            if (!interestDebitEntry.isAnnulled()) {
-                result.put(interestDebitEntry.getEntryDateTime().toLocalDate(), interestDebitEntry.getAmountWithVat());
-            }
-        }
-
-        return result;
     }
 
     public void editAmount(final BigDecimal amount) {
@@ -972,14 +942,14 @@ public class DebitEntry extends DebitEntry_Base {
             openDebitEntry.closeCreditEntryIfPossible(reason, now, openCreditEntry);
         }
     }
-    
+
     @Atomic
     public void removeFromDocument() {
-        if(getFinantialDocument() == null || !getFinantialDocument().isPreparing()) {
+        if (getFinantialDocument() == null || !getFinantialDocument().isPreparing()) {
             throw new TreasuryDomainException("error.DebitEntry.removeFromDocument.invalid.state");
         }
-        
+
         setFinantialDocument(null);
     }
-    
+
 }

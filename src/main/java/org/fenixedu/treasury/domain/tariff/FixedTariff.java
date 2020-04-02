@@ -51,13 +51,13 @@ public class FixedTariff extends FixedTariff_Base {
             final DateTime endDate, final BigDecimal amount, final DueDateCalculationType dueDateCalculationType,
             final LocalDate fixedDueDate, final int numberOfDaysAfterCreationForDueDate, final boolean applyInterests,
             final InterestType interestType, final int numberOfDaysAfterDueDate, final boolean applyInFirstWorkday,
-            final int maximumDaysToApplyPenalty, final int maximumMonthsToApplyPenalty, final BigDecimal interestFixedAmount,
+            final int maximumDaysToApplyPenalty, final BigDecimal interestFixedAmount,
             final BigDecimal rate) {
         super();
 
         init(finantialEntity, product, beginDate, endDate, amount, dueDateCalculationType, fixedDueDate,
                 numberOfDaysAfterCreationForDueDate, applyInterests, interestType, numberOfDaysAfterDueDate, applyInFirstWorkday,
-                maximumDaysToApplyPenalty, maximumMonthsToApplyPenalty, interestFixedAmount, rate);
+                maximumDaysToApplyPenalty, interestFixedAmount, rate);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class FixedTariff extends FixedTariff_Base {
             final DateTime endDate, final DueDateCalculationType dueDateCalculationType, final LocalDate fixedDueDate,
             final int numberOfDaysAfterCreationForDueDate, final boolean applyInterests, final InterestType interestType,
             final int numberOfDaysAfterDueDate, final boolean applyInFirstWorkday, final int maximumDaysToApplyPenalty,
-            final int maximumMonthsToApplyPenalty, final BigDecimal interestFixedAmount, final BigDecimal rate) {
+            final BigDecimal interestFixedAmount, final BigDecimal rate) {
         throw new RuntimeException("error.FixedTariff.use.init.with.amount");
     }
 
@@ -73,10 +73,10 @@ public class FixedTariff extends FixedTariff_Base {
             final DateTime endDate, final BigDecimal amount, final DueDateCalculationType dueDateCalculationType,
             LocalDate fixedDueDate, int numberOfDaysAfterCreationForDueDate, boolean applyInterests, InterestType interestType,
             int numberOfDaysAfterDueDate, boolean applyInFirstWorkday, int maximumDaysToApplyPenalty,
-            int maximumMonthsToApplyPenalty, BigDecimal interestFixedAmount, BigDecimal rate) {
+            BigDecimal interestFixedAmount, BigDecimal rate) {
         super.init(finantialEntity, product, beginDate, endDate, dueDateCalculationType, fixedDueDate,
                 numberOfDaysAfterCreationForDueDate, applyInterests, interestType, numberOfDaysAfterDueDate, applyInFirstWorkday,
-                maximumDaysToApplyPenalty, maximumMonthsToApplyPenalty, interestFixedAmount, rate);
+                maximumDaysToApplyPenalty, interestFixedAmount, rate);
 
         setAmount(amount);
         checkRules();
@@ -140,7 +140,7 @@ public class FixedTariff extends FixedTariff_Base {
                 InterestRate rate =
                         InterestRate.createForTariff(this, rateBean.getInterestType(), rateBean.getNumberOfDaysAfterDueDate(),
                                 rateBean.getApplyInFirstWorkday(), rateBean.getMaximumDaysToApplyPenalty(),
-                                rateBean.getMaximumMonthsToApplyPenalty(), rateBean.getInterestFixedAmount(), rateBean.getRate());
+                                rateBean.getInterestFixedAmount(), rateBean.getRate());
                 setInterestRate(rate);
             } else {
                 InterestRate rate = getInterestRate();
@@ -148,7 +148,6 @@ public class FixedTariff extends FixedTariff_Base {
                 rate.setInterestFixedAmount(rateBean.getInterestFixedAmount());
                 rate.setInterestType(rateBean.getInterestType());
                 rate.setMaximumDaysToApplyPenalty(rateBean.getMaximumDaysToApplyPenalty());
-                rate.setMaximumMonthsToApplyPenalty(rateBean.getMaximumDaysToApplyPenalty());
                 rate.setNumberOfDaysAfterDueDate(rateBean.getNumberOfDaysAfterDueDate());
                 rate.setRate(rateBean.getRate());
             }

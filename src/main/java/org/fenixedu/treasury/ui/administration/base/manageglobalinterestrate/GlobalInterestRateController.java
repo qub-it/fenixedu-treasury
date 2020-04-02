@@ -41,6 +41,9 @@ import org.fenixedu.treasury.domain.tariff.GlobalInterestRate;
 import org.fenixedu.treasury.ui.TreasuryBaseController;
 import org.fenixedu.treasury.ui.TreasuryController;
 import org.fenixedu.treasury.util.TreasuryConstants;
+import org.joda.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,8 +84,8 @@ public class GlobalInterestRateController extends TreasuryBaseController {
     public static final String SEARCH_URL = CONTROLLER_URL + _SEARCH_URI;
 
     @RequestMapping(value = _SEARCH_URI)
-    public String search(@RequestParam(value = "description", required = false) LocalizedString description, @RequestParam(
-            value = "rate", required = false) BigDecimal rate, Model model) {
+    public String search(@RequestParam(value = "description", required = false) LocalizedString description,
+            @RequestParam(value = "rate", required = false) BigDecimal rate, Model model) {
         List<GlobalInterestRate> searchglobalinterestrateResultsDataSet = filterSearchGlobalInterestRate(description, rate);
 
         model.addAttribute("searchglobalinterestrateResultsDataSet", searchglobalinterestrateResultsDataSet);
@@ -96,16 +99,13 @@ public class GlobalInterestRateController extends TreasuryBaseController {
     private List<GlobalInterestRate> filterSearchGlobalInterestRate(LocalizedString description, BigDecimal rate) {
 
         return getSearchUniverseSearchGlobalInterestRateDataSet()
-                .filter(globalInterestRate -> description == null
-                        || description.isEmpty()
-                        || description
-                                .getLocales()
-                                .stream()
-                                .allMatch(
-                                        locale -> globalInterestRate.getDescription().getContent(locale) != null
-                                                && globalInterestRate.getDescription().getContent(locale).toLowerCase()
-                                                        .contains(description.getContent(locale).toLowerCase())))
+                .filter(globalInterestRate -> description == null || description.isEmpty()
+                        || description.getLocales().stream()
+                                .allMatch(locale -> globalInterestRate.getDescription().getContent(locale) != null
+                                        && globalInterestRate.getDescription().getContent(locale).toLowerCase()
+                                                .contains(description.getContent(locale).toLowerCase())))
                 .filter(globalInterestRate -> rate == null || rate.equals(globalInterestRate.getRate()))
+                .sorted(GlobalInterestRate.FIRST_DATE_COMPARATOR.reversed())
                 .collect(Collectors.toList());
     }
 
@@ -161,34 +161,27 @@ public class GlobalInterestRateController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = _CREATE_URI, method = RequestMethod.POST)
-    public String create(@RequestParam(value = "year", required = false) int year, @RequestParam(value = "description",
-            required = false) LocalizedString description, @RequestParam(value = "rate", required = false) BigDecimal rate,
-            @RequestParam(value = "applypaymentmonth", required = false) boolean applyPaymentMonth, @RequestParam(
-                    value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, Model model,
+    public String create(
+            @RequestParam(value = "firstDay", required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate firstDay,
+            @RequestParam(value = "description", required = false) LocalizedString description,
+            @RequestParam(value = "rate", required = false) BigDecimal rate,
+            @RequestParam(value = "applypaymentmonth", required = false) boolean applyPaymentMonth,
+            @RequestParam(value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, Model model,
             RedirectAttributes redirectAttributes) {
         try {
             assertUserIsBackOfficeMember(model);
 
             GlobalInterestRate globalInterestRate =
-                    createGlobalInterestRate(year, description, rate, applyPaymentMonth, applyInFirstWorkday);
-
+                    GlobalInterestRate.create(firstDay, description, rate, applyPaymentMonth, applyInFirstWorkday);
+            
             model.addAttribute("globalInterestRate", globalInterestRate);
             return redirect(READ_URL + getGlobalInterestRate(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
-            addErrorMessage(treasuryBundle("label.error.create") + tde.getLocalizedMessage(), model);
+            addErrorMessage(tde.getLocalizedMessage(), model);
         } catch (Exception ex) {
-            addErrorMessage(treasuryBundle("label.error.create") + ex.getLocalizedMessage(), model);
+            addErrorMessage(ex.getLocalizedMessage(), model);
         }
         return create(model);
-    }
-
-    @Atomic
-    public GlobalInterestRate createGlobalInterestRate(int year, LocalizedString description, BigDecimal rate,
-            boolean applyPaymentMonth, boolean applyInFirstWorkday) {
-
-        GlobalInterestRate globalInterestRate =
-                GlobalInterestRate.create(year, description, rate, applyPaymentMonth, applyInFirstWorkday);
-        return globalInterestRate;
     }
 
     private static final String _UPDATE_URI = "/update/";
@@ -201,10 +194,12 @@ public class GlobalInterestRateController extends TreasuryBaseController {
     }
 
     @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.POST)
-    public String update(@PathVariable("oid") GlobalInterestRate globalInterestRate, @RequestParam(value = "year",
-            required = false) int year, @RequestParam(value = "description", required = false) LocalizedString description,
-            @RequestParam(value = "rate", required = false) BigDecimal rate, @RequestParam(value = "applypaymentmonth",
-                    required = false) boolean applyPaymentMonth,
+    public String update(
+            @PathVariable("oid") @DateTimeFormat(iso = ISO.DATE) GlobalInterestRate globalInterestRate,
+            @RequestParam(value = "firstDay", required = false) LocalDate firstDay,
+            @RequestParam(value = "description", required = false) LocalizedString description,
+            @RequestParam(value = "rate", required = false) BigDecimal rate,
+            @RequestParam(value = "applypaymentmonth", required = false) boolean applyPaymentMonth,
             @RequestParam(value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, Model model,
             RedirectAttributes redirectAttributes) {
 
@@ -213,7 +208,7 @@ public class GlobalInterestRateController extends TreasuryBaseController {
         try {
             assertUserIsBackOfficeMember(model);
 
-            updateGlobalInterestRate(year, description, rate, applyPaymentMonth, applyInFirstWorkday, model);
+            getGlobalInterestRate(model).edit(firstDay, description, rate, applyPaymentMonth, applyInFirstWorkday);
 
             return redirect(READ_URL + getGlobalInterestRate(model).getExternalId(), model, redirectAttributes);
         } catch (TreasuryDomainException tde) {
@@ -222,11 +217,5 @@ public class GlobalInterestRateController extends TreasuryBaseController {
             addErrorMessage(treasuryBundle("label.error.update") + ex.getLocalizedMessage(), model);
         }
         return update(globalInterestRate, model);
-    }
-
-    @Atomic
-    public void updateGlobalInterestRate(int year, LocalizedString description, BigDecimal rate, boolean applyPaymentMonth,
-            boolean applyInFirstWorkday, Model model) {
-        getGlobalInterestRate(model).edit(year, description, rate, applyPaymentMonth, applyInFirstWorkday);
     }
 }

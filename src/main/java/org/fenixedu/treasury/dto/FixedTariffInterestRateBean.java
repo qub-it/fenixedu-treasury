@@ -43,7 +43,6 @@ public class FixedTariffInterestRateBean implements ITreasuryBean {
     private int numberOfDaysAfterDueDate;
     private boolean applyInFirstWorkday;
     private int maximumDaysToApplyPenalty;
-    private int maximumMonthsToApplyPenalty;
     private java.math.BigDecimal interestFixedAmount;
     private java.math.BigDecimal rate;
 
@@ -92,14 +91,6 @@ public class FixedTariffInterestRateBean implements ITreasuryBean {
         maximumDaysToApplyPenalty = value;
     }
 
-    public int getMaximumMonthsToApplyPenalty() {
-        return maximumMonthsToApplyPenalty;
-    }
-
-    public void setMaximumMonthsToApplyPenalty(int value) {
-        maximumMonthsToApplyPenalty = value;
-    }
-
     public java.math.BigDecimal getInterestFixedAmount() {
         return interestFixedAmount;
     }
@@ -132,7 +123,6 @@ public class FixedTariffInterestRateBean implements ITreasuryBean {
         this.setNumberOfDaysAfterDueDate(interestRate.getNumberOfDaysAfterDueDate());
         this.setApplyInFirstWorkday(interestRate.getApplyInFirstWorkday());
         this.setMaximumDaysToApplyPenalty(interestRate.getMaximumDaysToApplyPenalty());
-        this.setMaximumMonthsToApplyPenalty(interestRate.getMaximumMonthsToApplyPenalty());
         this.setInterestFixedAmount(interestRate.getInterestFixedAmount());
         this.setRate(interestRate.getRate());
     }

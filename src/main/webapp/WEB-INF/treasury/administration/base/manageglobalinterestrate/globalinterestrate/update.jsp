@@ -80,12 +80,18 @@ ${portal.toolkit()}
         <div class="panel-body">
             <div class="form-group row">
                 <div class="col-sm-2 control-label">
-                    <spring:message code="label.GlobalInterestRate.year" />
+                    <spring:message code="label.GlobalInterestRate.firstDay" />
                 </div>
 
                 <div class="col-sm-10">
-                    <input id="globalInterestRate_year" class="form-control" type="text" name="year" pattern="^[0-9]{4}?$"
-                        value='<c:out value='${not empty param.year ? param.year : globalInterestRate.year }'/>' required />
+	                   <input 
+	                   	id="globalInterestRate_firstDay" 
+	                   	class="form-control" 
+	                   	type="text" 
+	                   	name="firstDay" 
+	                   	bennu-date
+	                    value='<c:out value='${not empty param.firstDay ? param.firstDay : globalInterestRate.firstDay.toString("yyyy-MM-dd") }'/>'
+	                    required />
                 </div>
             </div>
             <div class="form-group row">
@@ -95,7 +101,7 @@ ${portal.toolkit()}
 
                 <div class="col-sm-10">
                     <input id="globalInterestRate_description" class="form-control" type="text" name="description" bennu-localized-string
-                        value='${not empty param.description ? param.description : globalInterestRate.description.json() } ' />
+                        value='${not empty param.description ? param.description : globalInterestRate.description.json() } ' required />
                 </div>
             </div>
             <div class="form-group row">

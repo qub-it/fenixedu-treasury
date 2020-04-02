@@ -154,6 +154,12 @@ ${portal.toolkit()}
                 <tbody>
                     <tr>
                         <th scope="row" class="col-xs-3"><spring:message
+                                code="label.GlobalInterestRate.firstDay" /></th>
+                        <td><c:out
+                                value='${globalInterestRate.firstDay.toString("yyyy-MM-dd")}' /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="col-xs-3"><spring:message
                                 code="label.GlobalInterestRate.year" /></th>
                         <td><c:out
                                 value='${globalInterestRate.year}' /></td>

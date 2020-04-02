@@ -112,6 +112,13 @@ ${portal.toolkit()}
                 <datatables:column cssStyle="width:10%">
                     <datatables:columnHead>
                         <spring:message
+                            code="label.GlobalInterestRate.firstDay" />
+                    </datatables:columnHead>
+                    <c:out value='${globalInterestRate.firstDay.toString("yyyy-MM-dd")}' />
+                </datatables:column>
+                <datatables:column cssStyle="width:10%">
+                    <datatables:columnHead>
+                        <spring:message
                             code="label.GlobalInterestRate.year" />
                     </datatables:columnHead>
                     <c:out value="${globalInterestRate.year}" />

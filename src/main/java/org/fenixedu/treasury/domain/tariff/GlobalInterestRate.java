@@ -32,28 +32,38 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
+import org.fenixedu.treasury.util.TreasuryConstants;
+import org.joda.time.LocalDate;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
 public class GlobalInterestRate extends GlobalInterestRate_Base {
 
-    public static Comparator<GlobalInterestRate> COMPARATOR_BY_YEAR = (o1, o2) -> {
-        final int c = Integer.compare(o1.getYear(), o2.getYear());
-        
+    public static final Comparator<? super GlobalInterestRate> FIRST_DATE_COMPARATOR = (o1, o2) -> {
+        final int c = o1.getFirstDay().compareTo(o2.getFirstDay());
+
         return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
     };
-    
+
+    public static Comparator<GlobalInterestRate> COMPARATOR_BY_YEAR = (o1, o2) -> {
+        final int c = Integer.compare(o1.getYear(), o2.getYear());
+
+        return c != 0 ? c : o1.getExternalId().compareTo(o2.getExternalId());
+    };
+
     protected GlobalInterestRate() {
         super();
         setDomainRoot(FenixFramework.getDomainRoot());
     }
 
-    protected void init(final int year, final LocalizedString description, final BigDecimal rate,
-            final boolean applyPaymentMonth, final boolean applyInFirstWorkday) {
-        setYear(year);
+    protected void init(LocalDate firstDay, final LocalizedString description, final BigDecimal rate, final boolean applyPaymentMonth,
+            final boolean applyInFirstWorkday) {
+        setFirstDay(firstDay);
+        setYear(firstDay.getYear());
         setDescription(description);
         setRate(rate);
         setApplyPaymentMonth(applyPaymentMonth);
@@ -63,15 +73,33 @@ public class GlobalInterestRate extends GlobalInterestRate_Base {
     }
 
     private void checkRules() {
-        if (findByYear(getYear()).count() > 1) {
-            throw new TreasuryDomainException("error.GlobalInterestRate.year.duplicated");
+        if(getFirstDay() == null) {
+            throw new TreasuryDomainException("error.GlobalInterestRate.firstDay.required");
+        }
+        
+        if (findByFirstDay(getFirstDay()).count() > 1) {
+            throw new TreasuryDomainException("error.GlobalInterestRate.firstDay.duplicated");
+        }
+        
+        if(getRate() == null) {
+            throw new TreasuryDomainException("error.GlobalInterestRate.rate.with.valid.value.required");
+        }
+        
+        if(StringUtils.isEmpty(getDescription().getContent())) {
+            throw new TreasuryDomainException("error.GlobalInterestRate.description.required");
+        }
+        
+        if(TreasuryConstants.isLessThan(getRate(), BigDecimal.ZERO) || 
+                TreasuryConstants.isGreaterThan(getRate(), TreasuryConstants.HUNDRED_PERCENT)) {
+            throw new TreasuryDomainException("error.GlobalInterestRate.rate.with.valid.value.required");
         }
     }
 
     @Atomic
-    public void edit(final int year, final LocalizedString description, final BigDecimal rate, final boolean applyPaymentMonth,
+    public void edit(LocalDate firstDay, final LocalizedString description, final BigDecimal rate, final boolean applyPaymentMonth,
             final boolean applyInFirstWorkday) {
-        setYear(year);
+        setYear(firstDay.getYear());
+        setFirstDay(firstDay);
         setDescription(description);
         setRate(rate);
         setApplyPaymentMonth(applyPaymentMonth);
@@ -79,7 +107,12 @@ public class GlobalInterestRate extends GlobalInterestRate_Base {
 
         checkRules();
     }
-    
+
+    @Deprecated
+    public int getYear() {
+        return super.getYear();
+    }
+
     public boolean isApplyPaymentMonth() {
         return super.getApplyPaymentMonth();
     }
@@ -100,10 +133,10 @@ public class GlobalInterestRate extends GlobalInterestRate_Base {
     }
 
     @Atomic
-    public static GlobalInterestRate create(final int year, final LocalizedString description, final BigDecimal rate,
+    public static GlobalInterestRate create(LocalDate firstDay, final LocalizedString description, final BigDecimal rate,
             boolean applyPaymentMonth, boolean applyInFirstWorkday) {
         GlobalInterestRate globalInterestRate = new GlobalInterestRate();
-        globalInterestRate.init(year, description, rate, applyPaymentMonth, applyInFirstWorkday);
+        globalInterestRate.init(firstDay, description, rate, applyPaymentMonth, applyInFirstWorkday);
         return globalInterestRate;
     }
 
@@ -125,6 +158,14 @@ public class GlobalInterestRate extends GlobalInterestRate_Base {
 
     public static Stream<GlobalInterestRate> findByRate(final BigDecimal rate) {
         return findAll().filter(i -> rate.equals(i.getRate()));
+    }
+    
+    public static Stream<GlobalInterestRate> findByFirstDay(LocalDate date) {
+        return findAll().filter(r -> r.getFirstDay().equals(date));
+    }
+    
+    public static Optional<GlobalInterestRate> findUniqueAppliedForDate(LocalDate date) {
+        return findAll().filter(r -> !r.getFirstDay().isAfter(date)).sorted(FIRST_DATE_COMPARATOR.reversed()).findFirst();
     }
 
 }

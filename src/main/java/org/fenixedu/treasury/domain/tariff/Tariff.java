@@ -52,7 +52,7 @@ public abstract class Tariff extends Tariff_Base {
             final DateTime endDate, final DueDateCalculationType dueDateCalculationType, final LocalDate fixedDueDate,
             final int numberOfDaysAfterCreationForDueDate, final boolean applyInterests, final InterestType interestType,
             final int numberOfDaysAfterDueDate, final boolean applyInFirstWorkday, final int maximumDaysToApplyPenalty,
-            final int maximumMonthsToApplyPenalty, final BigDecimal interestFixedAmount, final BigDecimal rate) {
+            final BigDecimal interestFixedAmount, final BigDecimal rate) {
         setFinantialEntity(finantialEntity);
         setProduct(product);
 
@@ -64,7 +64,7 @@ public abstract class Tariff extends Tariff_Base {
         setApplyInterests(applyInterests);
         if (getApplyInterests()) {
             InterestRate.createForTariff(this, interestType, numberOfDaysAfterDueDate, applyInFirstWorkday,
-                    maximumDaysToApplyPenalty, maximumMonthsToApplyPenalty, interestFixedAmount, rate);
+                    maximumDaysToApplyPenalty, interestFixedAmount, rate);
         }
     }
 
@@ -119,15 +119,6 @@ public abstract class Tariff extends Tariff_Base {
                 }
                 if (getInterestRate().getMaximumDaysToApplyPenalty() < 0) {
                     throw new TreasuryDomainException("error.Tariff.interestRate.maximumdaystoapplypenalty.invalid");
-                }
-            }
-            if (getInterestRate().getInterestType().isMonthly()) {
-                if (getInterestRate().getRate() == null || BigDecimal.ZERO.compareTo(getInterestRate().getRate()) >= 0) {
-                    throw new TreasuryDomainException("error.Tariff.interestRate.invalid");
-                }
-
-                if (getInterestRate().getMaximumMonthsToApplyPenalty() < 0) {
-                    throw new TreasuryDomainException("error.Tariff.interestRate.maximummonthstoapplypenalty.invalid");
                 }
             }
 

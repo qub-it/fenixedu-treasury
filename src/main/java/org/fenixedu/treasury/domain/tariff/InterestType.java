@@ -36,7 +36,7 @@ import org.fenixedu.commons.i18n.LocalizedString;
 
 public enum InterestType {
 
-    DAILY, MONTHLY, GLOBAL_RATE, FIXED_AMOUNT;
+    DAILY, GLOBAL_RATE, FIXED_AMOUNT;
 
     public boolean isDaily() {
         return this == DAILY;
@@ -44,10 +44,6 @@ public enum InterestType {
 
     public boolean isGlobalRate() {
         return this == GLOBAL_RATE;
-    }
-
-    public boolean isMonthly() {
-        return this == MONTHLY;
     }
 
     public boolean isFixedAmount() {

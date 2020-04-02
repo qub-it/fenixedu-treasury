@@ -194,12 +194,6 @@ ${portal.angularToolkit()}
                                 <td><c:out value='${fixedTariff.interestRate.maximumDaysToApplyPenalty}' /></td>
                             </tr>
                         </c:if>
-                        <c:if test="${fixedTariff.interestRate.interestType=='MONTHLY' }">
-                            <tr>
-                                <th scope="row" class="col-xs-3"><spring:message code="label.InterestRate.maximumMonthsToApplyPenalty" /></th>
-                                <td><c:out value='${fixedTariff.interestRate.maximumMonthsToApplyPenalty}' /></td>
-                            </tr>
-                        </c:if>
                         <c:if test="${fixedTariff.interestRate.interestType=='FIXED_AMOUNT' }">
                             <tr>
                                 <th scope="row" class="col-xs-3"><spring:message code="label.InterestRate.interestFixedAmount" /></th>
