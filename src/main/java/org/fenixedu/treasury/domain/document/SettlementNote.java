@@ -370,7 +370,7 @@ public class SettlementNote extends SettlementNote_Base {
 
             DebitEntry interestDebitEntry =
                     interestEntryBean.getDebitEntry().createInterestRateDebitEntry(interestEntryBean.getInterest(),
-                            bean.getDate().toDateTimeAtStartOfDay(), Optional.<DebitNote> ofNullable(interestDebitNote));
+                            new DateTime(), Optional.<DebitNote> ofNullable(interestDebitNote));
 
             if (interestEntryBean.isIncluded()) {
                 interestDebitNote.closeDocument();

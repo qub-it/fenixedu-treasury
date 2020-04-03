@@ -183,7 +183,8 @@ ${portal.angularToolkit()}
                                 <p>
                                     <strong><spring:message code="label.InterestEntry.calculatedInterest" /> </strong>
                                 </p>
-                                <p>&nbsp;</p> <c:forEach var="detail" items="${interestEntryBean.interest.interestInformationList}">
+                                <p>&nbsp;</p> 
+                                <c:forEach var="detail" items="${interestEntryBean.interest.interestInformationList}">
                                     <p>
                                         [
                                         <c:out value="${detail.begin}" />
@@ -193,11 +194,12 @@ ${portal.angularToolkit()}
                                     </p>
                                     <p style="">
                                         <em><spring:message code="label.InterestEntry.affectedAmount.description"
-                                                arguments="${settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor(detail.affectedAmount)},${detail.numberOfDays}" /></em>
+                                                arguments="${settlementNoteBean.debtAccount.finantialInstitution.currency.getValueFor(detail.affectedAmount)},${detail.numberOfDays},${detail.interestRate}" /></em>
                                     </p>
                                     <p>&nbsp;</p>
                                 </c:forEach>
-                                <p>&nbsp;</p> <c:if test='${ not empty  interestEntryBean.interest.createdInterestEntriesList}'>
+                                <p>&nbsp;</p> 
+                                <c:if test='${ not empty  interestEntryBean.interest.createdInterestEntriesList}'>
                                     <p>
                                         <strong><spring:message code="label.InterestEntry.createdInterest" /> </strong>
                                     </p>

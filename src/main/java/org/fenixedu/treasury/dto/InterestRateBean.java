@@ -26,13 +26,15 @@ public class InterestRateBean implements ITreasuryBean, Serializable {
         private LocalDate end;
         private BigDecimal amountPerUnit;
         private BigDecimal affectedAmount;
+        private BigDecimal interestRate;
 
-        private InterestInformationDetail(final BigDecimal amount, final LocalDate begin, final LocalDate end,
-                final BigDecimal amountPerUnit, final BigDecimal affectedAmount) {
+        private InterestInformationDetail(BigDecimal amount, LocalDate begin, LocalDate end,
+                BigDecimal amountPerUnit, BigDecimal affectedAmount, BigDecimal interestRate) {
             this.amount = amount;
             this.begin = begin;
             this.end = end;
             this.affectedAmount = affectedAmount;
+            this.interestRate = interestRate;
         }
 
         public BigDecimal getAmount() {
@@ -57,6 +59,10 @@ public class InterestRateBean implements ITreasuryBean, Serializable {
         
         public BigDecimal getAffectedAmount() {
             return affectedAmount;
+        }
+        
+        public BigDecimal getInterestRate() {
+            return interestRate;
         }
     }
 
@@ -102,8 +108,8 @@ public class InterestRateBean implements ITreasuryBean, Serializable {
     }
 
     public InterestInformationDetail addDetail(final BigDecimal amount, final LocalDate begin, final LocalDate end,
-            final BigDecimal amountPerUnit, final BigDecimal affectedAmount) {
-        final InterestInformationDetail detail = new InterestInformationDetail(amount, begin, end, amountPerUnit, affectedAmount);
+            final BigDecimal amountPerUnit, final BigDecimal affectedAmount, final BigDecimal interestRate) {
+        final InterestInformationDetail detail = new InterestInformationDetail(amount, begin, end, amountPerUnit, affectedAmount, interestRate);
 
         interestInformationList.add(detail);
 

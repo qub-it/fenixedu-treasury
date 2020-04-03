@@ -149,7 +149,7 @@ ${portal.toolkit()}
                                     </p>
                                     <p style="">
                                         <em><spring:message code="label.InterestEntry.affectedAmount.description"
-                                                arguments="${debitNote.debtAccount.finantialInstitution.currency.getValueFor(detail.affectedAmount)},${detail.numberOfDays}" /></em>
+                                                arguments="${debitNote.debtAccount.finantialInstitution.currency.getValueFor(detail.affectedAmount)},${detail.numberOfDays},${detail.interestRate}" /></em>
                                     </p>
                                     <p>&nbsp;</p>
                                 </c:forEach>

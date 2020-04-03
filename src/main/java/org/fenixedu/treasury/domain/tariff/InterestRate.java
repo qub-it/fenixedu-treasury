@@ -28,31 +28,22 @@
 package org.fenixedu.treasury.domain.tariff;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.fenixedu.treasury.domain.Currency;
 import org.fenixedu.treasury.domain.document.DebitEntry;
-import org.fenixedu.treasury.domain.document.SettlementEntry;
 import org.fenixedu.treasury.domain.exceptions.TreasuryDomainException;
 import org.fenixedu.treasury.dto.InterestRateBean;
 import org.fenixedu.treasury.util.TreasuryConstants;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeFieldType;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
-import org.joda.time.Months;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -145,17 +136,7 @@ public class InterestRate extends InterestRate_Base {
             return calculateForFixedAmount();
         }
 
-        LocalDate firstDayToChargeInterests =
-                applyOnFirstWorkdayIfNecessary(getDebitEntry().getDueDate().plusDays(numberOfDaysAfterDueDate()));
-
-        if (firstDayToChargeInterests.isBefore(paymentDate.minusYears(MAX_YEARS))) {
-            firstDayToChargeInterests = paymentDate.minusYears(MAX_YEARS);
-        }
-
-        NavigableMap<LocalDate, InterestCalculationEvent> orderedEvents = calculateEvents(firstDayToChargeInterests, paymentDate);
-
-        InterestRateBean result = calculateInterestAmount(withAllInterestValues, orderedEvents);
-        return result;
+        return calculateInterestAmount(withAllInterestValues, calculateEvents(paymentDate));
     }
 
     private InterestRateBean calculateInterestAmount(boolean withAllInterestValues,
@@ -175,7 +156,9 @@ public class InterestRate extends InterestRate_Base {
             BigDecimal numberOfDays = new BigDecimal(Days.daysBetween(key, eventDate).getDays());
             BigDecimal partialInterestAmount = event.interestRate.multiply(amountPerDay).multiply(numberOfDays);
 
-            result.addDetail(partialInterestAmount, key, eventDate.minusDays(1), amountPerDay, event.amountToPay);
+            result.addDetail(partialInterestAmount, key, eventDate.minusDays(1), amountPerDay, event.amountToPay,
+                    TreasuryConstants.defaultScale(event.interestRate).multiply(TreasuryConstants.HUNDRED_PERCENT).setScale(4,
+                            RoundingMode.HALF_EVEN));
 
             totalInterestAmount = totalInterestAmount.add(partialInterestAmount);
             totalOfDays += numberOfDays.intValue();
@@ -183,15 +166,15 @@ public class InterestRate extends InterestRate_Base {
             key = eventDate;
         }
 
-        result.setInterestAmount(getRelatedCurrency().getValueWithScale(totalInterestAmount));
-        result.setNumberOfDays(totalOfDays);
-
         if (!withAllInterestValues) {
             for (final Entry<LocalDate, BigDecimal> entry : createdInterestEntriesMap().entrySet()) {
                 result.addCreatedInterestEntry(entry.getKey(), entry.getValue());
                 totalInterestAmount = totalInterestAmount.subtract(entry.getValue());
             }
         }
+
+        result.setInterestAmount(getRelatedCurrency().getValueWithScale(totalInterestAmount));
+        result.setNumberOfDays(totalOfDays);
 
         return result;
     }
@@ -208,60 +191,63 @@ public class InterestRate extends InterestRate_Base {
         return result;
     }
 
-    private NavigableMap<LocalDate, InterestCalculationEvent> calculateEvents(LocalDate firstDayToChargeInterests,
-            LocalDate paymentDate) {
+    private NavigableMap<LocalDate, InterestCalculationEvent> calculateEvents(LocalDate paymentDate) {
         NavigableMap<LocalDate, BigDecimal> paymentsMap = createPaymentsMap(paymentDate);
+        LocalDate lastPayment = paymentsMap.lastKey();
 
-        LocalDate nextDayOfPaymentDate = paymentsMap.lastKey().plusDays(1);
-        if (!isApplyPaymentMonth(firstDayToChargeInterests)) {
-            nextDayOfPaymentDate = nextDayOfPaymentDate.withDayOfMonth(1).minusDays(1);
-        }
-
-        if (isMaximumDaysToApplyPenaltyApplied()
-                && Days.daysBetween(firstDayToChargeInterests, nextDayOfPaymentDate).getDays() > getMaximumDaysToApplyPenalty()) {
-            nextDayOfPaymentDate = firstDayToChargeInterests.plusDays(getMaximumDaysToApplyPenalty());
-        }
+        final LocalDate firstDayToChargeInterests = calculateFirstDayToChargeInterests(lastPayment);
+        final LocalDate nextDayOfInterestsCharge = calculateLastDayToChargeInterests(lastPayment, firstDayToChargeInterests).plusDays(1);
 
         BigDecimal amountToPayAtFirstDay = amountInDebtAtDay(paymentsMap, firstDayToChargeInterests.minusDays(1));
         BigDecimal interestRateAtFirstDay = interestRateValue(firstDayToChargeInterests);
 
         NavigableMap<LocalDate, InterestCalculationEvent> result = new TreeMap<>();
         result.put(firstDayToChargeInterests, new InterestCalculationEvent(amountToPayAtFirstDay, interestRateAtFirstDay));
-        result.put(nextDayOfPaymentDate, new InterestCalculationEvent(BigDecimal.ZERO, interestRateValue(nextDayOfPaymentDate)));
+        result.put(nextDayOfInterestsCharge, new InterestCalculationEvent(BigDecimal.ZERO, interestRateValue(nextDayOfInterestsCharge)));
 
-        for (Entry<LocalDate, BigDecimal> paymentsEntry : paymentsMap.entrySet()) {
-            LocalDate eventDate = paymentsEntry.getKey().plusDays(1);
+        paymentsMap.forEach((settlementPaymentDate, paidAmount) -> {
+            LocalDate eventDate = settlementPaymentDate.plusDays(1);
             if (eventDate.isBefore(firstDayToChargeInterests)) {
-                continue;
+                return;
             }
+            
+            result.putIfAbsent(eventDate,
+                    new InterestCalculationEvent(amountInDebtAtDay(paymentsMap, eventDate), interestRateValue(eventDate)));
+        });
 
-            if (!result.containsKey(eventDate)) {
-                result.put(eventDate, new InterestCalculationEvent(null, null));
-            }
-
-            result.get(eventDate).amountToPay = amountInDebtAtDay(paymentsMap, eventDate);
-            result.get(eventDate).interestRate = interestRateValue(eventDate);
-        }
-
-        for (GlobalInterestRate r : GlobalInterestRate.findAll().collect(Collectors.toList())) {
-            LocalDate eventDate = r.getFirstDay();
-            if (eventDate.isBefore(firstDayToChargeInterests)) {
-                continue;
-            }
-
-            if (eventDate.isAfter(nextDayOfPaymentDate)) {
-                continue;
-            }
-
-            if (!result.containsKey(eventDate)) {
-                result.put(eventDate, new InterestCalculationEvent(null, null));
-            }
-
-            result.get(eventDate).amountToPay = amountInDebtAtDay(paymentsMap, eventDate);
-            result.get(eventDate).interestRate = interestRateValue(eventDate);
-        }
+        GlobalInterestRate.findAll()
+                .filter(r -> !r.getFirstDay().isBefore(firstDayToChargeInterests))
+                .filter(r -> !r.getFirstDay().isAfter(nextDayOfInterestsCharge))
+                .forEach(r -> {
+                    LocalDate eventDate = r.getFirstDay();
+                    result.putIfAbsent(eventDate, new InterestCalculationEvent(amountInDebtAtDay(paymentsMap, eventDate), interestRateValue(eventDate)));
+                });
 
         return result;
+    }
+
+    private LocalDate calculateFirstDayToChargeInterests(LocalDate lastPayment) {
+        LocalDate firstDayToChargeInterests =
+                applyOnFirstWorkdayIfNecessary(getDebitEntry().getDueDate().plusDays(numberOfDaysAfterDueDate()));
+
+        if (firstDayToChargeInterests.isBefore(lastPayment.minusYears(MAX_YEARS))) {
+            firstDayToChargeInterests = lastPayment.minusYears(MAX_YEARS);
+        }
+        
+        return firstDayToChargeInterests;
+    }
+
+    private LocalDate calculateLastDayToChargeInterests(LocalDate lastPayment, LocalDate firstDayToChargeInterests) {
+        LocalDate nextDayOfPaymentDate = lastPayment;
+        if (!isApplyPaymentMonth(lastPayment)) {
+            nextDayOfPaymentDate = nextDayOfPaymentDate.withDayOfMonth(1).minusDays(1);
+        }
+
+        if (isMaximumDaysToApplyPenaltyApplied()
+                && Days.daysBetween(firstDayToChargeInterests, nextDayOfPaymentDate).getDays() > getMaximumDaysToApplyPenalty()) {
+            nextDayOfPaymentDate = firstDayToChargeInterests.plusDays(getMaximumDaysToApplyPenalty() - 1);
+        }
+        return nextDayOfPaymentDate;
     }
 
     private BigDecimal amountInDebtAtDay(NavigableMap<LocalDate, BigDecimal> paymentsMap, LocalDate eventDate) {
