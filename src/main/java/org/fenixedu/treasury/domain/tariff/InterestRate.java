@@ -121,19 +121,9 @@ public class InterestRate extends InterestRate_Base {
         checkRules();
     }
 
-    private class InterestCalculationEvent {
-        private BigDecimal amountToPay;
-        private BigDecimal interestRate;
-
-        InterestCalculationEvent(BigDecimal amountToPay, BigDecimal interestRateAtEventDate) {
-            this.amountToPay = amountToPay;
-            this.interestRate = interestRateAtEventDate;
-        }
-    }
-
     public InterestRateBean calculateInterests(LocalDate paymentDate, boolean withAllInterestValues) {
         if (getInterestType().isFixedAmount()) {
-            return calculateForFixedAmount();
+            return calculateForFixedAmount(withAllInterestValues);
         }
 
         return calculateInterestAmount(withAllInterestValues, calculateEvents(paymentDate));
@@ -172,6 +162,10 @@ public class InterestRate extends InterestRate_Base {
                 totalInterestAmount = totalInterestAmount.subtract(entry.getValue());
             }
         }
+        
+        if(TreasuryConstants.isNegative(totalInterestAmount)) {
+            totalInterestAmount = BigDecimal.ZERO;
+        }
 
         result.setInterestAmount(getRelatedCurrency().getValueWithScale(totalInterestAmount));
         result.setNumberOfDays(totalOfDays);
@@ -183,9 +177,17 @@ public class InterestRate extends InterestRate_Base {
         TreeMap<LocalDate, BigDecimal> result = new TreeMap<LocalDate, BigDecimal>();
 
         for (DebitEntry interestDebitEntry : getDebitEntry().getInterestDebitEntriesSet()) {
-            if (!interestDebitEntry.isAnnulled()) {
-                result.put(interestDebitEntry.getEntryDateTime().toLocalDate(), interestDebitEntry.getAmountWithVat());
+            if (interestDebitEntry.isAnnulled()) {
+                continue;
             }
+            
+            if(!TreasuryConstants.isPositive(interestDebitEntry.getAvailableAmountForCredit())) {
+                continue;
+            }
+            
+            LocalDate interestEntryDateTime = interestDebitEntry.getEntryDateTime().toLocalDate();
+            result.putIfAbsent(interestEntryDateTime, BigDecimal.ZERO);
+            result.put(interestEntryDateTime, result.get(interestEntryDateTime).add(interestDebitEntry.getAvailableAmountForCredit()));
         }
 
         return result;
@@ -196,14 +198,16 @@ public class InterestRate extends InterestRate_Base {
         LocalDate lastPayment = paymentsMap.lastKey();
 
         final LocalDate firstDayToChargeInterests = calculateFirstDayToChargeInterests(lastPayment);
-        final LocalDate nextDayOfInterestsCharge = calculateLastDayToChargeInterests(lastPayment, firstDayToChargeInterests).plusDays(1);
+        final LocalDate nextDayOfInterestsCharge =
+                calculateLastDayToChargeInterests(lastPayment, firstDayToChargeInterests).plusDays(1);
 
         BigDecimal amountToPayAtFirstDay = amountInDebtAtDay(paymentsMap, firstDayToChargeInterests.minusDays(1));
         BigDecimal interestRateAtFirstDay = interestRateValue(firstDayToChargeInterests);
 
         NavigableMap<LocalDate, InterestCalculationEvent> result = new TreeMap<>();
         result.put(firstDayToChargeInterests, new InterestCalculationEvent(amountToPayAtFirstDay, interestRateAtFirstDay));
-        result.put(nextDayOfInterestsCharge, new InterestCalculationEvent(BigDecimal.ZERO, interestRateValue(nextDayOfInterestsCharge)));
+        result.put(nextDayOfInterestsCharge,
+                new InterestCalculationEvent(BigDecimal.ZERO, interestRateValue(nextDayOfInterestsCharge)));
 
         paymentsMap.forEach((settlementPaymentDate, paidAmount) -> {
             LocalDate eventDate = settlementPaymentDate.plusDays(1);
@@ -211,16 +215,19 @@ public class InterestRate extends InterestRate_Base {
                 return;
             }
             
+            if(eventDate.isAfter(nextDayOfInterestsCharge)) {
+                return;
+            }
+
             result.putIfAbsent(eventDate,
                     new InterestCalculationEvent(amountInDebtAtDay(paymentsMap, eventDate), interestRateValue(eventDate)));
         });
 
-        GlobalInterestRate.findAll()
-                .filter(r -> !r.getFirstDay().isBefore(firstDayToChargeInterests))
-                .filter(r -> !r.getFirstDay().isAfter(nextDayOfInterestsCharge))
-                .forEach(r -> {
+        GlobalInterestRate.findAll().filter(r -> !r.getFirstDay().isBefore(firstDayToChargeInterests))
+                .filter(r -> !r.getFirstDay().isAfter(nextDayOfInterestsCharge)).forEach(r -> {
                     LocalDate eventDate = r.getFirstDay();
-                    result.putIfAbsent(eventDate, new InterestCalculationEvent(amountInDebtAtDay(paymentsMap, eventDate), interestRateValue(eventDate)));
+                    result.putIfAbsent(eventDate, new InterestCalculationEvent(amountInDebtAtDay(paymentsMap, eventDate),
+                            interestRateValue(eventDate)));
                 });
 
         return result;
@@ -233,7 +240,7 @@ public class InterestRate extends InterestRate_Base {
         if (firstDayToChargeInterests.isBefore(lastPayment.minusYears(MAX_YEARS))) {
             firstDayToChargeInterests = lastPayment.minusYears(MAX_YEARS);
         }
-        
+
         return firstDayToChargeInterests;
     }
 
@@ -254,7 +261,7 @@ public class InterestRate extends InterestRate_Base {
         BigDecimal amountToPay = getDebitEntry().getAmountWithVat();
 
         for (Entry<LocalDate, BigDecimal> entry : paymentsMap.entrySet()) {
-            if (entry.getKey().isAfter(eventDate)) {
+            if (!entry.getKey().isBefore(eventDate)) {
                 break;
             }
 
@@ -269,17 +276,11 @@ public class InterestRate extends InterestRate_Base {
 
         getDebitEntry().getSettlementEntriesSet().stream().filter(s -> !s.isAnnulled()).forEach(s -> {
             LocalDate settlementPaymentDate = s.getSettlementNote().getPaymentDate().toLocalDate();
-            if (!result.containsKey(settlementPaymentDate)) {
-                result.put(settlementPaymentDate, BigDecimal.ZERO);
-            }
-
+            result.putIfAbsent(settlementPaymentDate, BigDecimal.ZERO);
             result.put(settlementPaymentDate, result.get(settlementPaymentDate).add(s.getAmount()));
         });
 
-        if (!result.containsKey(paymentDate)) {
-            result.put(paymentDate, BigDecimal.ZERO);
-        }
-
+        result.putIfAbsent(paymentDate, BigDecimal.ZERO);
         result.put(paymentDate, result.get(paymentDate).add(getDebitEntry().getOpenAmount()));
 
         return result;
@@ -329,10 +330,22 @@ public class InterestRate extends InterestRate_Base {
         return null;
     }
 
-    private InterestRateBean calculateForFixedAmount() {
+    private InterestRateBean calculateForFixedAmount(boolean withAllInterestValues) {
         final InterestRateBean result = new InterestRateBean(getInterestType());
-        result.setInterestAmount(this.getRelatedCurrency().getValueWithScale(getInterestFixedAmount()));
+        BigDecimal totalInterestAmount = this.getRelatedCurrency().getValueWithScale(getInterestFixedAmount());
 
+        if (!withAllInterestValues) {
+            for (final Entry<LocalDate, BigDecimal> entry : createdInterestEntriesMap().entrySet()) {
+                result.addCreatedInterestEntry(entry.getKey(), entry.getValue());
+                totalInterestAmount = totalInterestAmount.subtract(entry.getValue());
+            }
+        }
+        
+        if(TreasuryConstants.isNegative(totalInterestAmount)) {
+            totalInterestAmount = BigDecimal.ZERO;
+        }
+        
+        result.setInterestAmount(getRelatedCurrency().getValueWithScale(totalInterestAmount));
         return result;
     }
 
@@ -433,5 +446,15 @@ public class InterestRate extends InterestRate_Base {
             final BigDecimal interestFixedAmount, final BigDecimal rate) {
         return new InterestRate(null, debitEntry, interestType, numberOfDaysAfterDueDate, applyInFirstWorkday,
                 maximumDaysToApplyPenalty, interestFixedAmount, rate);
+    }
+
+    private class InterestCalculationEvent {
+        private BigDecimal amountToPay;
+        private BigDecimal interestRate;
+
+        InterestCalculationEvent(BigDecimal amountToPay, BigDecimal interestRateAtEventDate) {
+            this.amountToPay = amountToPay;
+            this.interestRate = interestRateAtEventDate;
+        }
     }
 }

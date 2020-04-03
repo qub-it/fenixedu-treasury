@@ -112,7 +112,9 @@ ${portal.toolkit()}
                 <div class="col-sm-4">
                     <div class="input-group">
                         <div class="input-group-addon">%</div>
-                        <input id="globalInterestRate_rate" class="form-control" type="text" pattern="^[0-9]+(\.[0-9]{1,4})?$" name="rate"
+                        <input id="globalInterestRate_rate" class="form-control" type="text" 
+	                        pattern="^100(\.0{1,2})?|[0-9]{1,2}(\.[0-9]{1,4})?$"
+	                        name="rate"
                             value='<c:out value='${not empty param.rate ? param.rate : globalInterestRate.rate }'/>' required />
                     </div>
                 </div>

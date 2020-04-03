@@ -195,12 +195,13 @@ public class GlobalInterestRateController extends TreasuryBaseController {
 
     @RequestMapping(value = _UPDATE_URI + "{oid}", method = RequestMethod.POST)
     public String update(
-            @PathVariable("oid") @DateTimeFormat(iso = ISO.DATE) GlobalInterestRate globalInterestRate,
-            @RequestParam(value = "firstDay", required = false) LocalDate firstDay,
+            @PathVariable("oid") GlobalInterestRate globalInterestRate,
+            @RequestParam(value = "firstDay", required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate firstDay,
             @RequestParam(value = "description", required = false) LocalizedString description,
             @RequestParam(value = "rate", required = false) BigDecimal rate,
             @RequestParam(value = "applypaymentmonth", required = false) boolean applyPaymentMonth,
-            @RequestParam(value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, Model model,
+            @RequestParam(value = "applyinfirstworkday", required = false) boolean applyInFirstWorkday, 
+            Model model,
             RedirectAttributes redirectAttributes) {
 
         setGlobalInterestRate(globalInterestRate, model);
