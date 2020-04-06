@@ -238,7 +238,7 @@ public class InterestRate extends InterestRate_Base {
                 applyOnFirstWorkdayIfNecessary(getDebitEntry().getDueDate().plusDays(numberOfDaysAfterDueDate()));
 
         if (firstDayToChargeInterests.isBefore(lastPayment.minusYears(MAX_YEARS))) {
-            firstDayToChargeInterests = lastPayment.minusYears(MAX_YEARS);
+            firstDayToChargeInterests = lastPayment.minusYears(MAX_YEARS).plusDays(1);
         }
 
         return firstDayToChargeInterests;
